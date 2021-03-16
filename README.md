@@ -1,5 +1,9 @@
 # bike_computer_esp32
 
+## TODO:
+Add travis CI
+Docker image for build environment?
+clang-tidy?
 ## Connect to uart
 screen /dev/ttyUSB0 115200
 
@@ -14,3 +18,6 @@ cd esp-idf
 cd bike_computer_esp32
 idf.py build (can be skipped)
 idf.py -p /dev/ttyUSB0 flash
+
+### One liner:
+idf.py --ccache -p /dev/ttyUSB0 flash  monitor

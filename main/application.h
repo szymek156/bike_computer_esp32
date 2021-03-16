@@ -4,7 +4,8 @@
 extern "C" {
 #endif
 
-void SayHello();
+/** @brief Entrypoint for cpp world */
+void StartApplication();
 
 #ifdef __cplusplus
 }
