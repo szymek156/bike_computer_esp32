@@ -1,0 +1,35 @@
+﻿---
+Language:        Cpp
+BasedOnStyle:  Google
+BinPackArguments: false
+BinPackParameters: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+AllowAllConstructorInitializersOnNextLine: false
+
+ColumnLimit:     100
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortLambdasOnASingleLine: false
+#UseTab:          Never
+IndentWidth:     4
+AccessModifierOffset: -3
+
+IncludeCategories:
+
+
+  - Regex:           '^<.*(\.hpp|\.h)>'
+    Priority:        3
+
+  - Regex:           '^<.*'
+    Priority:        2
+
+  - Regex:           '.*'
+    Priority:        1
+
+IncludeIsMainRegex: '([-_](test|unittest))?$'
+
+SortIncludes:    true
+...
