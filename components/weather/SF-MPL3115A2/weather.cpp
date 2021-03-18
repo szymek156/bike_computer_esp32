@@ -2,99 +2,91 @@
 
 #include "registers.h"
 
-Weather::Weather() {
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+#include <thread>
+
+#include <esp_log.h>
+
+namespace bk {
+static const i2c_port_t I2C_PORT = I2C_NUM_0;
+static const int SDA_PIN = 19;
+static const int SCL_PIN = 18;
+
+Weather::Weather() : i2c_(I2C(DEVICE_I2C_ADDRESS, I2C_PORT, SDA_PIN, SCL_PIN)) {
 }
 
 Weather::~Weather() {
 }
 
 bool Weather::init() {
-    // Establish i2c communication
-    // - set mode of operation as master
-    // - assign GPIO pins for SDA and SCL
-    // - set internal pullups resistors
-    // - set clk speed
+    ESP_LOGD(TAG, "Initializing");
 
-    i2c_config_t conf = {};
-    conf.mode = I2C_MODE_MASTER;
-    conf.sda_io_num = SDA_PIN;
-    conf.scl_io_num = SCL_PIN;
-    conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.master.clk_speed = 100000;
-    i2c_param_config(I2C_NUM_0, &conf);
+    // Configure the device
 
-    // Install the driver
-    i2c_driver_install(I2C_NUM_0, I2C_MODE_MASTER, 0, 0, 0);
-
-    // using namespace Common;
-
-    // _fd = wiringPiI2CSetup(DEVICE_I2C_ADDRESS);
-
-    // _log->info("fdopened: {}", _fd);
-
-    CTRL_REG1 ctrl1;
+    // Set to altimeter, oversampling to 128
+    CTRL_REG1 ctrl1 = {};
     ctrl1.OS = 0b111;
     ctrl1.ALT = 1;
 
-    // Set to altimeter, oversampling to 128
-    // watch(wiringPiI2CWriteReg8(_fd, Addr::CTRL_REG1, toBits(ctrl1)));
+    ESP_ERROR_CHECK(i2c_.write_slave_reg(Addr::CTRL_REG1, toBits(ctrl1)));
 
-    PT_DATA_CFG ptCfg;
+    // Events from temp and pressure
+    PT_DATA_CFG ptCfg = {};
     ptCfg.DREM = 1;
     ptCfg.PDEFE = 1;
     ptCfg.TDEFE = 1;
+    ESP_ERROR_CHECK(i2c_.write_slave_reg(Addr::PT_DATA_CFG, toBits(ptCfg)));
 
-    // Events from temp and pressure
-    // watch(wiringPiI2CWriteReg8(_fd, Addr::PT_DATA_CFG, toBits(ptCfg)));
-
-    ctrl1.SBYB = 1;
     // Activate
-    // watch(wiringPiI2CWriteReg8(_fd, Addr::CTRL_REG1, toBits(ctrl1)));
+    ctrl1.SBYB = 1;
+    ESP_ERROR_CHECK(i2c_.write_slave_reg(Addr::CTRL_REG1, toBits(ctrl1)));
 
     return true;
 }
 
 void Weather::run() {
-    // if (not init()) {
-    //     _log->error("Failed to init, good bye");
+    init();
+    ESP_LOGD(TAG, "Is running...");
 
-    //     return;
-    // }
+    auto isDataReady = [](uint8_t status) {
+        return (status & STATUS_MASK::PTDR);
+    };
 
-    // messages::Weather data;
-    // data.altitudeMeters = NAN;
-    // data.tempCelsius = NAN;
+    while (true) {
+        uint8_t status;
+        ESP_ERROR_CHECK(i2c_.read_slave_reg(Addr::STATUS, &status));
 
-    // while (true) {
-    //     int dataReady = wiringPiI2CReadReg8(_fd, Addr::STATUS);
+        ESP_LOGV(TAG, "Status register 0x%X", status);
 
-    //     if (dataReady & 0x8) {
-    //         int outpmsb = wiringPiI2CReadReg8(_fd, Addr::OUT_P_MSB);
-    //         int outpcsb = wiringPiI2CReadReg8(_fd, Addr::OUT_P_CSB);
-    //         int outplsb = wiringPiI2CReadReg8(_fd, Addr::OUT_P_LSB);
+        if (isDataReady(status)) {
+            uint8_t out_p_msb;
+            ESP_ERROR_CHECK(i2c_.read_slave_reg(Addr::OUT_P_MSB, &out_p_msb));
 
-    //         float tempcsb = (outplsb >> 4) / 16.0;
+            uint8_t out_p_csb;
+            ESP_ERROR_CHECK(i2c_.read_slave_reg(Addr::OUT_P_CSB, &out_p_csb));
 
-    //         int outtmsb = wiringPiI2CReadReg8(_fd, Addr::OUT_T_MSB);
-    //         int outtlsb = wiringPiI2CReadReg8(_fd, Addr::OUT_T_LSB);
+            uint8_t out_p_lsb;
+            ESP_ERROR_CHECK(i2c_.read_slave_reg(Addr::OUT_P_LSB, &out_p_lsb));
 
-    //         float outA = (float)((outpmsb << 8) | outpcsb) + tempcsb;
-    //         float outT = outtmsb + ((outtlsb >> 4) / 16.0);
+            float temp_csb = (out_p_lsb >> 4) / 16.0;
 
-    //         data.altitudeMeters = outA;
-    //         data.tempCelsius = outT;
+            uint8_t out_t_msb;
+            ESP_ERROR_CHECK(i2c_.read_slave_reg(Addr::OUT_T_MSB, &out_t_msb));
 
-    //         _log->debug("weather: {}", data);
+            uint8_t out_t_lsb;
+            ESP_ERROR_CHECK(i2c_.read_slave_reg(Addr::OUT_T_LSB, &out_t_lsb));
 
-    //         messages::Message<messages::Weather> msg(data);
+            float outA = (float)((out_p_msb << 8) | out_p_csb) + temp_csb;
+            float outT = out_t_msb + ((out_t_lsb >> 4) / 16.0);
 
-    //         _publisher.send(msg);
+            ESP_LOGD(TAG, "Alt %f [m], Temp %f [c]", outA, outT);
 
-    //     } else {
-    //         _log->warn("data not ready");
-    //     }
+        } else {
+            ESP_LOGW(TAG, "Data NOT ready");
+        }
 
-    //     std::this_thread::sleep_for(std::chrono::milliseconds(800));
-    // }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
 }
+
+}  // namespace bk

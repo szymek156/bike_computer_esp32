@@ -1,7 +1,7 @@
 #pragma once
+#include <cstdint>
+namespace bk {
 static const int DEVICE_I2C_ADDRESS = 0x60;
-static const int SDA_PIN = 19;
-static const int SCL_PIN = 18;
 
 struct Addr {
     static const int STATUS = 0x00;
@@ -53,8 +53,8 @@ struct Addr {
 };
 
 template <class T>
-unsigned int toBits(const T &data) {
-    return *((unsigned char *)&data);
+const uint8_t *toBits(const T &data) {
+    return ((const uint8_t *)&data);
 }
 
 struct PT_DATA_CFG {
@@ -71,3 +71,9 @@ struct CTRL_REG1 {
     unsigned RAW : 1;
     unsigned ALT : 1;
 };
+
+struct STATUS_MASK {
+    static const uint8_t PTDR = 1 << 3;
+};
+
+}  // namespace bk

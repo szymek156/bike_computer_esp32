@@ -4,6 +4,7 @@
 Add travis CI
 Docker image for build environment?
 clang-tidy?
+Calibrate altitude
 ## Connect to uart
 screen /dev/ttyUSB0 115200
 
