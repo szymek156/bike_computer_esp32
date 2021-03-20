@@ -1,7 +1,6 @@
 #include "application.h"
-// #include "i2c_scan.h"
 
 void app_main(void) {
+    // Go to C++ world
     StartApplication();
-    // i2c_scan();
 }

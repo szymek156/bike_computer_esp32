@@ -6,9 +6,11 @@ cmake_minimum_required(VERSION 3.5)
 
 # Here is the place to select hardware/platform specific components
 # Be careful with selecting names, i2c, esp32 are so generic, cmake goes crazy,
-# hence for_ prefix
-list(APPEND EXTRA_COMPONENT_DIRS "components/i2c/for_esp32")
+# hence for_ prefix and _wrap suffix
+list(APPEND EXTRA_COMPONENT_DIRS "components/for_esp32/i2c_wrap")
+list(APPEND EXTRA_COMPONENT_DIRS "components/for_esp32/uart_wrap")
 list(APPEND EXTRA_COMPONENT_DIRS "components/weather/SF-MPL3115A2")
+list(APPEND EXTRA_COMPONENT_DIRS "components/gnss/NEO-7M-C")
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(bike_computer_esp32)
