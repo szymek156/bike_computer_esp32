@@ -19,20 +19,20 @@
  */
 
 #pragma once
+#include "sensor_data.h"
 namespace bk {
 class Display {
  public:
     Display();
     virtual ~Display();
 
-    void run();
+    void invalidate();
+    void drawWeatherData(const WeatherData &data);
+    void drawGNSSData(const GNSSData &data);
 
  protected:
     void prettyClean();
-
     void drawTrackData();
-    void drawGPSData();
-    void drawWeatherData();
 };
 
 }  // namespace bk

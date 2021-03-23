@@ -1,16 +1,20 @@
 #pragma once
+#include "abstract_task.h"
 #include "freertos/FreeRTOS.h"
 #include "nmea_parser.h"
 #include "uart_wrapper.h"
+
 namespace bk {
-class GNSS {
+class GNSS : public AbstractTask {
  public:
     GNSS();
     ~GNSS();
 
-    void run();
+    void start() override;
 
  protected:
+    void run() override;
+
     static constexpr const char *TAG = "GNSS";
     QueueHandle_t event_queue_;
     UART uart_;

@@ -20,7 +20,9 @@
 
 #include "display.h"
 
+#include <chrono>
 #include <random>
+#include <thread>
 
 #include <epd2in9.h>
 #include <epdpaint.h>
@@ -38,6 +40,15 @@ static Paint paint(frame_buffer, _epd.width, _epd.height);
 #define UNCOLORED 1
 
 Display::Display() {
+    prettyClean();
+
+    if (_epd.Init(lut_partial_update) != 0) {
+        // _log->error("e-Paper init failed\n");
+        return;
+    }
+
+    paint.SetRotate(ROTATE_270);
+    paint.Clear(UNCOLORED);
 }
 
 Display::~Display() {
@@ -58,37 +69,27 @@ void Display::prettyClean() {
 void Display::drawTrackData() {
 }
 
-void Display::drawGPSData() {
+void Display::drawGNSSData(const GNSSData &data) {
 }
 
-void Display::drawWeatherData() {
+void Display::drawWeatherData(const WeatherData& data) {
+    const int strSize = 128;
+    char message[strSize];
+
+    snprintf(message, strSize, "SENSOR:");
+    paint.DrawStringAt(0, 78, message, &Font20, COLORED);
+
+    snprintf(message, strSize, "TMP   %5.2f", data.temp_c);
+    paint.DrawStringAt(0, 95, message, &Font16, COLORED);
+
+    snprintf(message, strSize, "ALT  %7.2f", data.altitude_m);
+    paint.DrawStringAt(0, 110, message, &Font16, COLORED);
 }
 
-void Display::run() {
-    prettyClean();
-
-    if (_epd.Init(lut_partial_update) != 0) {
-        // _log->error("e-Paper init failed\n");
-        return;
-    }
-
-    paint.SetRotate(ROTATE_90);
+void Display::invalidate() {
+    _epd.SetFrameMemory(paint.GetImage(), 0, 0, _epd.width, _epd.height);
+    _epd.DisplayFrame();
     paint.Clear(UNCOLORED);
-
-    int d = 0;
-    while (true) {
-        d++;
-        paint.Clear(UNCOLORED);
-
-        const int strSize = 128;
-        char message[strSize];
-
-        snprintf(message, strSize, "It works!: %d", d);
-        paint.DrawStringAt(0, 78, message, &Font20, COLORED);
-
-        _epd.SetFrameMemory(paint.GetImage(), 0, 0, _epd.width, _epd.height);
-        _epd.DisplayFrame();
-    }
 }
 
 }  // namespace bk

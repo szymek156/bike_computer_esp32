@@ -1,5 +1,7 @@
 #include "gnss.h"
-#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
+
+#include "sensor_data.h"
+// #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include <esp_log.h>
 #include <string.h>
 #include <uart_wrapper.h>
@@ -10,7 +12,8 @@ static const int RX_PIN = 16;
 static const int UART_PORT = UART_NUM_2;
 
 GNSS::GNSS()
-    : event_queue_(nullptr),
+    : AbstractTask(sizeof(GNSSData)),
+      event_queue_(nullptr),
       uart_(BAUD_RATE, RX_PIN, UART_PORT, &event_queue_),
       nmea_(nmea_parser_create()) {
 }
@@ -19,9 +22,13 @@ GNSS::~GNSS() {
     nmea_parser_free(nmea_);
 }
 
+void GNSS::start() {
+    start_execution("GNSS");
+}
+
 void GNSS::run() {
     uart_event_t event;
-    while (1) {
+    while (true) {
         if (xQueueReceive(event_queue_, &event, pdMS_TO_TICKS(200))) {
             switch (event.type) {
                 case UART_DATA:
@@ -78,6 +85,48 @@ void GNSS::run() {
                                          gps.sats_in_use,
                                          gps.sats_in_view,
                                          gps.valid);
+
+                                GNSSData data;
+                                data.date.day = gps.date.day;
+                                data.date.month = gps.date.month;
+                                data.date.year = gps.date.year + 2000;
+
+                                data.time.hour = gps.tim.hour;
+                                data.time.min = gps.tim.minute;
+                                data.time.sec = gps.tim.second;
+
+                                data.latitude = gps.latitude;
+                                data.longitude = gps.longitude;
+                                data.altitude = gps.altitude;
+
+                                // TODO: to km/h
+                                data.speed_kmh = gps.speed * 3.6;
+                                data.track_degrees = gps.cog;
+
+                                data.fix_status = (GNSSData::FixStatus)gps.fix_mode;
+
+                                // TODO:
+
+                                //    float hdop = minmea_tofloat(&frame.hdop);
+
+                                //     using qual = messages::GPSData::FixQuality;
+                                //     static const qual qualities[] =
+                                //     { qual::ideal, qual::excellent, qual::good, qual::moderate,
+                                //             qual::fair, qual::poor};
+
+                                //     _gpsData.fixQuality = *std::find_if(std::cbegin(qualities),
+                                //     std::cend(qualities),
+                                //                             [hdop](qual range)
+                                //                             { return hdop <= range || range ==
+                                //                             qual::poor;});
+
+                                // data.fix_quality
+                                data.sats_in_view = gps.sats_in_view;
+                                data.sats_tracked = gps.sats_in_use;
+
+                                if (xQueueOverwrite(queue_, &data) != pdPASS) {
+                                    ESP_LOGE(TAG, "Failed to send data");
+                                }
                             }
                         }
                     } else {
