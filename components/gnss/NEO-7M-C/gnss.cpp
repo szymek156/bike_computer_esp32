@@ -1,7 +1,8 @@
 #include "gnss.h"
 
-#include "sensor_data.h"
 // #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+#include <ctime>
+
 #include <esp_log.h>
 #include <string.h>
 #include <uart_wrapper.h>
@@ -87,19 +88,24 @@ void GNSS::run() {
                                          gps.valid);
 
                                 GNSSData data;
-                                data.date.day = gps.date.day;
-                                data.date.month = gps.date.month;
-                                data.date.year = gps.date.year + 2000;
-
-                                data.time.hour = gps.tim.hour;
-                                data.time.min = gps.tim.minute;
-                                data.time.sec = gps.tim.second;
+                                /* Day.		[1-31] */
+                                data.date_time.tm_mday = gps.date.day;
+                                /* Month.	[0-11] */
+                                data.date_time.tm_mon = gps.date.month - 1;
+                                /* Year	- 1900.  */
+                                data.date_time.tm_year = gps.date.year + 2000 - 1900;
+                                /* Hours.	[0-23] */
+                                data.date_time.tm_hour = gps.tim.hour;
+                                /* Minutes.	[0-59] */
+                                data.date_time.tm_min = gps.tim.minute;
+                                /* Seconds.	[0-60] (1 leap second) */
+                                data.date_time.tm_sec = gps.tim.second;
 
                                 data.latitude = gps.latitude;
                                 data.longitude = gps.longitude;
                                 data.altitude = gps.altitude;
 
-                                // TODO: to km/h
+                                // Converting to km/h
                                 data.speed_kmh = gps.speed * 3.6;
                                 data.track_degrees = gps.cog;
 
@@ -124,6 +130,9 @@ void GNSS::run() {
                                 data.sats_in_view = gps.sats_in_view;
                                 data.sats_tracked = gps.sats_in_use;
 
+                                setCorrectTZ(data);
+
+                                ESP_LOGI(TAG, "GNSS data");
                                 if (xQueueOverwrite(queue_, &data) != pdPASS) {
                                     ESP_LOGE(TAG, "Failed to send data");
                                 }
@@ -140,5 +149,23 @@ void GNSS::run() {
             }
         }
     }
+}
+
+void GNSS::setCorrectTZ(GNSSData &data) {
+    // TODO: use something like https://github.com/BertoldVdb/ZoneDetect
+    // TODO: TZ could be set to the system using esp32 api
+    // TODO: chrono calendar would be used someday
+
+    // This is cumbersome, but handling date and time in shitty in C++
+    // and even shittier (congratulations!) in C/POSIX whatever you call it
+    static const int UTC_1 = 60 * 60;
+
+    std::time_t secs_from_epoch = mktime(&(data.date_time));
+
+    secs_from_epoch += UTC_1;
+
+    data.date_time = *std::localtime(&secs_from_epoch);
+
+    ESP_LOGV(TAG, "local_time %s", std::asctime(&data.date_time));
 }
 }  // namespace bk

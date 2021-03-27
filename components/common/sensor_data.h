@@ -1,5 +1,5 @@
 #pragma once
-
+#include <ctime>
 namespace bk {
 struct WeatherData {
     float altitude_m;
@@ -7,18 +7,6 @@ struct WeatherData {
 };
 
 struct GNSSData {
-    struct Date {
-        int day;
-        int month;
-        int year;
-    };
-
-    struct Time {
-        int hour;
-        int min;
-        int sec;
-    };
-
     enum FixStatus { noFix = 1, fix2d = 2, fix3d = 3 };
 
     enum FixQuality {
@@ -31,8 +19,7 @@ struct GNSSData {
         poor = 21
     };
 
-    Date date;
-    Time time;
+    std::tm date_time;
 
     float latitude;
     float longitude;
@@ -47,4 +34,11 @@ struct GNSSData {
     int sats_in_view;
     int sats_tracked;
 };
+
+union SensorMessage
+{
+    WeatherData weather;
+    GNSSData gnss;
+};
+
 }  // namespace bk

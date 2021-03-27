@@ -2,6 +2,7 @@
 #include "abstract_task.h"
 #include "freertos/FreeRTOS.h"
 #include "nmea_parser.h"
+#include "sensor_data.h"
 #include "uart_wrapper.h"
 
 namespace bk {
@@ -14,6 +15,9 @@ class GNSS : public AbstractTask {
 
  protected:
     void run() override;
+
+    /** @brief Sets correct datetime timezone according to the position */
+    void setCorrectTZ(GNSSData &data);
 
     static constexpr const char *TAG = "GNSS";
     QueueHandle_t event_queue_;
