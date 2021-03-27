@@ -10,9 +10,9 @@
 #include <thread>
 
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
+#include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
-#include "driver/gpio.h"
 
 #include <esp_log.h>
 
@@ -64,17 +64,14 @@
 
 void setupGPIO() {
     gpio_config_t io_conf = {};
-    //disable interrupt
+
     io_conf.intr_type = GPIO_INTR_DISABLE;
-    //set as output mode
     io_conf.mode = GPIO_MODE_INPUT;
-    //bit mask of the pins that you want to set,e.g.GPIO18/19
-    io_conf.pin_bit_mask = GPIO_SEL_22 | GPIO_SEL_23;
-    //disable pull-down mode
+    io_conf.pin_bit_mask = GPIO_SEL_21 | GPIO_SEL_22 | GPIO_SEL_23 | GPIO_SEL_34;
+
     io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
-    //disable pull-up mode
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
-    //configure GPIO with the given settings
+
     gpio_config(&io_conf);
 }
 
@@ -119,6 +116,7 @@ void StartApplication() {
             display.invalidate();
         }
 
-        ESP_LOGV(TAG, "LU button level %d",gpio_get_level(GPIO_NUM_22));
+        ESP_LOGV(TAG, "Buttons: %d %d", gpio_get_level(GPIO_NUM_21), gpio_get_level(GPIO_NUM_34));
+        ESP_LOGV(TAG, "Buttons: %d %d", gpio_get_level(GPIO_NUM_22), gpio_get_level(GPIO_NUM_23));
     }
 }
