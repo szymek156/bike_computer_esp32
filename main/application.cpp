@@ -103,6 +103,7 @@ void StartApplication() {
 
         if (xQueueReceive(keypad_q, &keypad_data, TIMEOUT) == pdPASS) {
             ESP_LOGV(TAG, "Got data from Keypad");
+            to_invalidate = true;
         }
 
         if (xQueueReceive(weather_q, &weather_data, 0) == pdPASS) {
@@ -118,6 +119,7 @@ void StartApplication() {
         if (to_invalidate) {
             display.drawWeatherData(weather_data);
             display.drawGNSSData(gnss_data);
+            display.drawKeypadData(keypad_data);
 
             ESP_LOGV(TAG, "invalidate");
             display.invalidate();

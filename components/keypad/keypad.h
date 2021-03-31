@@ -15,6 +15,7 @@ class Keypad : public AbstractTask {
 
  protected:
     static constexpr const char *TAG = "Keypad";
+    static const size_t QUEUE_SIZE = 4;
     void run() override;
 
     static void buttonPressed(void *arg);

@@ -27,6 +27,7 @@ class Display {
     virtual ~Display();
 
     void invalidate();
+    void drawKeypadData(const KeypadData &data);
     void drawWeatherData(const WeatherData &data);
     void drawGNSSData(const GNSSData &data);
 

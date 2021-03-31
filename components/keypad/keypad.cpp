@@ -3,7 +3,7 @@
 #include <esp_log.h>
 
 namespace bk {
-Keypad::Keypad() : AbstractTask(sizeof(KeypadData)), data_{} {
+Keypad::Keypad() : AbstractTask(sizeof(KeypadData), QUEUE_SIZE), data_{} {
 }
 
 void Keypad::start() {

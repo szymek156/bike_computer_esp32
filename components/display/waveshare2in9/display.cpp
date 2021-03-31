@@ -69,7 +69,25 @@ void Display::prettyClean() {
 void Display::drawTrackData() {
 }
 
-void Display::drawGNSSData(const GNSSData &data) {
+void Display::drawKeypadData(const KeypadData& data) {
+    if (data.lu_pressed) {
+        paint.DrawFilledCircle(210, 42, 10, COLORED);
+    }
+
+    if (data.ru_pressed) {
+        paint.DrawFilledCircle(250, 42, 10, COLORED);
+    }
+
+    if (data.ld_pressed) {
+        paint.DrawFilledCircle(210, 72, 10, COLORED);
+    }
+
+    if (data.rd_pressed) {
+        paint.DrawFilledCircle(250, 72, 10, COLORED);
+    }
+}
+
+void Display::drawGNSSData(const GNSSData& data) {
     const int msg_size = 128;
     char message[msg_size];
 
@@ -79,7 +97,7 @@ void Display::drawGNSSData(const GNSSData &data) {
     snprintf(message, msg_size, "SPD %5.2f km/h", data.speed_kmh);
     paint.DrawStringAt(0, 32, message, &Font20, COLORED);
 
-    snprintf(message, msg_size,   "ALT %7.2f mnpm", data.altitude);
+    snprintf(message, msg_size, "ALT %7.2f mnpm", data.altitude);
     paint.DrawStringAt(0, 54, message, &Font16, COLORED);
 
     snprintf(message, msg_size, "SAT's in view  %2d", data.sats_in_view);
@@ -90,7 +108,6 @@ void Display::drawGNSSData(const GNSSData &data) {
 
     snprintf(message, msg_size, "GPS fix status %2d", data.fix_status);
     paint.DrawStringAt(170, 115, message, &Font12, COLORED);
-
 }
 
 void Display::drawWeatherData(const WeatherData& data) {
