@@ -8,7 +8,7 @@ namespace bk {
 GPIOWrapper::GPIOWrapper() {
     gpio_config_t io_conf = {};
 
-    io_conf.intr_type = GPIO_INTR_POSEDGE;
+    io_conf.intr_type = GPIO_INTR_ANYEDGE;
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pin_bit_mask = GPIO_SEL_21 | GPIO_SEL_22 | GPIO_SEL_23 | GPIO_SEL_34;
 

@@ -2,7 +2,10 @@
 #include <ctime>
 namespace bk {
 struct KeypadData {
-    int button;
+    bool lu_pressed;
+    bool ru_pressed;
+    bool ld_pressed;
+    bool rd_pressed;
 };
 
 struct WeatherData {

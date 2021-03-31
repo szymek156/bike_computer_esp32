@@ -1,106 +1,58 @@
 #include "keypad.h"
 
-#include "sensor_data.h"
-
 #include <esp_log.h>
 
 namespace bk {
-Keypad::Keypad()
-    : AbstractTask(sizeof(KeypadData)),
-      lu_pressed_(false),
-      ru_pressed_(false),
-      ld_pressed_(false),
-      rd_pressed_(false),
-      button_pressed_(xSemaphoreCreateBinary()) {
+Keypad::Keypad() : AbstractTask(sizeof(KeypadData)), data_{} {
 }
 
 void Keypad::start() {
     ESP_LOGI(TAG, "Start");
-    gpio_.registerInterruptHandler(LU, handleLU, this);
-    gpio_.registerInterruptHandler(RU, handleRU, this);
-    gpio_.registerInterruptHandler(LD, handleLD, this);
-    gpio_.registerInterruptHandler(RD, handleRD, this);
+
+    gpio_.registerInterruptHandler(LU, buttonPressed, this);
+    gpio_.registerInterruptHandler(RU, buttonPressed, this);
+    gpio_.registerInterruptHandler(LD, buttonPressed, this);
+    gpio_.registerInterruptHandler(RD, buttonPressed, this);
 
     start_execution(TAG);
 }
 
 void Keypad::run() {
+    ESP_LOGI(TAG, "Run");
+
     while (true) {
-        ESP_LOGI(TAG, "Waiting for interrupt...");
+        ESP_LOGD(TAG, "Waiting for interrupt...");
         ulTaskNotifyTake(true, portMAX_DELAY);
 
-        ESP_LOGI(TAG,
+        data_.lu_pressed = gpio_.getLevel(LU);
+        data_.ru_pressed = gpio_.getLevel(RU);
+        data_.ld_pressed = gpio_.getLevel(LD);
+        data_.rd_pressed = gpio_.getLevel(RD);
+
+        ESP_LOGD(TAG,
                  "Got notification about buttons: %d %d %d %d",
-                 lu_pressed_,
-                 ru_pressed_,
-                 ld_pressed_,
-                 rd_pressed_);
+                 data_.lu_pressed,
+                 data_.ru_pressed,
+                 data_.ld_pressed,
+                 data_.rd_pressed);
+
+        if (xQueueSendToBack(queue_, &data_, 0) != pdPASS) {
+            ESP_LOGE(TAG, "Failed to send data");
+        }
     }
 }
 
-void Keypad::buttonPressed(int gpio_pin) {
-    int pressed_so_far = lu_pressed_ + ru_pressed_ + ld_pressed_ + rd_pressed_;
-
-    switch (gpio_pin) {
-        case LU: {
-            lu_pressed_ = true;
-            break;
-        }
-        case RU: {
-            ru_pressed_ = true;
-            break;
-        }
-        case LD: {
-            ld_pressed_ = true;
-            break;
-        }
-        case RD: {
-            rd_pressed_ = true;
-            break;
-        }
-        default:
-            break;
-    }
-
-    int currently_pressed_ = lu_pressed_ + ru_pressed_ + ld_pressed_ + rd_pressed_;
-
-    if (currently_pressed_ > pressed_so_far) {
-        // Another button pressed_
-
-        BaseType_t higher_prio_was_woken = false;
-
-        vTaskNotifyGiveFromISR(getTask(), &higher_prio_was_woken);
-
-        // TODO: Why it's needed at all?
-        portYIELD_FROM_ISR(higher_prio_was_woken);
-    }
-    // currently_pressed_ == pressed__so_far <-- button toggling
+void Keypad::buttonPressed(void *arg) {
+    auto *that = (Keypad *)arg;
+    BaseType_t higher_prio_was_woken = false;
     // TODO: filter debounce
+    // Set timer for like 20ms, in callback call this:
 
-    // currently_pressed_ < pressed__so_far <-- button released?
+    // TaskNotifyGive and Take are better alternatives to binary semaphore
+    vTaskNotifyGiveFromISR(that->getTask(), &higher_prio_was_woken);
+
+    // TODO: Why it's needed at all?
+    portYIELD_FROM_ISR(higher_prio_was_woken);
 }
 
-void Keypad::handleLU(void *arg) {
-    auto *that = (Keypad *)arg;
-
-    that->buttonPressed(LU);
-}
-
-void Keypad::handleRU(void *arg) {
-    auto *that = (Keypad *)arg;
-
-    that->buttonPressed(RU);
-}
-
-void Keypad::handleLD(void *arg) {
-    auto *that = (Keypad *)arg;
-
-    that->buttonPressed(LD);
-}
-
-void Keypad::handleRD(void *arg) {
-    auto *that = (Keypad *)arg;
-
-    that->buttonPressed(RD);
-}
 }  // namespace bk

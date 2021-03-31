@@ -90,21 +90,27 @@ void StartApplication() {
 
     auto *weather_q = weather.getQueue();
     auto *gnss_q = gnss.getQueue();
+    auto *keypad_q = keypad.getQueue();
 
     bk::WeatherData weather_data = {};
     bk::GNSSData gnss_data = {};
+    bk::KeypadData keypad_data = {};
 
     static const TickType_t TIMEOUT = pdMS_TO_TICKS(200);
 
     while (true) {
         bool to_invalidate = false;
 
-        if (xQueueReceive(weather_q, &weather_data, TIMEOUT) == pdPASS) {
+        if (xQueueReceive(keypad_q, &keypad_data, TIMEOUT) == pdPASS) {
+            ESP_LOGV(TAG, "Got data from Keypad");
+        }
+
+        if (xQueueReceive(weather_q, &weather_data, 0) == pdPASS) {
             ESP_LOGV(TAG, "Got data from Weather");
             to_invalidate = true;
         }
 
-        if (xQueueReceive(gnss_q, &gnss_data, TIMEOUT) == pdPASS) {
+        if (xQueueReceive(gnss_q, &gnss_data, 0) == pdPASS) {
             ESP_LOGV(TAG, "Got data from GNSS");
             to_invalidate = true;
         }
