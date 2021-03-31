@@ -24,7 +24,7 @@ GNSS::~GNSS() {
 }
 
 void GNSS::start() {
-    start_execution("GNSS");
+    start_execution(TAG);
 }
 
 void GNSS::run() {
@@ -159,10 +159,11 @@ void GNSS::setCorrectTZ(GNSSData &data) {
     // This is cumbersome, but handling date and time in shitty in C++
     // and even shittier (congratulations!) in C/POSIX whatever you call it
     static const int UTC_1 = 60 * 60;
+    static const int DAY_SAVING_TIME = 60 * 60;
 
     std::time_t secs_from_epoch = mktime(&(data.date_time));
 
-    secs_from_epoch += UTC_1;
+    secs_from_epoch += UTC_1 + DAY_SAVING_TIME;
 
     data.date_time = *std::localtime(&secs_from_epoch);
 

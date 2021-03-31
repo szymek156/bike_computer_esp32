@@ -35,4 +35,8 @@ void AbstractTask::start_execution(const char *name) {
         AbstractTask::TaskLoop, name, configIDLE_TASK_STACK_SIZE, this, tskIDLE_PRIORITY, &task_);
     configASSERT(task_);
 }
+
+TaskHandle_t AbstractTask::getTask() {
+    return task_;
+}
 }  // namespace bk

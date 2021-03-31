@@ -1,7 +1,10 @@
 #include "application.h"
 
 #include "display.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
 #include "gnss.h"
+#include "keypad.h"
 #include "sensor_data.h"
 #include "weather.h"
 
@@ -10,10 +13,6 @@
 #include <thread>
 
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
-#include "driver/gpio.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/queue.h"
-
 #include <esp_log.h>
 
 /** @brief Code is unused due to a bug in freertos/queue.c implementation.
@@ -83,9 +82,11 @@ void StartApplication() {
     bk::Weather weather;
     bk::GNSS gnss;
     bk::Display display;
+    bk::Keypad keypad;
 
     weather.start();
     gnss.start();
+    keypad.start();
 
     auto *weather_q = weather.getQueue();
     auto *gnss_q = gnss.getQueue();
@@ -115,8 +116,5 @@ void StartApplication() {
             ESP_LOGV(TAG, "invalidate");
             display.invalidate();
         }
-
-        ESP_LOGV(TAG, "Buttons: %d %d", gpio_get_level(GPIO_NUM_21), gpio_get_level(GPIO_NUM_34));
-        ESP_LOGV(TAG, "Buttons: %d %d", gpio_get_level(GPIO_NUM_22), gpio_get_level(GPIO_NUM_23));
     }
 }

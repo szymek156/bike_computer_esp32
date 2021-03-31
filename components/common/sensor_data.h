@@ -1,6 +1,10 @@
 #pragma once
 #include <ctime>
 namespace bk {
+struct KeypadData {
+    int button;
+};
+
 struct WeatherData {
     float altitude_m;
     float temp_c;
@@ -35,8 +39,7 @@ struct GNSSData {
     int sats_tracked;
 };
 
-union SensorMessage
-{
+union SensorMessage {
     WeatherData weather;
     GNSSData gnss;
 };

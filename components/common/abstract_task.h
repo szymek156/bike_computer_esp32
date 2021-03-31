@@ -26,6 +26,8 @@ class AbstractTask {
     QueueHandle_t getQueue();
 
  protected:
+    TaskHandle_t getTask();
+
     static void TaskLoop(void* arg);
 
     /** @brief Creates the task, starts the main loop execution.
