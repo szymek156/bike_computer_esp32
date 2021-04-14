@@ -5,6 +5,10 @@ Add travis CI
 Docker image for build environment?
 clang-tidy?
 Calibrate altitude
+Read about temp, seems to be off by 2*
+
+Find out faster way for display to show now only 1fps is effective
+Frame transfer takes 200ms, consider transfering only dirty regions
 ## Connect to uart
 screen /dev/ttyUSB0 115200
 

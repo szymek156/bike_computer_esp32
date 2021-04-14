@@ -52,8 +52,7 @@ class Display : public AbstractTask {
     static constexpr const char *TAG = "Display";
 
     Epd epd_;
-    //  unsigned char *frame_buffer = (unsigned char *)malloc(epd_.width / 8 * epd_.height);
-
+    
     std::uint8_t *front_;
     std::uint8_t *back_;
 
@@ -61,6 +60,8 @@ class Display : public AbstractTask {
 
     bool dirty_ = false;
 
+    Paint paint_;
+    
     void prettyClean();
     void drawTrackData();
 };

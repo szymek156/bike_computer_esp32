@@ -50,6 +50,7 @@ public:
     int  GetRotate(void);
     void SetRotate(int rotate);
     unsigned char* GetImage(void);
+    void SetImage(unsigned char *image);
     void DrawAbsolutePixel(int x, int y, int colored);
     void DrawPixel(int x, int y, int colored);
     void DrawCharAt(int x, int y, char ascii_char, sFONT* font, int colored);

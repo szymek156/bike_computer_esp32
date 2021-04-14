@@ -78,6 +78,10 @@ unsigned char* Paint::GetImage(void) {
     return this->image;
 }
 
+void Paint::SetImage(unsigned char *image) {
+    this->image = image;
+
+}
 int Paint::GetWidth(void) {
     return this->width;
 }

@@ -191,7 +191,7 @@ void Epd::DisplayFrame(void) {
     SendData(0xC4);
     SendCommand(MASTER_ACTIVATION);
     SendCommand(TERMINATE_FRAME_READ_WRITE);
-    WaitUntilIdle();
+    // WaitUntilIdle();
 }
 
 /**

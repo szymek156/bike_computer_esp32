@@ -45,9 +45,11 @@ static int rotate = ROTATE_270;
 Display::Display()
     : AbstractTask(sizeof(DisplayData)),
       front_((uint8_t*)calloc(epd_.width / 8 * epd_.height, sizeof(std::uint8_t))),
-      back_((uint8_t*)calloc(epd_.width / 8 * epd_.height, sizeof(std::uint8_t))) {
+      back_((uint8_t*)calloc(epd_.width / 8 * epd_.height, sizeof(std::uint8_t))),
+      paint_(back_, epd_.width, epd_.height) {
     memset(back_, 0xFF, epd_.width / 8 * epd_.height);
     memset(front_, 0xFF, epd_.width / 8 * epd_.height);
+    paint_.SetRotate(rotate);
 }
 
 Display::~Display() {
@@ -69,74 +71,66 @@ void Display::drawTrackData() {
 }
 
 void Display::drawKeypadData(const KeypadData& data) {
-    Paint paint(back_, epd_.width, epd_.height);
-
     if (data.lu_pressed) {
         rotate = ROTATE_270;
     } else if (data.ru_pressed) {
         rotate = ROTATE_90;
     }
 
-    paint.SetRotate(rotate);
+    paint_.SetRotate(rotate);
 
     if (data.lu_pressed) {
-        paint.DrawFilledCircle(210, 42, 10, COLORED);
+        paint_.DrawFilledCircle(210, 42, 10, COLORED);
     }
 
     if (data.ru_pressed) {
-        paint.DrawFilledCircle(250, 42, 10, COLORED);
+        paint_.DrawFilledCircle(250, 42, 10, COLORED);
     }
 
     if (data.ld_pressed) {
-        paint.DrawFilledCircle(210, 72, 10, COLORED);
+        paint_.DrawFilledCircle(210, 72, 10, COLORED);
     }
 
     if (data.rd_pressed) {
-        paint.DrawFilledCircle(250, 72, 10, COLORED);
+        paint_.DrawFilledCircle(250, 72, 10, COLORED);
     }
 }
 
 void Display::drawGNSSData(const GNSSData& data) {
-    Paint paint(back_, epd_.width, epd_.height);
-    paint.SetRotate(rotate);
-
     const int msg_size = 128;
     char message[msg_size];
 
     strftime(message, msg_size, "%D %T", &(data.date_time));
-    paint.DrawStringAt(0, 4, message, &Font24, COLORED);
+    paint_.DrawStringAt(0, 4, message, &Font24, COLORED);
 
     snprintf(message, msg_size, "SPD %5.2f km/h", data.speed_kmh);
-    paint.DrawStringAt(0, 32, message, &Font20, COLORED);
+    paint_.DrawStringAt(0, 32, message, &Font20, COLORED);
 
     snprintf(message, msg_size, "ALT %7.2f mnpm", data.altitude);
-    paint.DrawStringAt(0, 54, message, &Font16, COLORED);
+    paint_.DrawStringAt(0, 54, message, &Font16, COLORED);
 
     snprintf(message, msg_size, "SAT's in view  %2d", data.sats_in_view);
-    paint.DrawStringAt(170, 95, message, &Font12, COLORED);
+    paint_.DrawStringAt(170, 95, message, &Font12, COLORED);
 
     snprintf(message, msg_size, "SAT's tracked  %2d", data.sats_tracked);
-    paint.DrawStringAt(170, 105, message, &Font12, COLORED);
+    paint_.DrawStringAt(170, 105, message, &Font12, COLORED);
 
     snprintf(message, msg_size, "GPS fix status %2d", data.fix_status);
-    paint.DrawStringAt(170, 115, message, &Font12, COLORED);
+    paint_.DrawStringAt(170, 115, message, &Font12, COLORED);
 }
 
 void Display::drawWeatherData(const WeatherData& data) {
-    Paint paint(back_, epd_.width, epd_.height);
-    paint.SetRotate(rotate);
-
     const int msg_size = 128;
     char message[msg_size];
 
     snprintf(message, msg_size, "SENSOR:");
-    paint.DrawStringAt(0, 78, message, &Font20, COLORED);
+    paint_.DrawStringAt(0, 78, message, &Font20, COLORED);
 
     snprintf(message, msg_size, "TMP   %5.2f", data.temp_c);
-    paint.DrawStringAt(0, 95, message, &Font16, COLORED);
+    paint_.DrawStringAt(0, 95, message, &Font16, COLORED);
 
     snprintf(message, msg_size, "ALT  %7.2f", data.altitude_m);
-    paint.DrawStringAt(0, 110, message, &Font16, COLORED);
+    paint_.DrawStringAt(0, 110, message, &Font16, COLORED);
 }
 
 void Display::invalidate() {
@@ -182,6 +176,7 @@ void Display::draw() {
             std::swap(front_, back_);
             memset(back_, 0xFF, epd_.width / 8 * epd_.height);
 
+            paint_.SetImage(back_);
             dirty_ = false;
         }
     }
@@ -209,8 +204,8 @@ void Display::draw() {
         std::chrono::duration_cast<std::chrono::milliseconds>(after_display - start).count());
 
     auto to_sleep = std::max(
-        1000 - (int)std::chrono::duration_cast<std::chrono::milliseconds>(after_display - start)
-                   .count(),
+        455 - (int)std::chrono::duration_cast<std::chrono::milliseconds>(after_display - start)
+                  .count(),
         0);
 
     ESP_LOGD(TAG, "To sleep %d", to_sleep);
