@@ -51,7 +51,7 @@ int EpdIf::DigitalRead(gpio_num_t pin) {
 }
 
 void EpdIf::DelayMs(unsigned int delaytime) {
-    vTaskDelay(delaytime / portTICK_RATE_MS);
+    vTaskDelay(pdMS_TO_TICKS(delaytime));
 }
 
 void EpdIf::SpiTransfer(unsigned char data) {
@@ -90,8 +90,6 @@ int EpdIf::IfInit(void) {
     // gpio_set_direction(RST_PIN, GPIO_MODE_OUTPUT);
     // gpio_set_direction(BUSY_PIN, GPIO_MODE_INPUT);
 
-    esp_err_t ret;
-
     spi_bus_config_t buscfg = {};
     buscfg.miso_io_num = -1;
     buscfg.mosi_io_num = MOSI_PIN;
@@ -107,7 +105,7 @@ int EpdIf::IfInit(void) {
     devcfg.address_bits = 0;
     devcfg.dummy_bits = 0;
     devcfg.mode = 0;
-    devcfg.clock_speed_hz = SPI_MASTER_FREQ_8M;
+    devcfg.clock_speed_hz = SPI_MASTER_FREQ_8M; //SPI_MASTER_FREQ_26M
     devcfg.spics_io_num = CS_PIN;
     devcfg.queue_size = 1;
 

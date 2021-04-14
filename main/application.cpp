@@ -17,7 +17,7 @@
 
 /** @brief Code is unused due to a bug in freertos/queue.c implementation.
  * QueueSet is not working for queues which do have "overwrite" policy.
- * Version 10.3 has a fix. ESP32 uses for now 10.2
+ * FreeRTOS Version 10.3 has a fix. ESP32 uses for now 10.2
  */
 // void pollQueues() {
 //     auto total_queue_size = bk::Weather::QUEUE_SIZE + bk::GNSS::QUEUE_SIZE;
@@ -87,6 +87,7 @@ void StartApplication() {
     weather.start();
     gnss.start();
     keypad.start();
+    display.start();
 
     auto *weather_q = weather.getQueue();
     auto *gnss_q = gnss.getQueue();
@@ -96,7 +97,7 @@ void StartApplication() {
     bk::GNSSData gnss_data = {};
     bk::KeypadData keypad_data = {};
 
-    static const TickType_t TIMEOUT = pdMS_TO_TICKS(200);
+    static const TickType_t TIMEOUT = pdMS_TO_TICKS(20);
 
     while (true) {
         bool to_invalidate = false;
@@ -117,12 +118,19 @@ void StartApplication() {
         }
 
         if (to_invalidate) {
-            display.drawWeatherData(weather_data);
-            display.drawGNSSData(gnss_data);
-            display.drawKeypadData(keypad_data);
+            ESP_LOGV(TAG, "Drawing new data");
+            {
+                std::lock_guard<std::mutex> lock(display.getBufferMutex());
+                display.prepareCanvas();
+                display.drawKeypadData(keypad_data);
+                display.drawWeatherData(weather_data);
+                display.drawGNSSData(gnss_data);
+                display.invalidate();
+            }
 
-            ESP_LOGV(TAG, "invalidate");
-            display.invalidate();
+            // ESP_LOGV(TAG, "invalidate");
+            // display.draw(); // for sync call
+            // display.invalidate(); // async call
         }
     }
 }

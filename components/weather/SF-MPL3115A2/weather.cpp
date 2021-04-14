@@ -5,7 +5,7 @@
 
 #include <thread>
 
-#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+// #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include <esp_log.h>
 namespace bk {
 static const i2c_port_t I2C_PORT = I2C_NUM_0;

@@ -132,7 +132,6 @@ void GNSS::run() {
 
                                 setCorrectTZ(data);
 
-                                ESP_LOGI(TAG, "GNSS data");
                                 if (xQueueOverwrite(queue_, &data) != pdPASS) {
                                     ESP_LOGE(TAG, "Failed to send data");
                                 }

@@ -19,19 +19,48 @@
  */
 
 #pragma once
+#include "abstract_task.h"
 #include "sensor_data.h"
+
+#include <mutex>
+
+#include <epd2in9.h>
+#include <epdpaint.h>
+
 namespace bk {
-class Display {
+class Display : public AbstractTask {
  public:
     Display();
     virtual ~Display();
 
+    void prepareCanvas();
     void invalidate();
     void drawKeypadData(const KeypadData &data);
     void drawWeatherData(const WeatherData &data);
     void drawGNSSData(const GNSSData &data);
 
+    std::mutex &getBufferMutex() {
+        return buffer_mutex_;
+    }
+
+    virtual void run() override;
+    virtual void start() override;
+
+    void draw();
+
  protected:
+    static constexpr const char *TAG = "Display";
+
+    Epd epd_;
+    //  unsigned char *frame_buffer = (unsigned char *)malloc(epd_.width / 8 * epd_.height);
+
+    std::uint8_t *front_;
+    std::uint8_t *back_;
+
+    std::mutex buffer_mutex_;
+
+    bool dirty_ = false;
+
     void prettyClean();
     void drawTrackData();
 };

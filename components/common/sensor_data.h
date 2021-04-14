@@ -1,6 +1,8 @@
 #pragma once
 #include <ctime>
 namespace bk {
+struct DisplayData {};
+
 struct KeypadData {
     bool lu_pressed;
     bool ru_pressed;

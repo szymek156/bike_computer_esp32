@@ -92,7 +92,7 @@ void Epd::SendData(unsigned char data) {
  */
 void Epd::WaitUntilIdle(void) {
     while(DigitalRead(busy_pin) == HIGH) {      //LOW: idle, HIGH: busy
-        DelayMs(100);
+        DelayMs(10);
     }
 }
 
