@@ -1,36 +1,41 @@
 #include "status_view.h"
 
+#include <epdpaint.h>
 namespace bk {
 using bk::COLORED;
 
-StatusView::StatusView(IDisplay *display) : display_(display), paint_(display_->getPaint()) {
+StatusView::StatusView(IDisplay *display) : display_(display) {
+}
+
+void StatusView::drawStatic() {
+    display_->enqueueDraw(
+        [](Paint &paint) {
+            paint.DrawHorizontalLine(0, 13, paint.GetWidth() * 8, COLORED);
+        },
+        {0, 0, 0, 0});
 }
 
 void StatusView::drawGNSSData(const GNSSData &data) {
-    const int msg_size = 128;
-    char message[msg_size];
+    display_->enqueueDraw(
+        [&data](Paint &paint) {
+            const int msg_size = 128;
+            char message[msg_size];
 
-    snprintf(message, msg_size, "SPD %5.2f km/h", data.speed_kmh);
-    paint_.DrawStringAt(0, 32, message, &Font20, COLORED);
-
-    snprintf(message, msg_size, "ALT %7.2f mnpm", data.altitude);
-    paint_.DrawStringAt(0, 54, message, &Font16, COLORED);
-
-    snprintf(message, msg_size, "SAT's in view  %2d", data.sats_in_view);
-    paint_.DrawStringAt(170, 95, message, &Font12, COLORED);
-
-    snprintf(message, msg_size, "SAT's tracked  %2d", data.sats_tracked);
-    paint_.DrawStringAt(170, 105, message, &Font12, COLORED);
-
-    snprintf(message, msg_size, "GPS fix status %2d", data.fix_status);
-    paint_.DrawStringAt(170, 115, message, &Font12, COLORED);
+            snprintf(message, msg_size, "GPS %1d", data.fix_status);
+            paint.DrawStringAt(180, 4, message, &Font8, COLORED);
+        },
+        {180, 4, 210, 10});
 }
 
-void StatusView::drawDateTime(const GNSSData &data) {
-    const int msg_size = 128;
-    char message[msg_size];
+void StatusView::drawDateTime(const tm &time_info) {
+    display_->enqueueDraw(
+        [&time_info](Paint &paint) {
+            const int msg_size = 128;
+            char message[msg_size];
 
-    strftime(message, msg_size, "%D %T", &(data.date_time));
-    paint_.DrawStringAt(0, 4, message, &Font24, COLORED);
+            strftime(message, msg_size, "%D %T", &(time_info));
+            paint.DrawStringAt(0, 4, message, &Font8, COLORED);
+        },
+        {0, 4, 100, 10});
 }
 }  // namespace bk

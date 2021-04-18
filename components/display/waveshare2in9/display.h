@@ -22,6 +22,7 @@
 #include "abstract_task.h"
 #include "sensor_data.h"
 
+#include <functional>
 #include <mutex>
 
 #include <epd2in9.h>
@@ -40,10 +41,7 @@ class IDisplay {
  public:
     virtual ~IDisplay() = default;
 
-    virtual void prepareCanvas(const Rect *rect) = 0;
-    virtual void invalidate() = 0;
-    virtual std::mutex &getBufferMutex() = 0;
-    virtual Paint getPaint() = 0;
+    virtual void enqueueDraw(std::function<void(Paint &paint)> callback, const Rect &rect) = 0;
 };
 
 const int COLORED = 0;
@@ -54,17 +52,13 @@ class Display : public AbstractTask, public IDisplay {
     Display();
     virtual ~Display() = default;
 
-    virtual void prepareCanvas(const Rect *rect = nullptr) override;
-    virtual void invalidate() override;
-
-    virtual std::mutex &getBufferMutex() override {
-        return buffer_mutex_;
-    }
-
-    virtual Paint getPaint() override;
+    void prepareCanvas(const Rect &rect);
+    void invalidate();
 
     virtual void run() override;
     virtual void start() override;
+
+    virtual void enqueueDraw(std::function<void(Paint &paint)> callback, const Rect &rect) override;
 
     void draw();
 

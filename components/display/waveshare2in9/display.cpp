@@ -92,8 +92,6 @@ void Display::drawKeypadData(const KeypadData& data) {
     }
 }
 
-
-
 void Display::drawWeatherData(const WeatherData& data) {
     const int msg_size = 128;
     char message[msg_size];
@@ -112,22 +110,14 @@ void Display::invalidate() {
     dirty_ = true;
 }
 
-void Display::prepareCanvas(const Rect* rect) {
+void Display::prepareCanvas(const Rect& rect) {
     if (dirty_) {
         // Display did not get data yet, clear back buffer
         // to draw newer stuff
-        if (rect == nullptr) {
-            memset(back_, 0xFF, epd_.width / 8 * epd_.height);
-        } else {
-            paint_.DrawFilledRectangle(rect->x0, rect->y0, rect->x1, rect->y1, UNCOLORED);
-        }
+
+        paint_.DrawFilledRectangle(rect.x0, rect.y0, rect.x1, rect.y1, UNCOLORED);
     }
-}
-
-Paint Display::getPaint() {
-    Paint paint(back_, epd_.width, epd_.height);
-
-    return paint;
+    // paint_.DrawFilledRectangle(rect.x0, rect.y0, rect.x1, rect.y1, COLORED);
 }
 
 void Display::start() {
@@ -149,6 +139,16 @@ void Display::run() {
         ESP_LOGD(TAG, "Waiting for an event");
         draw();
     }
+}
+
+void Display::enqueueDraw(std::function<void(Paint& paint)> callback, const Rect& rect) {
+    std::lock_guard<std::mutex> lock(buffer_mutex_);
+
+    prepareCanvas(rect);
+
+    callback(paint_);
+
+    invalidate();
 }
 
 void Display::draw() {
@@ -195,8 +195,8 @@ void Display::draw() {
 #endif
 
     auto to_sleep = std::max(
-        455 - (int)std::chrono::duration_cast<std::chrono::milliseconds>(after_display - start)
-                  .count(),
+        1000 - (int)std::chrono::duration_cast<std::chrono::milliseconds>(after_display - start)
+                   .count(),
         0);
 
     ESP_LOGD(TAG, "To sleep %d", to_sleep);
