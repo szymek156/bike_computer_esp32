@@ -1,6 +1,10 @@
 #pragma once
 #include <ctime>
 namespace bk {
+
+struct TimeData {
+};
+
 struct DisplayData {};
 
 struct KeypadData {

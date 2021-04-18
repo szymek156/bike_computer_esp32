@@ -31,13 +31,12 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+// #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include <esp_log.h>
 
-namespace bk {
+// #define PERF
 
-#define COLORED 0
-#define UNCOLORED 1
+namespace bk {
 
 // TODO: to be removed
 static int rotate = ROTATE_270;
@@ -50,9 +49,6 @@ Display::Display()
     memset(back_, 0xFF, epd_.width / 8 * epd_.height);
     memset(front_, 0xFF, epd_.width / 8 * epd_.height);
     paint_.SetRotate(rotate);
-}
-
-Display::~Display() {
 }
 
 void Display::prettyClean() {
@@ -96,28 +92,7 @@ void Display::drawKeypadData(const KeypadData& data) {
     }
 }
 
-void Display::drawGNSSData(const GNSSData& data) {
-    const int msg_size = 128;
-    char message[msg_size];
 
-    strftime(message, msg_size, "%D %T", &(data.date_time));
-    paint_.DrawStringAt(0, 4, message, &Font24, COLORED);
-
-    snprintf(message, msg_size, "SPD %5.2f km/h", data.speed_kmh);
-    paint_.DrawStringAt(0, 32, message, &Font20, COLORED);
-
-    snprintf(message, msg_size, "ALT %7.2f mnpm", data.altitude);
-    paint_.DrawStringAt(0, 54, message, &Font16, COLORED);
-
-    snprintf(message, msg_size, "SAT's in view  %2d", data.sats_in_view);
-    paint_.DrawStringAt(170, 95, message, &Font12, COLORED);
-
-    snprintf(message, msg_size, "SAT's tracked  %2d", data.sats_tracked);
-    paint_.DrawStringAt(170, 105, message, &Font12, COLORED);
-
-    snprintf(message, msg_size, "GPS fix status %2d", data.fix_status);
-    paint_.DrawStringAt(170, 115, message, &Font12, COLORED);
-}
 
 void Display::drawWeatherData(const WeatherData& data) {
     const int msg_size = 128;
@@ -137,12 +112,22 @@ void Display::invalidate() {
     dirty_ = true;
 }
 
-void Display::prepareCanvas() {
+void Display::prepareCanvas(const Rect* rect) {
     if (dirty_) {
         // Display did not get data yet, clear back buffer
         // to draw newer stuff
-        memset(back_, 0xFF, epd_.width / 8 * epd_.height);
+        if (rect == nullptr) {
+            memset(back_, 0xFF, epd_.width / 8 * epd_.height);
+        } else {
+            paint_.DrawFilledRectangle(rect->x0, rect->y0, rect->x1, rect->y1, UNCOLORED);
+        }
     }
+}
+
+Paint Display::getPaint() {
+    Paint paint(back_, epd_.width, epd_.height);
+
+    return paint;
 }
 
 void Display::start() {
@@ -181,19 +166,24 @@ void Display::draw() {
         }
     }
 
+#if defined(PERF)
     std::chrono::time_point<std::chrono::system_clock> after_swap =
         std::chrono::system_clock::now();
+#endif
 
     epd_.SetFrameMemory(front_, 0, 0, epd_.width, epd_.height);
 
+#if defined(PERF)
     std::chrono::time_point<std::chrono::system_clock> after_set_frame =
         std::chrono::system_clock::now();
+#endif
 
     epd_.DisplayFrame();
 
     std::chrono::time_point<std::chrono::system_clock> after_display =
         std::chrono::system_clock::now();
 
+#if defined(PERF)
     ESP_LOGD(
         TAG,
         "swap %llu, set frame %llu, display frame %llu, total %llu",
@@ -202,6 +192,7 @@ void Display::draw() {
         std::chrono::duration_cast<std::chrono::milliseconds>(after_display - after_set_frame)
             .count(),
         std::chrono::duration_cast<std::chrono::milliseconds>(after_display - start).count());
+#endif
 
     auto to_sleep = std::max(
         455 - (int)std::chrono::duration_cast<std::chrono::milliseconds>(after_display - start)

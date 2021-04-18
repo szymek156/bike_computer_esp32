@@ -28,31 +28,55 @@
 #include <epdpaint.h>
 
 namespace bk {
-class Display : public AbstractTask {
+
+struct Rect {
+    int x0;
+    int y0;
+    int x1;
+    int y1;
+};
+
+class IDisplay {
+ public:
+    virtual ~IDisplay() = default;
+
+    virtual void prepareCanvas(const Rect *rect) = 0;
+    virtual void invalidate() = 0;
+    virtual std::mutex &getBufferMutex() = 0;
+    virtual Paint getPaint() = 0;
+};
+
+const int COLORED = 0;
+const int UNCOLORED = 1;
+
+class Display : public AbstractTask, public IDisplay {
  public:
     Display();
-    virtual ~Display();
+    virtual ~Display() = default;
 
-    void prepareCanvas();
-    void invalidate();
-    void drawKeypadData(const KeypadData &data);
-    void drawWeatherData(const WeatherData &data);
-    void drawGNSSData(const GNSSData &data);
+    virtual void prepareCanvas(const Rect *rect = nullptr) override;
+    virtual void invalidate() override;
 
-    std::mutex &getBufferMutex() {
+    virtual std::mutex &getBufferMutex() override {
         return buffer_mutex_;
     }
+
+    virtual Paint getPaint() override;
 
     virtual void run() override;
     virtual void start() override;
 
     void draw();
 
+    void drawKeypadData(const KeypadData &data);
+    void drawWeatherData(const WeatherData &data);
+    void drawTrackData();
+
  protected:
     static constexpr const char *TAG = "Display";
 
     Epd epd_;
-    
+
     std::uint8_t *front_;
     std::uint8_t *back_;
 
@@ -61,9 +85,8 @@ class Display : public AbstractTask {
     bool dirty_ = false;
 
     Paint paint_;
-    
+
     void prettyClean();
-    void drawTrackData();
 };
 
 }  // namespace bk
