@@ -159,10 +159,10 @@ void Display::draw() {
 
         if (dirty_) {
             std::swap(front_, back_);
-            memset(back_, 0xFF, epd_.width / 8 * epd_.height);
+            // memset(back_, 0xFF, epd_.width / 8 * epd_.height);
 
             paint_.SetImage(back_);
-            dirty_ = false;
+            // dirty_ = false;
         }
     }
 

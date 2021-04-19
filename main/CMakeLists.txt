@@ -1,4 +1,4 @@
-idf_component_register(SRCS "bike_computer_esp32.c" "time_service.cpp" "status_view.cpp" "status_presenter.cpp"  "application.cpp"
+idf_component_register(SRCS "bike_computer_esp32.c" "time_service.cpp" "event_dispatcher.cpp" "status_view.cpp" "status_presenter.cpp"  "application.cpp"
 
                     INCLUDE_DIRS ".")
 

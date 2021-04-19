@@ -7,9 +7,6 @@
 
 #include <set>
 
-#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
-#include <esp_log.h>
-
 namespace bk {
 
 // TODO: Idea
@@ -29,7 +26,7 @@ namespace bk {
  * QueueSet is not working for queues which do have "overwrite" policy.
  * FreeRTOS Version 10.3 has a fix. ESP32 uses for now 10.2
  */
-// void pollQueues() {
+// void pollQueues() ;
 //     auto total_queue_size = bk::Weather::QUEUE_SIZE + bk::GNSS::QUEUE_SIZE;
 
 //     QueueSetHandle_t poll = xQueueCreateSet(total_queue_size);
@@ -38,27 +35,27 @@ namespace bk {
 //     configASSERT(xQueueAddToSet(gnss.getQueue(), poll) == pdPASS);
 
 //     ESP_LOGI(TAG, "Polling the queue set");
-//     while (true) {
+//     while (true) ;
 //         ESP_LOGI(TAG, "Select...");
 //         QueueSetMemberHandle_t queue = xQueueSelectFromSet(poll, portMAX_DELAY);
 //         // QueueSetMemberHandle_t queue = nullptr;
 
-//         // while ((queue = xQueueSelectFromSet(poll, pdMS_TO_TICKS(100))) != nullptr) {
-//         if (queue == weather.getQueue()) {
+//         // while ((queue = xQueueSelectFromSet(poll, pdMS_TO_TICKS(100))) != nullptr) ;
+//         if (queue == weather.getQueue()) ;
 //             ESP_LOGV(TAG, "Got data from Weather");
 //             bk::WeatherData data;
 //             configASSERT(xQueueReceive(queue, &data, 0) == pdPASS);
 
 //             display.drawWeatherData(data);
 //             // display.invalidate();
-//         } else if (queue == gnss.getQueue()) {
+//         } else if (queue == gnss.getQueue()) ;
 //             ESP_LOGV(TAG, "Got data from GNSS");
 //             bk::GNSSData data;
 //             configASSERT(xQueueReceive(queue, &data, 0) == pdPASS);
 
 //             display.drawGNSSData(data);
 //             // display.invalidate();
-//         } else {
+//         } else ;
 //             ESP_LOGV(TAG, "else");
 //             configASSERT(false);
 //         }
@@ -93,99 +90,25 @@ class EventDispatcher : public IEventDispatcher {
     EventDispatcher(AbstractTask *weather,
                     AbstractTask *gnss,
                     AbstractTask *keypad,
-                    AbstractTask *time)
-        : weather_(weather),
-          gnss_(gnss),
-          keypad_(keypad),
-          time_(time) {
-    }
+                    AbstractTask *time);
 
-    virtual void listenForEvents() override {
-        auto *weather_q = weather_->getQueue();
-        auto *gnss_q = gnss_->getQueue();
-        auto *keypad_q = keypad_->getQueue();
-        auto *time_q = time_->getQueue();
+    virtual void listenForEvents() override;
 
-        WeatherData weather_data = {};
-        GNSSData gnss_data = {};
-        KeypadData keypad_data = {};
-        TimeData time_data = {};
+    virtual void subForKeypad(KeypadListener *listener) override;
 
-        static const TickType_t TIMEOUT = pdMS_TO_TICKS(20);
+    virtual void subForGNSS(GNSSListener *listener) override;
 
-        while (true) {
-            // bool to_invalidate = false;
+    virtual void subForWeather(WeatherListener *listener) override;
 
-            if (xQueueReceive(keypad_q, &keypad_data, TIMEOUT) == pdPASS) {
-                ESP_LOGV(TAG, "Got data from Keypad");
-                notifyKeypad(keypad_data);
-            }
+    virtual void subForTime(TimeListener *listener) override;
 
-            if (xQueueReceive(weather_q, &weather_data, 0) == pdPASS) {
-                ESP_LOGV(TAG, "Got data from Weather");
-                notifyWeather(weather_data);
-            }
+    virtual void unSubForKeypad(KeypadListener *listener) override;
 
-            if (xQueueReceive(gnss_q, &gnss_data, 0) == pdPASS) {
-                ESP_LOGV(TAG, "Got data from GNSS");
-                notifyGNSS(gnss_data);
-            }
+    virtual void unSubForGNSS(GNSSListener *listener) override;
 
-            if (xQueueReceive(time_q, &time_data, 0) == pdPASS) {
-                ESP_LOGV(TAG, "Got data from TimeService");
-                notifyTime(time_data);
-            }
+    virtual void unSubForWeather(WeatherListener *listener) override;
 
-            // if (to_invalidate) {
-            //     ESP_LOGV(TAG, "Drawing new data");
-            //     {
-            //         std::lock_guard<std::mutex> lock(display.getBufferMutex());
-
-            //         display.prepareCanvas();
-            //         display.drawKeypadData(keypad_data);
-            //         display.drawWeatherData(weather_data);
-            //         // display.drawGNSSData(gnss_data);
-            //         display.invalidate();
-            //     }
-
-            //     // ESP_LOGV(TAG, "invalidate");
-            //     // display.draw(); // for sync call
-            //     // display.invalidate(); // async call
-            // }
-        }
-    }
-
-    virtual void subForKeypad(KeypadListener *listener) override {
-        keypad_listeners_.insert(listener);
-    }
-
-    virtual void subForGNSS(GNSSListener *listener) override {
-        gnss_listeners_.insert(listener);
-    }
-
-    virtual void subForWeather(WeatherListener *listener) override {
-        weather_listeners_.insert(listener);
-    }
-
-    virtual void subForTime(TimeListener *listener) override {
-        time_listeners_.insert(listener);
-    }
-
-    virtual void unSubForKeypad(KeypadListener *listener) override {
-        keypad_listeners_.erase(listener);
-    }
-
-    virtual void unSubForGNSS(GNSSListener *listener) override {
-        gnss_listeners_.erase(listener);
-    }
-
-    virtual void unSubForWeather(WeatherListener *listener) override {
-        weather_listeners_.erase(listener);
-    }
-
-    virtual void unSubForTime(TimeListener *listener) override {
-        time_listeners_.erase(listener);
-    }
+    virtual void unSubForTime(TimeListener *listener) override;
 
  private:
     static constexpr const char *TAG = "EventDispatcher";
@@ -200,29 +123,13 @@ class EventDispatcher : public IEventDispatcher {
     std::set<WeatherListener *> weather_listeners_;
     std::set<TimeListener *> time_listeners_;
 
-    void notifyKeypad(const KeypadData &data) {
-        for (auto *observer : keypad_listeners_) {
-            observer->onButtonPressed(data);
-        }
-    }
+    void notifyKeypad(const KeypadData &data);
 
-    void notifyGNSS(const GNSSData &data) {
-        for (auto *observer : gnss_listeners_) {
-            observer->onGNSSData(data);
-        }
-    }
+    void notifyGNSS(const GNSSData &data);
 
-    void notifyWeather(const WeatherData &data) {
-        for (auto *observer : weather_listeners_) {
-            observer->onWeatherData(data);
-        }
-    }
+    void notifyWeather(const WeatherData &data);
 
-    void notifyTime(const TimeData &data) {
-        for (auto *observer : time_listeners_) {
-            observer->onTimeData(data);
-        }
-    }
+    void notifyTime(const TimeData &data);
 };
 
 }  // namespace bk

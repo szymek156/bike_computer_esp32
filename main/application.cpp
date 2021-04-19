@@ -4,7 +4,7 @@
 #include "event_dispatcher.h"
 #include "gnss.h"
 #include "keypad.h"
-#include "status_presenter.h"
+#include "root_window.h"
 #include "time_service.hpp"
 #include "weather.h"
 
@@ -31,9 +31,8 @@ void StartApplication() {
     keypad.start();
     time_service.start();
 
-    bk::StatusPresenter status(&display, &dispatcher);
-
-    
+    bk::RootWindow root(&display, &dispatcher);
+    root.show();    
 
     dispatcher.listenForEvents();
 }

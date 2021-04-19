@@ -9,17 +9,6 @@ Keypad::Keypad() : AbstractTask(sizeof(KeypadData), QUEUE_SIZE), data_{} {
 void Keypad::start() {
     ESP_LOGI(TAG, "Start");
 
-    gpio_config_t io_conf = {};
-
-    io_conf.intr_type = GPIO_INTR_DISABLE;
-    io_conf.mode = GPIO_MODE_INPUT;
-    io_conf.pin_bit_mask = GPIO_SEL_21 | GPIO_SEL_22 | GPIO_SEL_23 | GPIO_SEL_34;
-
-    io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
-    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
-
-    gpio_config(&io_conf);
-
     gpio_.registerInterruptHandler(LU, buttonPressed, this);
     gpio_.registerInterruptHandler(RU, buttonPressed, this);
     gpio_.registerInterruptHandler(LD, buttonPressed, this);
