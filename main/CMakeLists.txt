@@ -5,9 +5,11 @@ idf_component_register(SRCS
     
     "view/status_view.cpp"
     "view/welcome_view.cpp"
+    "view/stats_view.cpp"
     
     "presenter/status_presenter.cpp"
     "presenter/welcome_presenter.cpp"
+    "presenter/stats_presenter.cpp"
     
     "layout_factory.cpp"
     

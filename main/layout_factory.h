@@ -9,7 +9,7 @@
 
 namespace bk {
 // Fuck you C++
-using StatusAndMain = std::pair<std::unique_ptr<IPagePresenter>, std::unique_ptr<IPagePresenter>>;
+using StatusAndMain = std::pair<std::unique_ptr<PagePresenter>, std::unique_ptr<PagePresenter>>;
 
 class LayoutFactory {
  public:

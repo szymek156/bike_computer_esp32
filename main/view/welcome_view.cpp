@@ -27,14 +27,11 @@ void WelcomeView::drawWeatherData(const WeatherData &data) {
             const int msg_size = 128;
             char message[msg_size];
 
-            snprintf(message, msg_size, "SENSOR:");
-            paint.DrawStringAt(0, 78, message, &Font20, COLORED);
+            snprintf(message, msg_size, "%5.2f[*C]", data.temp_c);
+            paint.DrawStringAt(18, 77, message, &Font20, COLORED);
 
-            snprintf(message, msg_size, "TMP   %5.2f", data.temp_c);
-            paint.DrawStringAt(0, 95, message, &Font16, COLORED);
-
-            snprintf(message, msg_size, "ALT  %7.2f", data.altitude_m);
-            paint.DrawStringAt(0, 110, message, &Font16, COLORED);
+            snprintf(message, msg_size, "%5.2f[m]", data.altitude_m);
+            paint.DrawStringAt(18, 105, message, &Font20, COLORED);
         },
         {0, 78, 130, 256});
 }
@@ -44,7 +41,13 @@ void WelcomeView::drawDateTime(const tm &time_info) {
         [&time_info](Paint &paint) {
             const int msg_size = 128;
             char message[msg_size];
+
+            strftime(message, msg_size, "%d/%m/%y", &(time_info));
+            paint.DrawStringAt(18, 20, message, &Font20, COLORED);
+
+            strftime(message, msg_size, "%T", &(time_info));  
+            paint.DrawStringAt(18, 47, message, &Font20, COLORED);
         },
-        {0, 0, 0, 0});
+        {18, 20, 130, 67});
 }
 }  // namespace bk

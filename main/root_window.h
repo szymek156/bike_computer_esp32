@@ -25,9 +25,9 @@ class RootWindow {
 
  private:
     // Status widget
-    std::unique_ptr<IPagePresenter> status_presenter_;
+    std::unique_ptr<PagePresenter> status_presenter_;
 
     // Main widget
-    std::unique_ptr<IPagePresenter> current_widget_;
+    std::unique_ptr<PagePresenter> current_widget_;
 };
 }  // namespace bk

@@ -200,9 +200,21 @@ void Display::prettyClean() {
 void Display::swapBuffers() {
     std::lock_guard<std::recursive_mutex> lock(buffer_mutex_);
 
+    // Dirty means, new data is ready to be shown
     if (dirty_) {
-        std::swap(front_, back_);
-        paint_.SetImage(back_);
+        // TODO: swapping buffers causes show of old data, in case of 
+        // views updating less often than refresh-rate of display.
+        // For example weather which seems to spam every 2 seconds,
+        // in result, on display there is flickering new and old value 
+
+        // So instead of swapping buffers, everything what is on back
+        // (always holds newest data) is copyied to front_.
+        // Wonder if there is any way to avoid memcpy, and still use swap.
+
+        // std::swap(front_, back_);
+        // paint_.SetImage(back_);
+
+        memcpy(front_, back_, epd_.width / 8 * epd_.height);
         dirty_ = false;
     }
 }

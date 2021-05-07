@@ -8,7 +8,7 @@
 
 namespace bk {
 // TODO: that could be composition, instead of inheritance (strategy) consider refactor
-class StatusPresenter : public IPagePresenter, public GNSSListener, public TimeListener {
+class StatusPresenter : public PagePresenter, public GNSSListener, public TimeListener {
  public:
     StatusPresenter(IDisplay *display, IEventDispatcher *events);
     ~StatusPresenter();

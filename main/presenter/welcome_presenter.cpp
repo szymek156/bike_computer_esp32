@@ -42,4 +42,10 @@ void WelcomePresenter::onTimeData(const TimeData &data) {
 
     view_.drawDateTime(timeinfo);
 }
+
+void WelcomePresenter::onButtonPressed(const KeypadData &data) {
+    if (data.ru_pressed) {
+
+    }
+}
 }  // namespace bk
