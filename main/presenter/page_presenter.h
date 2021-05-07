@@ -2,9 +2,9 @@
 #include "sensor_data.h"
 
 namespace bk {
-class PagePresenter {
+class IPagePresenter {
  public:
-    virtual ~PagePresenter() = default;
+    virtual ~IPagePresenter() = default;
 
     virtual void onEnter() = 0;
 

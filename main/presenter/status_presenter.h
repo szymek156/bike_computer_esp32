@@ -1,14 +1,14 @@
 #pragma once
 
-#include "display.h"
+#include <display.h>
 #include "event_dispatcher.h"
 #include "listerers_interface.h"
 #include "page_presenter.h"
-#include "status_view.h"
+#include "view/status_view.h"
 
 namespace bk {
 // TODO: that could be composition, instead of inheritance (strategy) consider refactor
-class StatusPresenter : public PagePresenter, public GNSSListener, public TimeListener {
+class StatusPresenter : public IPagePresenter, public GNSSListener, public TimeListener {
  public:
     StatusPresenter(IDisplay *display, IEventDispatcher *events);
     ~StatusPresenter();

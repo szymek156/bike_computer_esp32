@@ -1,12 +1,14 @@
 #include "application.h"
 
-#include "display.h"
 #include "event_dispatcher.h"
 #include "gnss.h"
 #include "keypad.h"
+#include "layout_factory.h"
 #include "root_window.h"
 #include "time_service.hpp"
 #include "weather.h"
+
+#include <display.h>
 
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include <esp_log.h>
@@ -31,8 +33,9 @@ void StartApplication() {
     keypad.start();
     time_service.start();
 
-    bk::RootWindow root(&display, &dispatcher);
-    root.show();    
+    bk::LayoutFactory factory(&display, &dispatcher);
+    bk::RootWindow root(factory);
+    root.show();
 
     dispatcher.listenForEvents();
 }

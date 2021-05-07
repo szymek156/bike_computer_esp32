@@ -1,25 +1,33 @@
 #pragma once
-#include "display.h"
 #include "event_dispatcher.h"
-#include "status_presenter.h"
+#include "layout_factory.h"
+
+#include <memory>
+
+#include <display.h>
+
 namespace bk {
 class RootWindow {
  public:
-    RootWindow(IDisplay *display, IEventDispatcher *events)
-        : display_(display),
-          events_(events),
-          status_presenter_(display_, events_) {
+    RootWindow(LayoutFactory &factory)  {
+        auto [status, curr] = factory.create();
+
+        status_presenter_ = std::move(status);
+        current_widget_ = std::move(curr);
     }
+
     ~RootWindow() = default;
 
     void show() {
-        status_presenter_.onEnter();
+        status_presenter_->onEnter();
+        current_widget_->onEnter();
     }
 
  private:
-    IDisplay *display_;
-    IEventDispatcher *events_;
+    // Status widget
+    std::unique_ptr<IPagePresenter> status_presenter_;
 
-    StatusPresenter status_presenter_;
+    // Main widget
+    std::unique_ptr<IPagePresenter> current_widget_;
 };
 }  // namespace bk

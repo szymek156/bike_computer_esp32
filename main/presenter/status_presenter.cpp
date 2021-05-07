@@ -14,6 +14,9 @@ StatusPresenter::~StatusPresenter() {
 }
 
 void StatusPresenter::onEnter() {
+    // TODO: needs to be drawn on both buffers, figure out how
+    view_.drawStatic();
+    
     events_->subForGNSS(this);
     events_->subForTime(this);
 }
@@ -29,9 +32,6 @@ void StatusPresenter::onGNSSData(const GNSSData &data) {
 }
 
 void StatusPresenter::onTimeData(const TimeData &data) {
-    // TODO: needs to be drawn on both buffers, figure out how
-    view_.drawStatic();
-
     time_t now = {};
     struct tm timeinfo = {};
 

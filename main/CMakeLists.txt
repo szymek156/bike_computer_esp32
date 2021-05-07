@@ -1,6 +1,19 @@
-idf_component_register(SRCS "bike_computer_esp32.c" "time_service.cpp" "event_dispatcher.cpp" "status_view.cpp" "status_presenter.cpp"  "application.cpp"
+idf_component_register(SRCS 
+    "bike_computer_esp32.c" 
+    "time_service.cpp" 
+    "event_dispatcher.cpp" 
+    
+    "view/status_view.cpp"
+    "view/welcome_view.cpp"
+    
+    "presenter/status_presenter.cpp"
+    "presenter/welcome_presenter.cpp"
+    
+    "layout_factory.cpp"
+    
+    "application.cpp"
 
-                    INCLUDE_DIRS ".")
+    INCLUDE_DIRS ".")
 
 # use gnu, not cpp  because freertos depends on some gnu extensions (fix to be shipped in esp-idf in master)
 component_compile_options(-std=gnu++17)

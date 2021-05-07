@@ -6,6 +6,7 @@ Docker image for build environment?
 clang-tidy?
 Calibrate altitude
 Read about temp, seems to be off by 2*
+Consider making paint class more cache friendly
 
 Find out faster way for display to show now only 1fps is effective
 Frame transfer takes 200ms, consider transfering only dirty regions

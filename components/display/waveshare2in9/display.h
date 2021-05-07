@@ -41,7 +41,20 @@ class IDisplay {
  public:
     virtual ~IDisplay() = default;
 
+    /** @brief Draw stuff on back buffer
+     * @param callback defines what to draw
+     * @param rect defines area where it should be drawn
+     */
     virtual void enqueueDraw(std::function<void(Paint &paint)> callback, const Rect &rect) = 0;
+
+    /** @brief Draw stuff on back and front buffer
+     * Used for static elements, like lines, which do not need invalidate
+     */
+    virtual void enqueueStaticDraw(std::function<void(Paint &paint)> callback,
+                                   const Rect &rect) = 0;
+
+    virtual int getWidth() = 0;
+    virtual int getHeight() = 0;
 };
 
 const int COLORED = 0;
@@ -52,19 +65,16 @@ class Display : public AbstractTask, public IDisplay {
     Display();
     virtual ~Display() = default;
 
-    void prepareCanvas(const Rect &rect);
-    void invalidate();
-
     virtual void run() override;
     virtual void start() override;
 
     virtual void enqueueDraw(std::function<void(Paint &paint)> callback, const Rect &rect) override;
 
-    void draw();
+    virtual void enqueueStaticDraw(std::function<void(Paint &paint)> callback,
+                                   const Rect &rect) override;
 
-    void drawKeypadData(const KeypadData &data);
-    void drawWeatherData(const WeatherData &data);
-    void drawTrackData();
+    virtual int getWidth() override;
+    virtual int getHeight() override;
 
  protected:
     static constexpr const char *TAG = "Display";
@@ -74,13 +84,21 @@ class Display : public AbstractTask, public IDisplay {
     std::uint8_t *front_;
     std::uint8_t *back_;
 
-    std::mutex buffer_mutex_;
+    std::recursive_mutex buffer_mutex_;
 
-    bool dirty_ = false;
+    bool dirty_;
 
     Paint paint_;
 
+    void draw();
+
+    void invalidate();
+
+    void prepareCanvas(const Rect &rect);
+
     void prettyClean();
+
+    void swapBuffers();
 };
 
 }  // namespace bk
