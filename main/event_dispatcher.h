@@ -118,6 +118,7 @@ class EventDispatcher : public IEventDispatcher {
     AbstractTask *keypad_;
     AbstractTask *time_;
 
+    std::set<KeypadListener *>::iterator keypad_iter_; 
     std::set<KeypadListener *> keypad_listeners_;
     std::set<GNSSListener *> gnss_listeners_;
     std::set<WeatherListener *> weather_listeners_;

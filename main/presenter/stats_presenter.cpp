@@ -5,9 +5,9 @@
 
 namespace bk {
 
-StatsPresenter::StatsPresenter(IDisplay *display, IEventDispatcher *events)
-    : view_(StatsView(display)),
-      events_(events) {
+StatsPresenter::StatsPresenter(IDisplay *display, IEventDispatcher *events, RootWindow *root)
+    : PagePresenter(events, root),
+      view_(StatsView(display)) {
 }
 
 StatsPresenter::~StatsPresenter() {
@@ -27,7 +27,7 @@ void StatsPresenter::onLeave() {
 
 void StatsPresenter::onButtonPressed(const KeypadData &data) {
     if (data.ru_pressed) {
-
+        root_->setCurrentWidget(next_);
     }
 }
 }  // namespace bk

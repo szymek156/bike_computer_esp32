@@ -1,6 +1,7 @@
 #pragma once
 #include "event_dispatcher.h"
 #include "layout_factory.h"
+#include "presenter/page_presenter.h"
 
 #include <memory>
 
@@ -9,25 +10,38 @@
 namespace bk {
 class RootWindow {
  public:
-    RootWindow(LayoutFactory &factory)  {
-        auto [status, curr] = factory.create();
-
-        status_presenter_ = std::move(status);
-        current_widget_ = std::move(curr);
+    RootWindow() {
     }
 
     ~RootWindow() = default;
 
-    void show() {
-        status_presenter_->onEnter();
-        current_widget_->onEnter();
+    void setStatusWidget(PresenterPtr status) {
+        if (status_widget_) {
+            status_widget_->onLeave();
+        }
+
+        status_widget_ = status;
+        if (status_widget_) {
+            status_widget_->onEnter();
+        }
+    }
+
+    void setCurrentWidget(PresenterPtr current) {
+        if (current_widget_) {
+            current_widget_->onLeave();
+        }
+
+        current_widget_ = current;
+        if (current_widget_) {
+            current_widget_->onEnter();
+        }
     }
 
  private:
     // Status widget
-    std::unique_ptr<PagePresenter> status_presenter_;
+    PresenterPtr status_widget_;
 
     // Main widget
-    std::unique_ptr<PagePresenter> current_widget_;
+    PresenterPtr current_widget_;
 };
 }  // namespace bk

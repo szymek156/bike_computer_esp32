@@ -10,7 +10,8 @@ class WelcomeView {
     void drawStatic();
     void drawWeatherData(const WeatherData &data);
     void drawDateTime(const tm &time_info);
-
+    void drawGNSSData(const GNSSData &data);
+    
  protected:
     IDisplay *display_;
 };

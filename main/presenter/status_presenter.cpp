@@ -5,9 +5,9 @@
 
 namespace bk {
 
-StatusPresenter::StatusPresenter(IDisplay *display, IEventDispatcher *events)
-    : view_(StatusView(display)),
-      events_(events) {
+StatusPresenter::StatusPresenter(IDisplay *display, IEventDispatcher *events, RootWindow *root)
+    : PagePresenter(events, root),
+      view_(StatusView(display)) {
 }
 
 StatusPresenter::~StatusPresenter() {
@@ -16,7 +16,7 @@ StatusPresenter::~StatusPresenter() {
 void StatusPresenter::onEnter() {
     // TODO: needs to be drawn on both buffers, figure out how
     view_.drawStatic();
-    
+
     events_->subForGNSS(this);
     events_->subForTime(this);
 }

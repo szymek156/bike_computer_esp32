@@ -5,9 +5,10 @@
 
 namespace bk {
 
-WelcomePresenter::WelcomePresenter(IDisplay *display, IEventDispatcher *events)
-    : view_(WelcomeView(display)),
-      events_(events) {
+WelcomePresenter::WelcomePresenter(IDisplay *display, IEventDispatcher *events, RootWindow *root)
+    : PagePresenter(events, root),
+      view_(WelcomeView(display))
+{
 }
 
 WelcomePresenter::~WelcomePresenter() {
@@ -17,13 +18,21 @@ void WelcomePresenter::onEnter() {
     view_.drawStatic();
 
     events_->subForWeather(this);
+    events_->subForGNSS(this);
     events_->subForTime(this);
+    events_->subForKeypad(this);
 }
 
 void WelcomePresenter::onLeave() {
     // TODO: this is a segfault, altering collection while iterating
     events_->unSubForWeather(this);
+    events_->unSubForGNSS(this);
     events_->unSubForTime(this);
+    events_->unSubForKeypad(this);
+}
+
+void WelcomePresenter::onGNSSData(const GNSSData &data) {
+    view_.drawGNSSData(data);
 }
 
 void WelcomePresenter::onWeatherData(const WeatherData &data) {
@@ -45,7 +54,7 @@ void WelcomePresenter::onTimeData(const TimeData &data) {
 
 void WelcomePresenter::onButtonPressed(const KeypadData &data) {
     if (data.ru_pressed) {
-
+        root_->setCurrentWidget(next_);
     }
 }
 }  // namespace bk

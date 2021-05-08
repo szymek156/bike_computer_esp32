@@ -5,12 +5,12 @@
 #include "listerers_interface.h"
 #include "page_presenter.h"
 #include "view/status_view.h"
-
+#include "root_window.h"
 namespace bk {
 // TODO: that could be composition, instead of inheritance (strategy) consider refactor
 class StatusPresenter : public PagePresenter, public GNSSListener, public TimeListener {
  public:
-    StatusPresenter(IDisplay *display, IEventDispatcher *events);
+    StatusPresenter(IDisplay *display, IEventDispatcher *events, RootWindow *root);
     ~StatusPresenter();
 
     virtual void onEnter() override;
@@ -21,7 +21,6 @@ class StatusPresenter : public PagePresenter, public GNSSListener, public TimeLi
 
  private:
     StatusView view_;
-    IEventDispatcher *events_;
 };
 
 }  // namespace bk

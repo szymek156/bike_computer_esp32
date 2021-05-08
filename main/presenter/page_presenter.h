@@ -1,14 +1,20 @@
 #pragma once
+#include "event_dispatcher.h"
+// #include "root_window.h"
 #include "sensor_data.h"
 
 #include <memory>
 
 namespace bk {
+class RootWindow;
 class PagePresenter;
-using PresenterPtr = std::unique_ptr<PagePresenter>;
+using PresenterPtr = std::shared_ptr<PagePresenter>;
 
 class PagePresenter {
  public:
+    PagePresenter(IEventDispatcher *events, RootWindow *root) : events_(events), root_(root) {
+    }
+
     virtual ~PagePresenter() = default;
 
     virtual void onEnter() = 0;
@@ -31,9 +37,13 @@ class PagePresenter {
         less_ = std::move(less);
     }
 
+ protected:
     PresenterPtr next_;
     PresenterPtr prev_;
     PresenterPtr more_;
     PresenterPtr less_;
+
+    IEventDispatcher *events_;
+    RootWindow *root_;
 };
 }  // namespace bk

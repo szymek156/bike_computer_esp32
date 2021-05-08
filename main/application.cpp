@@ -32,10 +32,15 @@ void StartApplication() {
     gnss.start();
     keypad.start();
     time_service.start();
+    
+    bk::RootWindow root;
 
-    bk::LayoutFactory factory(&display, &dispatcher);
-    bk::RootWindow root(factory);
-    root.show();
+    bk::LayoutFactory factory(&display, &dispatcher, &root);
+    
+    auto [status, curr] = factory.create();
+
+    root.setStatusWidget(status);
+    root.setCurrentWidget(curr);
 
     dispatcher.listenForEvents();
 }
