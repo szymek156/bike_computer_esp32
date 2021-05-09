@@ -2,8 +2,13 @@
 
 namespace bk {
 
-RootWindow::RootWindow(IEventDispatcher *events) : events_(events) {
+RootWindow::RootWindow(IEventDispatcher *events, LayoutFactory *factory) : events_(events) {
     events_->subForWidgetChange(this);
+
+    auto [status, curr] = factory->create();
+
+    setStatusWidget(status);
+    setCurrentWidget(curr);
 }
 
 RootWindow::~RootWindow() {
@@ -11,7 +16,14 @@ RootWindow::~RootWindow() {
 }
 
 void RootWindow::onWidgetChange(const WidgetData &data) {
-    // TODO:
+    if (current_widget_) {
+        current_widget_->onLeave();
+        current_widget_ = current_widget_->getWidget(data.new_widget);
+    }
+
+    if (current_widget_) {
+        current_widget_->onEnter();
+    }
 }
 
 void RootWindow::setStatusWidget(PresenterPtr status) {

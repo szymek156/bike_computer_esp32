@@ -11,7 +11,7 @@
 namespace bk {
 class RootWindow : public WidgetListener {
  public:
-    RootWindow(IEventDispatcher *events);
+    RootWindow(IEventDispatcher *events, LayoutFactory *factory);
 
     virtual ~RootWindow();
 

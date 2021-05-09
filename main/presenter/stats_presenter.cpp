@@ -11,6 +11,7 @@ StatsPresenter::StatsPresenter(IDisplay *display, IEventDispatcher *events)
 }
 
 StatsPresenter::~StatsPresenter() {
+    ESP_LOGE("StatsPresenter", "DTOR" );
 }
 
 void StatsPresenter::onEnter() {
@@ -27,8 +28,7 @@ void StatsPresenter::onLeave() {
 
 void StatsPresenter::onButtonPressed(const KeypadData &data) {
     if (data.ru_pressed) {
-        // TODO:
-        // notify root
+        events_->widgetEvent(WidgetData{.new_widget = WidgetData::next});
     }
 }
 }  // namespace bk

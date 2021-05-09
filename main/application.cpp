@@ -33,14 +33,9 @@ void StartApplication() {
     keypad.start();
     time_service.start();
     
-    bk::RootWindow root(&dispatcher);
-
     bk::LayoutFactory factory(&display, &dispatcher);
-    
-    auto [status, curr] = factory.create();
 
-    root.setStatusWidget(status);
-    root.setCurrentWidget(curr);
+    bk::RootWindow root(&dispatcher, &factory);
 
     dispatcher.listenForEvents();
 }

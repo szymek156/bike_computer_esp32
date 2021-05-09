@@ -1,9 +1,19 @@
 #pragma once
+#include <memory>
 #include <ctime>
 namespace bk {
 
+class PagePresenter;
+
 struct WidgetData {
-    // PresenterPtr new_widget;
+    enum Widget {
+        next,
+        prev,
+        more,
+        less
+    };
+    
+    Widget new_widget;
 };
 
 struct TimeData {

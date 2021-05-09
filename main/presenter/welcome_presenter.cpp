@@ -7,11 +7,11 @@ namespace bk {
 
 WelcomePresenter::WelcomePresenter(IDisplay *display, IEventDispatcher *events)
     : PagePresenter(events),
-      view_(WelcomeView(display))
-{
+      view_(WelcomeView(display)) {
 }
 
 WelcomePresenter::~WelcomePresenter() {
+    ESP_LOGE("WelcomePresenter", "DTOR" );
 }
 
 void WelcomePresenter::onEnter() {
@@ -54,8 +54,7 @@ void WelcomePresenter::onTimeData(const TimeData &data) {
 
 void WelcomePresenter::onButtonPressed(const KeypadData &data) {
     if (data.ru_pressed) {
-        events_->widgetEvent(WidgetData{});
-
+        events_->widgetEvent(WidgetData{.new_widget = WidgetData::next});
     }
 }
 }  // namespace bk

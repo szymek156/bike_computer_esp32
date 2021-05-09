@@ -21,19 +21,34 @@ class PagePresenter {
     virtual void onLeave() = 0;
 
     void setNext(PresenterPtr next) {
-        next_ = std::move(next);
+        next_ = next;
     }
 
     void setPrevious(PresenterPtr prev) {
-        prev_ = std::move(prev);
+        prev_ = prev;
     }
 
     void setMore(PresenterPtr more) {
-        more_ = std::move(more);
+        more_ = more;
     }
 
     void setLess(PresenterPtr less) {
-        less_ = std::move(less);
+        less_ = less;
+    }
+
+    PresenterPtr getWidget(WidgetData::Widget widget) {
+        switch (widget) {
+            case WidgetData::next:
+                return next_;
+            case WidgetData::prev:
+                return prev_;
+            case WidgetData::more:
+                return more_;
+            case WidgetData::less:
+                return less_;
+        }
+
+        return nullptr;
     }
 
  protected:
