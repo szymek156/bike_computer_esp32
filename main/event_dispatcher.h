@@ -78,11 +78,15 @@ class IEventDispatcher {
     virtual void subForGNSS(GNSSListener *listener) = 0;
     virtual void subForWeather(WeatherListener *listener) = 0;
     virtual void subForTime(TimeListener *listener) = 0;
+    virtual void subForWidgetChange(WidgetListener *listener) = 0;
 
     virtual void unSubForKeypad(KeypadListener *listener) = 0;
     virtual void unSubForGNSS(GNSSListener *listener) = 0;
     virtual void unSubForWeather(WeatherListener *listener) = 0;
     virtual void unSubForTime(TimeListener *listener) = 0;
+    virtual void unSubForWidgetChange(WidgetListener *listener) = 0;
+
+    virtual void widgetEvent(const WidgetData &data) = 0;
 };
 
 class EventDispatcher : public IEventDispatcher {
@@ -102,6 +106,8 @@ class EventDispatcher : public IEventDispatcher {
 
     virtual void subForTime(TimeListener *listener) override;
 
+    virtual void subForWidgetChange(WidgetListener *listener) override;
+
     virtual void unSubForKeypad(KeypadListener *listener) override;
 
     virtual void unSubForGNSS(GNSSListener *listener) override;
@@ -109,6 +115,10 @@ class EventDispatcher : public IEventDispatcher {
     virtual void unSubForWeather(WeatherListener *listener) override;
 
     virtual void unSubForTime(TimeListener *listener) override;
+
+    virtual void unSubForWidgetChange(WidgetListener *listener) override;
+
+    void widgetEvent(const WidgetData &data) override;
 
  private:
     static constexpr const char *TAG = "EventDispatcher";
@@ -118,11 +128,15 @@ class EventDispatcher : public IEventDispatcher {
     AbstractTask *keypad_;
     AbstractTask *time_;
 
+    // TODO: that could be separate event service, but what the hell?
+    QueueHandle_t widget_q_;
+
     std::set<KeypadListener *>::iterator keypad_iter_; 
     std::set<KeypadListener *> keypad_listeners_;
     std::set<GNSSListener *> gnss_listeners_;
     std::set<WeatherListener *> weather_listeners_;
     std::set<TimeListener *> time_listeners_;
+    std::set<WidgetListener *> widget_listeners_;
 
     void notifyKeypad(const KeypadData &data);
 
@@ -131,6 +145,8 @@ class EventDispatcher : public IEventDispatcher {
     void notifyWeather(const WeatherData &data);
 
     void notifyTime(const TimeData &data);
+
+    void notifyWidgetChange(const WidgetData &data);
 };
 
 }  // namespace bk

@@ -6,13 +6,12 @@
 #include <memory>
 
 namespace bk {
-class RootWindow;
 class PagePresenter;
 using PresenterPtr = std::shared_ptr<PagePresenter>;
 
 class PagePresenter {
  public:
-    PagePresenter(IEventDispatcher *events, RootWindow *root) : events_(events), root_(root) {
+    PagePresenter(IEventDispatcher *events) : events_(events) {
     }
 
     virtual ~PagePresenter() = default;
@@ -44,6 +43,5 @@ class PagePresenter {
     PresenterPtr less_;
 
     IEventDispatcher *events_;
-    RootWindow *root_;
 };
 }  // namespace bk

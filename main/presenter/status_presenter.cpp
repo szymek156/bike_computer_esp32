@@ -5,8 +5,8 @@
 
 namespace bk {
 
-StatusPresenter::StatusPresenter(IDisplay *display, IEventDispatcher *events, RootWindow *root)
-    : PagePresenter(events, root),
+StatusPresenter::StatusPresenter(IDisplay *display, IEventDispatcher *events)
+    : PagePresenter(events),
       view_(StatusView(display)) {
 }
 

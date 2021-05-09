@@ -21,4 +21,9 @@ class TimeListener {
  public:
     virtual void onTimeData(const TimeData &data) = 0;
 };
+
+class WidgetListener {
+ public:
+    virtual void onWidgetChange(const WidgetData &data) = 0;
+};
 }  // namespace bk

@@ -15,7 +15,7 @@ class WelcomePresenter : public PagePresenter,
                          public TimeListener,
                          public KeypadListener {
  public:
-    WelcomePresenter(IDisplay *display, IEventDispatcher *events, RootWindow *root);
+    WelcomePresenter(IDisplay *display, IEventDispatcher *events);
     ~WelcomePresenter();
 
     virtual void onEnter() override;

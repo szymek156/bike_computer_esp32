@@ -5,16 +5,15 @@
 #include "presenter/welcome_presenter.h"
 
 namespace bk {
-LayoutFactory::LayoutFactory(IDisplay *display, IEventDispatcher *events, RootWindow *root)
+LayoutFactory::LayoutFactory(IDisplay *display, IEventDispatcher *events)
     : display_(display),
-      events_(events),
-      root_(root) {
+      events_(events) {
 }
 
 StatusAndMain LayoutFactory::create() {
-    auto status = std::make_shared<StatusPresenter>(display_, events_, root_);
-    auto welcome = std::make_shared<WelcomePresenter>(display_, events_, root_);
-    auto stats = std::make_shared<StatsPresenter>(display_, events_, root_);
+    auto status = std::make_shared<StatusPresenter>(display_, events_);
+    auto welcome = std::make_shared<WelcomePresenter>(display_, events_);
+    auto stats = std::make_shared<StatsPresenter>(display_, events_);
 
     welcome->setNext(stats);
     welcome->setPrevious(stats);

@@ -10,7 +10,7 @@ namespace bk {
 // TODO: that could be composition, instead of inheritance (strategy) consider refactor
 class StatusPresenter : public PagePresenter, public GNSSListener, public TimeListener {
  public:
-    StatusPresenter(IDisplay *display, IEventDispatcher *events, RootWindow *root);
+    StatusPresenter(IDisplay *display, IEventDispatcher *events);
     ~StatusPresenter();
 
     virtual void onEnter() override;

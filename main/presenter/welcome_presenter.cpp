@@ -5,8 +5,8 @@
 
 namespace bk {
 
-WelcomePresenter::WelcomePresenter(IDisplay *display, IEventDispatcher *events, RootWindow *root)
-    : PagePresenter(events, root),
+WelcomePresenter::WelcomePresenter(IDisplay *display, IEventDispatcher *events)
+    : PagePresenter(events),
       view_(WelcomeView(display))
 {
 }
@@ -54,7 +54,8 @@ void WelcomePresenter::onTimeData(const TimeData &data) {
 
 void WelcomePresenter::onButtonPressed(const KeypadData &data) {
     if (data.ru_pressed) {
-        root_->setCurrentWidget(next_);
+        events_->widgetEvent(WidgetData{});
+
     }
 }
 }  // namespace bk

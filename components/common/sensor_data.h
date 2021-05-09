@@ -2,6 +2,10 @@
 #include <ctime>
 namespace bk {
 
+struct WidgetData {
+    // PresenterPtr new_widget;
+};
+
 struct TimeData {
 };
 

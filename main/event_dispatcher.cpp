@@ -10,7 +10,8 @@ EventDispatcher::EventDispatcher(AbstractTask *weather,
     : weather_(weather),
       gnss_(gnss),
       keypad_(keypad),
-      time_(time) {
+      time_(time),
+      widget_q_(xQueueCreate(1, sizeof(WidgetData))) {
 }
 
 void EventDispatcher::EventDispatcher::listenForEvents() {
@@ -23,40 +24,40 @@ void EventDispatcher::EventDispatcher::listenForEvents() {
     GNSSData gnss_data = {};
     KeypadData keypad_data = {};
     TimeData time_data = {};
+    WidgetData widget_data = {};
 
     static const TickType_t TIMEOUT = pdMS_TO_TICKS(20);
 
     while (true) {
         if (xQueueReceive(keypad_q, &keypad_data, TIMEOUT) == pdPASS) {
-            ESP_LOGV(TAG, "Got data from Keypad");
+            ESP_LOGV(TAG, "Got Keypad event");
             notifyKeypad(keypad_data);
         }
 
+        if (xQueueReceive(widget_q_, &widget_data, TIMEOUT) == pdPASS) {
+            ESP_LOGV(TAG, "Got Widget event");
+            notifyWidgetChange(widget_data);
+        }
+
         if (xQueueReceive(weather_q, &weather_data, 0) == pdPASS) {
-            ESP_LOGV(TAG, "Got data from Weather");
+            ESP_LOGV(TAG, "Got Weather event");
             notifyWeather(weather_data);
         }
 
         if (xQueueReceive(gnss_q, &gnss_data, 0) == pdPASS) {
-            ESP_LOGV(TAG, "Got data from GNSS");
+            ESP_LOGV(TAG, "Got GNSS event");
             notifyGNSS(gnss_data);
         }
 
         if (xQueueReceive(time_q, &time_data, 0) == pdPASS) {
-            ESP_LOGV(TAG, "Got data from TimeService");
+            ESP_LOGV(TAG, "Got TimeService event");
             notifyTime(time_data);
         }
     }
 }
 
 void EventDispatcher::subForKeypad(KeypadListener *listener) {
-    // TODO: if there will be more than 1 listener on keypad, this will not work.
-    // keypad_iter_ may point at anyplace in the set (it's a RB tree, not a list)
-    // hence arbitrary number of listeners may be omited later at iteration.
-    keypad_iter_ = keypad_listeners_.insert(listener).first;
-
-    ESP_LOGV(
-        TAG, "sub for keypad, is iterator at end? %d", keypad_iter_ == keypad_listeners_.end());
+    keypad_listeners_.insert(listener);
 }
 
 void EventDispatcher::subForGNSS(GNSSListener *listener) {
@@ -71,11 +72,12 @@ void EventDispatcher::subForTime(TimeListener *listener) {
     time_listeners_.insert(listener);
 }
 
+void EventDispatcher::subForWidgetChange(WidgetListener *listener) {
+    widget_listeners_.insert(listener);
+}
+
 void EventDispatcher::unSubForKeypad(KeypadListener *listener) {
-    keypad_iter_ = keypad_listeners_.erase(keypad_iter_);
-    ESP_LOGV(
-        TAG, "UN sub for keypad, is iterator at end? %d", keypad_iter_ == keypad_listeners_.end());
-    // keypad_listeners_.erase(listener);
+    keypad_listeners_.erase(listener);
 }
 
 void EventDispatcher::unSubForGNSS(GNSSListener *listener) {
@@ -89,35 +91,21 @@ void EventDispatcher::unSubForWeather(WeatherListener *listener) {
 void EventDispatcher::unSubForTime(TimeListener *listener) {
     time_listeners_.erase(listener);
 }
+
+void EventDispatcher::unSubForWidgetChange(WidgetListener *listener) {
+    widget_listeners_.erase(listener);
+}
+
+void EventDispatcher::widgetEvent(const WidgetData &data) {
+    if (xQueueOverwrite(widget_q_, &data) != pdPASS) {
+        ESP_LOGE(TAG, "Failed to send  widget data");
+    }
+}
+
 void EventDispatcher::notifyKeypad(const KeypadData &data) {
-    for (keypad_iter_ = keypad_listeners_.begin(); keypad_iter_ != keypad_listeners_.end();
-         keypad_iter_++) {
-        ESP_LOGV(TAG, "!!!!!!call on button pressed");
-
-        // OnButtonPressed will cause to swap of current widget in root window.
-        // Root window calls on current widget onLeave, which causes unsub for keypad events
-        // on for current widget. Erase returns an iterator, which points at .end()
-        // Next step root window does, is to call onEnter for new widget.
-        // This will cause sub for Keypad. insert also returns iterator pointing at added element.
-        // Finally we leave onButtonPressed call.
-        // iterator is incremented (again points to .end()) and leaves the loop.
-        //
-        // This is horrible implementation hold here just as a curiosity.
-        // Works by luck, that set contains exactly one listener for keypad data, having them more
-        // breaks dispatching events horribly, since insert caused by onEnter will return an iterator
-        // at god knows which position in the set.
-        // But also shows that is actually possible to iterate over an collection and alter it, and 
-        // still not get segfault!
-        (*keypad_iter_)->onButtonPressed(data);
-
-        ESP_LOGV(TAG,
-                 " left on button pressed finnaly, is iterator at the end? %d",
-                 keypad_iter_ == keypad_listeners_.end());
-    } // Here iterator finally increments
-
-    // for (auto *observer : keypad_listeners_) {
-    //     observer->onButtonPressed(data);
-    // }
+    for (auto *observer : keypad_listeners_) {
+        observer->onButtonPressed(data);
+    }
 }
 
 void EventDispatcher::notifyGNSS(const GNSSData &data) {
@@ -135,6 +123,12 @@ void EventDispatcher::notifyWeather(const WeatherData &data) {
 void EventDispatcher::notifyTime(const TimeData &data) {
     for (auto *observer : time_listeners_) {
         observer->onTimeData(data);
+    }
+}
+
+void EventDispatcher::notifyWidgetChange(const WidgetData &data) {
+    for (auto *observer : widget_listeners_) {
+        observer->onWidgetChange(data);
     }
 }
 }  // namespace bk
