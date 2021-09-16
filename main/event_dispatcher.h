@@ -40,28 +40,28 @@ namespace bk {
 //         QueueSetMemberHandle_t queue = xQueueSelectFromSet(poll, portMAX_DELAY);
 //         // QueueSetMemberHandle_t queue = nullptr;
 
-//         // while ((queue = xQueueSelectFromSet(poll, pdMS_TO_TICKS(100))) != nullptr) ;
-//         if (queue == weather.getQueue()) ;
-//             ESP_LOGV(TAG, "Got data from Weather");
-//             bk::WeatherData data;
-//             configASSERT(xQueueReceive(queue, &data, 0) == pdPASS);
+//         while ((queue = xQueueSelectFromSet(poll, pdMS_TO_TICKS(100))) != nullptr) {
+//             if (queue == weather.getQueue()) {
+//                   ESP_LOGV(TAG, "Got data from Weather");
+//                   bk::WeatherData data;
+//                   configASSERT(xQueueReceive(queue, &data, 0) == pdPASS);
 
-//             display.drawWeatherData(data);
-//             // display.invalidate();
-//         } else if (queue == gnss.getQueue()) ;
-//             ESP_LOGV(TAG, "Got data from GNSS");
-//             bk::GNSSData data;
-//             configASSERT(xQueueReceive(queue, &data, 0) == pdPASS);
+//                   display.drawWeatherData(data);
+//                   // display.invalidate();
+//             } else if (queue == gnss.getQueue()) {
+//                   ESP_LOGV(TAG, "Got data from GNSS");
+//                   bk::GNSSData data;
+//                   configASSERT(xQueueReceive(queue, &data, 0) == pdPASS);
 
-//             display.drawGNSSData(data);
-//             // display.invalidate();
-//         } else ;
-//             ESP_LOGV(TAG, "else");
-//             configASSERT(false);
+//                   display.drawGNSSData(data);
+//                   // display.invalidate();
+//             } else {
+//                   ESP_LOGV(TAG, "else");
+//                   configASSERT(false);
+//             }
 //         }
-//         // }
 
-//         // ESP_LOGV(TAG, "leave while");
+//       //   ESP_LOGV(TAG, "leave while");
 
 //         ESP_LOGV(TAG, "invalidate");
 //         display.invalidate();
@@ -131,7 +131,7 @@ class EventDispatcher : public IEventDispatcher {
     // TODO: that could be separate event service, but what the hell?
     QueueHandle_t widget_q_;
 
-    std::set<KeypadListener *>::iterator keypad_iter_; 
+    std::set<KeypadListener *>::iterator keypad_iter_;
     std::set<KeypadListener *> keypad_listeners_;
     std::set<GNSSListener *> gnss_listeners_;
     std::set<WeatherListener *> weather_listeners_;
