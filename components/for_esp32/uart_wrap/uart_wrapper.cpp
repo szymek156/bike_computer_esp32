@@ -14,6 +14,8 @@ UART::UART(int baudrate, int rx_pin, int uart_port, QueueHandle_t* event_queue)
         .parity = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+        // TODO: figure what's the correct value
+        .rx_flow_ctrl_thresh = 0,
         .source_clk = UART_SCLK_APB,
     };
 
