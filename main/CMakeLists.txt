@@ -4,13 +4,13 @@ idf_component_register(SRCS
     "event_dispatcher.cpp"
     "root_window.cpp"
 
+    "widgets/v_list_widget.cpp"
+
     "view/status_view.cpp"
     "view/welcome_view.cpp"
     "view/stats_view.cpp"
     "view/select_activity_view.cpp"
-    "view/v_list_view.cpp"
 
-    "presenter/v_list_presenter.cpp"
     "presenter/status_presenter.cpp"
     "presenter/welcome_presenter.cpp"
     "presenter/stats_presenter.cpp"

@@ -4,7 +4,6 @@
 #include "listerers_interface.h"
 #include "page_presenter.h"
 #include "root_window.h"
-#include "v_list_presenter.h"
 #include "view/select_activity_view.h"
 
 #include <display.h>
@@ -24,7 +23,6 @@ class SelectActivityPresenter : public PagePresenter, public KeypadListener {
 
  private:
     SelectActivityView view_;
-    VListPresenter activities_presenter_;
 };
 
 }  // namespace bk

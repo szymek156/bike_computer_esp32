@@ -4,8 +4,9 @@
 namespace bk {
 using bk::COLORED;
 
-SelectActivityView::SelectActivityView(IDisplay *display, VListView *activity_list)
-    : display_(display) {
+SelectActivityView::SelectActivityView(IDisplay *display, const std::vector<std::string> &activities)
+    : display_(display),
+    activities_(VListWidget(display, activities, {149, 13, 295, 127})) {
 }
 
 void SelectActivityView::drawStatic() {
@@ -27,6 +28,13 @@ void SelectActivityView::drawStatic() {
             paint.DrawStringAt(6, 29, message, &Font24, COLORED);
         },
         {1, 13, 147, 69});
+
+    // Will potentially overlay above statements
+    activities_.drawStatic();
+}
+
+VListWidget &SelectActivityView::getActivities() {
+    return activities_;
 }
 
 }  // namespace bk
