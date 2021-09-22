@@ -1,10 +1,12 @@
 #include "layout_factory.h"
 
+
+#include <vector>
+
 #include "presenter/select_activity_presenter.h"
 #include "presenter/stats_presenter.h"
 #include "presenter/status_presenter.h"
 #include "presenter/welcome_presenter.h"
-
 namespace bk {
 LayoutFactory::LayoutFactory(IDisplay *display, IEventDispatcher *events)
     : display_(display),
@@ -16,7 +18,7 @@ StatusAndMain LayoutFactory::create() {
     auto welcome = std::make_shared<WelcomePresenter>(display_, events_);
     // auto stats = std::make_shared<StatsPresenter>(display_, events_);
     auto select_activity = std::make_shared<SelectActivityPresenter>(
-        display_, events_, {"Running", "Cycling", "Hiking", "Indoor Cycling"});
+        display_, events_, std::vector<std::string>{"Running", "Cycling", "Hiking", "Indoor Cycling"});
 
     welcome->setNext(select_activity);
     welcome->setPrevious(select_activity);

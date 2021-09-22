@@ -4,14 +4,16 @@
 namespace bk {
 using bk::COLORED;
 
-SelectActivityView::SelectActivityView(IDisplay *display, std::vector<std::string> elements)
-    : display_(display),
-      elements_(elements) {
+SelectActivityView::SelectActivityView(IDisplay *display, VListView *activity_list)
+    : display_(display) {
 }
 
 void SelectActivityView::drawStatic() {
     display_->enqueueStaticDraw(
         [](Paint &paint) {
+            paint.DrawHorizontalLine(13, 12, 270, COLORED);
+            paint.DrawVerticalLine(148, 15, 110, COLORED);
+            paint.DrawHorizontalLine(13, 70, 122, COLORED);
         },
         // Rectangle needs to cover whole widget area
         {0, 14, display_->getHeight(), display_->getWidth()});

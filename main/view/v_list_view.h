@@ -1,12 +1,11 @@
 #pragma once
 #include <vector>
 #include "display.h"
-#include "v_list_view.h"
 
 namespace bk {
-class SelectActivityView {
+class VListView {
  public:
-    SelectActivityView(IDisplay *display, VListView *activity_list);
+    VListView(IDisplay *display, const std::vector<std::string> &elements);
 
     // Draw static components not changing over time
     void drawStatic();

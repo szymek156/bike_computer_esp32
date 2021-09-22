@@ -9,8 +9,8 @@ SelectActivityPresenter::SelectActivityPresenter(IDisplay *display,
                                                  IEventDispatcher *events,
                                                  const std::vector<std::string> &activities)
     : PagePresenter(events),
-      view_(SelectActivityView(display)),
-      activities_presenter_(VListPresenter(activities)) {
+      view_(SelectActivityView(display, nullptr)),
+      activities_presenter_(VListPresenter(display, activities)) {
 }
 
 SelectActivityPresenter::~SelectActivityPresenter() {
