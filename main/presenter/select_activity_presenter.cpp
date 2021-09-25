@@ -9,7 +9,7 @@ SelectActivityPresenter::SelectActivityPresenter(IDisplay *display,
                                                  IEventDispatcher *events,
                                                  const std::vector<std::string> &activities)
     : PagePresenter(events),
-      view_(SelectActivityView(display, activities)){
+      view_(SelectActivityView(display, activities)) {
 }
 
 SelectActivityPresenter::~SelectActivityPresenter() {
@@ -28,16 +28,13 @@ void SelectActivityPresenter::onLeave() {
 
 void SelectActivityPresenter::onButtonPressed(const KeypadData &data) {
     if (data.ru_pressed) {
-        events_->widgetEvent(WidgetData{.new_widget = WidgetData::next});
-    }
-
-    if (data.ld_pressed) {
         view_.getActivities().goDown();
-    }
-
-    if (data.lu_pressed) {
+    } else if (data.lu_pressed) {
         view_.getActivities().goUp();
+    } else if (data.rd_pressed) {
+        events_->widgetEvent(WidgetData{.new_widget = WidgetData::more});
+    } else if (data.ld_pressed) {
+        events_->widgetEvent(WidgetData{.new_widget = WidgetData::less});
     }
-
 }
 }  // namespace bk

@@ -8,13 +8,23 @@ idf_component_register(SRCS
 
     "view/status_view.cpp"
     "view/welcome_view.cpp"
+    "view/test_view.cpp"
     "view/stats_view.cpp"
+
+    "view/activity_splash_view.cpp"
     "view/select_activity_view.cpp"
+
+    "view/TEMPLATE_view.cpp"
 
     "presenter/status_presenter.cpp"
     "presenter/welcome_presenter.cpp"
+    "presenter/test_presenter.cpp"
     "presenter/stats_presenter.cpp"
+
+    "presenter/activity_splash_presenter.cpp"
     "presenter/select_activity_presenter.cpp"
+
+    "presenter/TEMPLATE_presenter.cpp"
 
     "layout_factory.cpp"
 

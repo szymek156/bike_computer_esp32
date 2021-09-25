@@ -2,13 +2,12 @@
 #include <display.h>
 
 namespace bk {
-class WelcomeView {
+class ActivitySplashView {
  public:
-    WelcomeView(IDisplay *display);
+    ActivitySplashView(IDisplay *display);
 
     // Draw static components not changing over time
     void drawStatic();
-    void drawDateTime(const tm &time_info);
 
  protected:
     IDisplay *display_;

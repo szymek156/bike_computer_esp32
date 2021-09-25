@@ -22,6 +22,7 @@ class RootWindow : public WidgetListener {
     void setCurrentWidget(PresenterPtr current);
 
  private:
+    static constexpr const char *TAG = "RootWindow";
     // Status widget
     PresenterPtr status_widget_;
 

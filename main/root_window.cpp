@@ -1,5 +1,8 @@
 #include "root_window.h"
 
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+#include <esp_log.h>
+
 namespace bk {
 
 RootWindow::RootWindow(IEventDispatcher *events, LayoutFactory *factory) : events_(events) {
@@ -17,12 +20,17 @@ RootWindow::~RootWindow() {
 
 void RootWindow::onWidgetChange(const WidgetData &data) {
     if (current_widget_) {
-        current_widget_->onLeave();
-        current_widget_ = current_widget_->getWidget(data.new_widget);
-    }
+        auto upcoming_widget = current_widget_->getWidget(data.new_widget);
 
-    if (current_widget_) {
-        current_widget_->onEnter();
+        if (upcoming_widget) {
+            current_widget_->onLeave();
+
+            current_widget_ = upcoming_widget;
+
+            current_widget_->onEnter();
+        } else {
+            ESP_LOGE(TAG, "Got request to change a widget, but none was returned!");
+        }
     }
 }
 

@@ -1,32 +1,32 @@
-#include "stats_presenter.h"
+#include "TEMPLATE_presenter.h"
 
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include <esp_log.h>
 
 namespace bk {
 
-StatsPresenter::StatsPresenter(IDisplay *display, IEventDispatcher *events)
+TEMPLATEPresenter::TEMPLATEPresenter(IDisplay *display, IEventDispatcher *events)
     : PagePresenter(events),
-      view_(StatsView(display)) {
+      view_(TEMPLATEView(display)) {
 }
 
-StatsPresenter::~StatsPresenter() {
-    ESP_LOGE("StatsPresenter", "DTOR" );
+TEMPLATEPresenter::~TEMPLATEPresenter() {
+    ESP_LOGE("TEMPLATEPresenter", "DTOR" );
 }
 
-void StatsPresenter::onEnter() {
+void TEMPLATEPresenter::onEnter() {
     view_.drawStatic();
 
     events_->subForKeypad(this);
 }
 
-void StatsPresenter::onLeave() {
+void TEMPLATEPresenter::onLeave() {
     // TODO: this is a segfault, altering collection while iterating
     // Lost focus unsub for keypad events
     events_->unSubForKeypad(this);
 }
 
-void StatsPresenter::onButtonPressed(const KeypadData &data) {
+void TEMPLATEPresenter::onButtonPressed(const KeypadData &data) {
     if (data.ru_pressed) {
         events_->widgetEvent(WidgetData{.new_widget = WidgetData::next});
     } else if (data.lu_pressed) {

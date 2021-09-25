@@ -1,5 +1,5 @@
 #include "keypad.h"
-
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include <esp_log.h>
 
 namespace bk {
@@ -21,7 +21,7 @@ void Keypad::run() {
     ESP_LOGI(TAG, "Run");
 
     while (true) {
-        ESP_LOGD(TAG, "Waiting for interrupt...");
+        ESP_LOGV(TAG, "Waiting for interrupt...");
         ulTaskNotifyTake(true, portMAX_DELAY);
 
         data_.lu_pressed = gpio_.getLevel(LU);
