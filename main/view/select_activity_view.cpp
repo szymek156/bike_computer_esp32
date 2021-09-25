@@ -6,7 +6,7 @@ using bk::COLORED;
 
 SelectActivityView::SelectActivityView(IDisplay *display, const std::vector<std::string> &activities)
     : display_(display),
-    activities_(VListWidget(display, activities, {149, 13, 295, 127})) {
+    activities_(VListWidget(display, activities, Font16, {149, 13, 295, 127})) {
 }
 
 void SelectActivityView::drawStatic() {
