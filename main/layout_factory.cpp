@@ -20,7 +20,7 @@ LayoutFactory::LayoutFactory(IDisplay *display, IEventDispatcher *events)
 }
 
 StatusAndMain LayoutFactory::create() {
-    const std::vector<std::string> ACTIVITIES = {"Running", "Cycling", "Hiking", "Indoor Cycling"};
+
 
     auto status = std::make_shared<StatusPresenter>(display_, events_);
     auto test = std::make_shared<TestPresenter>(display_, events_);

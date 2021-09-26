@@ -1,6 +1,7 @@
 idf_component_register(SRCS
     "bike_computer_esp32.c"
     "time_service.cpp"
+    "activity_service.cpp"
     "event_dispatcher.cpp"
     "root_window.cpp"
 

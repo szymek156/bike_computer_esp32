@@ -49,7 +49,7 @@ void TimeService::onGNSSData(const GNSSData &data) {
     // TODO: TZ could be set to the system using esp32 api
     // TODO: chrono calendar would be used someday
 
-    // This is cumbersome, but handling date and time in shitty in C++
+    // This is cumbersome, but handling date and time is shitty in C++
     // and even shittier (congratulations!) in C/POSIX whatever you call it
 
     // Some meaningful data
