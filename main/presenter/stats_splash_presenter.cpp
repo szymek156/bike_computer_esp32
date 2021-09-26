@@ -1,40 +1,39 @@
-#include "TEMPLATE_presenter.h"
+#include "stats_splash_presenter.h"
 
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include <esp_log.h>
 
 namespace bk {
 
-TEMPLATEPresenter::TEMPLATEPresenter(IDisplay *display, IEventDispatcher *events)
+StatsSplashPresenter::StatsSplashPresenter(IDisplay *display, IEventDispatcher *events)
     : PagePresenter(events),
-      view_(TEMPLATEView(display)) {
+      view_(StatsSplashView(display)) {
 }
 
-TEMPLATEPresenter::~TEMPLATEPresenter() {
-    ESP_LOGE("TEMPLATEPresenter", "DTOR");
+StatsSplashPresenter::~StatsSplashPresenter() {
+    ESP_LOGE("StatsSplashPresenter", "DTOR");
 }
 
-void TEMPLATEPresenter::onEnter() {
+void StatsSplashPresenter::onEnter() {
     view_.drawStatic();
 
     events_->subForKeypad(this);
 }
 
-void TEMPLATEPresenter::onLeave() {
+void StatsSplashPresenter::onLeave() {
     // TODO: this is a segfault, altering collection while iterating
     // Lost focus unsub for keypad events
     events_->unSubForKeypad(this);
 }
 
-void TEMPLATEPresenter::onButtonPressed(const KeypadData &data) {
+void StatsSplashPresenter::onButtonPressed(const KeypadData &data) {
     if (data.ru_pressed) {
         events_->widgetEvent(WidgetData{.new_widget = WidgetData::next});
     } else if (data.lu_pressed) {
         events_->widgetEvent(WidgetData{.new_widget = WidgetData::prev});
     } else if (data.rd_pressed) {
         events_->widgetEvent(WidgetData{.new_widget = WidgetData::more});
-    } else if (data.ld_pressed) {
-        events_->widgetEvent(WidgetData{.new_widget = WidgetData::less});
+    } else if (data.rd_pressed) {
     }
 }
 }  // namespace bk

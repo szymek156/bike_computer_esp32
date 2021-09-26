@@ -13,16 +13,27 @@ idf_component_register(SRCS
 
     "view/activity_splash_view.cpp"
     "view/select_activity_view.cpp"
+    "view/activity_workouts_view.cpp"
+    "view/activity_selected_view.cpp"
+
+    "view/stats_splash_view.cpp"
+    "view/stats_view.cpp"
+    "view/stats_selected_view.cpp"
+
 
     "view/TEMPLATE_view.cpp"
 
     "presenter/status_presenter.cpp"
     "presenter/welcome_presenter.cpp"
     "presenter/test_presenter.cpp"
-    "presenter/stats_presenter.cpp"
 
     "presenter/activity_splash_presenter.cpp"
     "presenter/select_activity_presenter.cpp"
+    "presenter/activity_workouts_presenter.cpp"
+    "presenter/activity_selected_presenter.cpp"
+    "presenter/stats_splash_presenter.cpp"
+    "presenter/stats_presenter.cpp"
+    "presenter/stats_selected_presenter.cpp"
 
     "presenter/TEMPLATE_presenter.cpp"
 

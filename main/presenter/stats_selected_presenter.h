@@ -1,21 +1,19 @@
 #pragma once
 
 #include "event_dispatcher.h"
+#include "root_window.h"
 #include "listerers_interface.h"
 #include "page_presenter.h"
-#include "root_window.h"
-#include "view/stats_view.h"
+#include "view/stats_selected_view.h"
 
 #include <display.h>
 
 namespace bk {
 // TODO: that could be composition, instead of inheritance (strategy) consider refactor
-class StatsPresenter : public PagePresenter, public KeypadListener {
+class StatsSelectedPresenter : public PagePresenter, public KeypadListener {
  public:
-    StatsPresenter(IDisplay *display,
-                   IEventDispatcher *events,
-                   const std::vector<std::string> &activities);
-    ~StatsPresenter();
+    StatsSelectedPresenter(IDisplay *display, IEventDispatcher *events);
+    ~StatsSelectedPresenter();
 
     virtual void onEnter() override;
     virtual void onLeave() override;
@@ -23,7 +21,7 @@ class StatsPresenter : public PagePresenter, public KeypadListener {
     virtual void onButtonPressed(const KeypadData &data) override;
 
  private:
-    StatsView view_;
+    StatsSelectedView view_;
 };
 
 }  // namespace bk

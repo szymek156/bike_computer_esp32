@@ -3,17 +3,16 @@
 
 #include <display.h>
 namespace bk {
-class StatsView {
+class ActivitySelectedView {
  public:
-    StatsView(IDisplay *display, const std::vector<std::string> &activities);
+    ActivitySelectedView(IDisplay *display);
 
     // Draw static components not changing over time
     void drawStatic();
-    VListWidget &getActivities();
+    VListWidget &getOptions();
 
  protected:
     IDisplay *display_;
-    VListWidget activities_;
-
+    VListWidget options_;
 };
 }  // namespace bk
