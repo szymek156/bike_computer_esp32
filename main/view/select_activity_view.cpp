@@ -4,9 +4,9 @@
 namespace bk {
 using bk::COLORED;
 
-SelectActivityView::SelectActivityView(IDisplay *display, const std::vector<std::string> &activities)
+SelectActivityView::SelectActivityView(IDisplay *display)
     : display_(display),
-    activities_(VListWidget(display, activities, Font16
+    activities_(VListWidget(display, Font16
     , {149, 13, 295, 127})) {
 }
 

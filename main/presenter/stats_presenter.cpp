@@ -1,15 +1,13 @@
 #include "stats_presenter.h"
-
+#include "activity_service.h"
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include <esp_log.h>
 
 namespace bk {
 
-StatsPresenter::StatsPresenter(IDisplay *display,
-                               IEventDispatcher *events,
-                               const std::vector<std::string> &activities)
+StatsPresenter::StatsPresenter(IDisplay *display, IEventDispatcher *events)
     : PagePresenter(events),
-      view_(StatsView(display, activities)) {
+      view_(StatsView(display)) {
 }
 
 StatsPresenter::~StatsPresenter() {
@@ -17,6 +15,10 @@ StatsPresenter::~StatsPresenter() {
 }
 
 void StatsPresenter::onEnter() {
+    auto activities = ActivityService::instance().getActivities();
+
+    view_.getActivities().updateElements(activities);
+
     view_.drawStatic();
 
     events_->subForKeypad(this);

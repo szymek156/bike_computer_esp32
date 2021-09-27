@@ -1,5 +1,6 @@
 #include "activity_workouts_presenter.h"
 
+#include "activity_service.h"
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include <esp_log.h>
 
@@ -8,8 +9,7 @@ namespace bk {
 ActivityWorkoutsPresenter::ActivityWorkoutsPresenter(IDisplay *display, IEventDispatcher *events)
     : PagePresenter(events),
       // TODO: workouts are part of the model refactor later
-      view_(ActivityWorkoutsView(display,
-                                 {"5k", "10k", "Half Marathon", "Marathon", "Cooper Test"})) {
+      view_(ActivityWorkoutsView(display)) {
 }
 
 ActivityWorkoutsPresenter::~ActivityWorkoutsPresenter() {
@@ -17,6 +17,8 @@ ActivityWorkoutsPresenter::~ActivityWorkoutsPresenter() {
 }
 
 void ActivityWorkoutsPresenter::onEnter() {
+    view_.getWorkouts().updateElements(ActivityService::instance().getWorkouts());
+    view_.setActivity(ActivityService::instance().getCurrentActivityType());
     view_.drawStatic();
 
     events_->subForKeypad(this);

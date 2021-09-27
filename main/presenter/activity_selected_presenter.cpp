@@ -15,6 +15,8 @@ ActivitySelectedPresenter::~ActivitySelectedPresenter() {
 }
 
 void ActivitySelectedPresenter::onEnter() {
+    view_.getOptions().updateElements({"Do It", "View"});
+
     view_.drawStatic();
 
     events_->subForKeypad(this);

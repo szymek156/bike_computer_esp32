@@ -1,5 +1,6 @@
 #include "layout_factory.h"
 
+#include "activity_service.h"
 #include "presenter/TEMPLATE_presenter.h"
 #include "presenter/activity_selected_presenter.h"
 #include "presenter/activity_splash_presenter.h"
@@ -20,21 +21,19 @@ LayoutFactory::LayoutFactory(IDisplay *display, IEventDispatcher *events)
 }
 
 StatusAndMain LayoutFactory::create() {
-
-
     auto status = std::make_shared<StatusPresenter>(display_, events_);
     auto test = std::make_shared<TestPresenter>(display_, events_);
     auto welcome = std::make_shared<WelcomePresenter>(display_, events_);
 
     auto activity_splash = std::make_shared<ActivitySplashPresenter>(display_, events_);
-    auto select_activity = std::make_shared<SelectActivityPresenter>(display_, events_, ACTIVITIES);
+    auto select_activity = std::make_shared<SelectActivityPresenter>(display_, events_);
 
     auto activity_workouts = std::make_shared<ActivityWorkoutsPresenter>(display_, events_);
 
     auto activity_selected = std::make_shared<ActivitySelectedPresenter>(display_, events_);
 
     auto stats_splash = std::make_shared<StatsSplashPresenter>(display_, events_);
-    auto select_stats = std::make_shared<StatsPresenter>(display_, events_, ACTIVITIES);
+    auto select_stats = std::make_shared<StatsPresenter>(display_, events_);
     auto stats_summary = std::make_shared<StatsSelectedPresenter>(display_, events_);
 
     test->setNext(welcome);

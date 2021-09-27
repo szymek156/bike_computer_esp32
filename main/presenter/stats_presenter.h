@@ -12,9 +12,7 @@ namespace bk {
 // TODO: that could be composition, instead of inheritance (strategy) consider refactor
 class StatsPresenter : public PagePresenter, public KeypadListener {
  public:
-    StatsPresenter(IDisplay *display,
-                   IEventDispatcher *events,
-                   const std::vector<std::string> &activities);
+    StatsPresenter(IDisplay *display, IEventDispatcher *events);
     ~StatsPresenter();
 
     virtual void onEnter() override;

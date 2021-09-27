@@ -4,15 +4,14 @@
 namespace bk {
 using bk::COLORED;
 
-ActivityWorkoutsView::ActivityWorkoutsView(IDisplay *display,
-                                           const std::vector<std::string> &workouts)
+ActivityWorkoutsView::ActivityWorkoutsView(IDisplay *display)
     : display_(display),
-    workouts_(VListWidget(display, workouts, Font16, {149, 13, 295, 127})) {
+      workouts_(VListWidget(display, Font16, {149, 13, 295, 127})) {
 }
 
 void ActivityWorkoutsView::drawStatic() {
     display_->enqueueStaticDraw(
-        [](Paint &paint) {
+        [&](Paint &paint) {
             paint.DrawHorizontalLine(13, 12, 270, COLORED);
             paint.DrawVerticalLine(148, 15, 110, COLORED);
             paint.DrawHorizontalLine(13, 70, 122, COLORED);
@@ -23,7 +22,7 @@ void ActivityWorkoutsView::drawStatic() {
             snprintf(message, msg_size, "Workouts");
             paint.DrawStringAt(6, 29, message, &Font24, COLORED);
 
-            snprintf(message, msg_size, "Running");
+            snprintf(message, msg_size, activity_type_.c_str());
             paint.DrawStringAt(14, 87, message, &Font24, COLORED);
         },
         // Rectangle needs to cover whole widget area
@@ -35,6 +34,5 @@ void ActivityWorkoutsView::drawStatic() {
 VListWidget &ActivityWorkoutsView::getWorkouts() {
     return workouts_;
 }
-
 
 }  // namespace bk

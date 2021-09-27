@@ -6,7 +6,6 @@ namespace bk {
 class VListWidget {
  public:
     VListWidget(IDisplay *display,
-      const std::vector<std::string> &elements,
       const sFONT &font,
       const Rect &area);
 
@@ -18,6 +17,8 @@ class VListWidget {
 
     std::string getCurrentSelection();
     size_t getCurrentSelectionIdx();
+
+    void updateElements(const std::vector<std::string> elements);
 
  protected:
     void drawNotSelected(size_t selection);

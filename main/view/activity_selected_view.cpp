@@ -6,7 +6,7 @@ using bk::COLORED;
 
 ActivitySelectedView::ActivitySelectedView(IDisplay *display)
     : display_(display),
-      options_(VListWidget(display, {"Do It", "View"}, Font16, {149, 13, 295, 127})) {
+      options_(VListWidget(display, Font16, {149, 13, 295, 127})) {
 }
 
 void ActivitySelectedView::drawStatic() {

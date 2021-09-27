@@ -5,7 +5,7 @@
 namespace bk {
 class SelectActivityView {
  public:
-    SelectActivityView(IDisplay *display, const std::vector<std::string> &activities);
+    SelectActivityView(IDisplay *display);
 
     // Draw static components not changing over time
     void drawStatic();

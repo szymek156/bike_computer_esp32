@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <array>
 #include <map>
 #include <string>
 #include <variant>
@@ -11,7 +12,7 @@
  * */
 class ActivityService {
  public:
-    static ActivityService &getService();
+    static ActivityService &instance();
 
     // Set and get strings, not enums, because this is what
     // consumers (presenters) expect. It's easier to work
@@ -24,31 +25,37 @@ class ActivityService {
     std::string getCurrentActivityWorkout();
 
     std::vector<std::string> getActivities();
-    std::vector<std::string> getWorkouts(const std::string &activity);
+    std::vector<std::string> getWorkouts();
 
     std::string getCurrentWorkoutDescription();
 
  private:
     ActivityService() = default;
 
-    const std::vector<std::string> ACTIVITIES = {"Running", "Cycling", "Hiking", "Indoor Cycling"};
+    // Keep this collection and enum in correct order,
+    // because commetee chimps did not figure how to implement
+    // enum to string yet.
+    // And never will be, they are too busy copy pasting from boost,
+    // one library per 3 years, and say that "we did it".
+    const std::array<const char *, 4> ACTIVITIES = {
+        "Running", "Cycling", "Hiking", "Indoor Cycling"};
 
     enum class Activities {
-        Running,
+        Running = 0,
         Cycling,
         Hiking,
         IndoorCycling,
     };
 
-    const std::map<std::string, Activities> str_to_activities_ = {
-        {"Running", Activities::Running},
-        {"Cycling", Activities::Cycling},
-        {"Hiking", Activities::Hiking},
-        {"Indoor Cycling", Activities::IndoorCycling},
-    };
+    // Compiler has no idea this has 5 elements, you need to write it!
+    // auto of course does not work here too!
+    // Class template arg deduction from C++17 - same here!
+    // I made it an array just for fun, now I regret.
+    const std::array<const char *, 5> RUNNING_WORKOUTS = {
+        "5k", "10k", "Half Marathon", "Marathon", "Cooper Test"};
 
     enum class RunningWorkouts {
-        _5k,
+        _5k = 0,
         _10k,
         HalfMarathon,
         Marathon,
@@ -56,36 +63,11 @@ class ActivityService {
 
     };
 
-    const std::map<std::string, RunningWorkouts> str_to_running_workouts_ = {
-        {"5k", RunningWorkouts::_5k},
-        {"10k", RunningWorkouts::_10k},
-        {"HalfMarathon", RunningWorkouts::HalfMarathon},
-        {"Marathon", RunningWorkouts::Marathon},
-        {"CooperTest", RunningWorkouts::CooperTest},
-    };
-
-    enum class CyclingWorkouts {
-
-    };
+    const std::vector<std::string> CYCLING_WORKOUTS = {"CycWorkout1", "CycWorkout2"};
+    enum class CyclingWorkouts { CycWorkout1, CycWorkout2 };
 
     Activities current_activity_type_;
     std::variant<RunningWorkouts, CyclingWorkouts> current_workout_type_;
-
-    // Inefficient? Thank those idiots from the cometee to not
-    // give enum to str capabilities to the standard
-    // for over 40 years!
-    // Meanwhile in Rust:
-    // #derive[Debug] // drops the mic
-    // const std::map<std::string, Activities> str_to_activities_ = {
-    //     {"Running", Activities::Running},
-    //     {"Cycling", Activities::Cycling},
-    //     {"Hiking", Activities::Hiking},
-    //     {"Indoor Cycling", Activities::IndoorCycling},
-    // };
-
-    std::string enum2str(Activities e);
-    std::string enum2str(RunningWorkouts e);
-    std::string enum2str(CyclingWorkouts e);
 
     // TODO: keep FIT instance as a pointer, delete, when activity finished
     // create, when user hits "do it" button

@@ -5,7 +5,7 @@
 namespace bk {
 class StatsView {
  public:
-    StatsView(IDisplay *display, const std::vector<std::string> &activities);
+    StatsView(IDisplay *display);
 
     // Draw static components not changing over time
     void drawStatic();

@@ -12,8 +12,7 @@ namespace bk {
 class SelectActivityPresenter : public PagePresenter, public KeypadListener {
  public:
     SelectActivityPresenter(IDisplay *display,
-                            IEventDispatcher *events,
-                            const std::vector<std::string> &activities);
+                            IEventDispatcher *events);
     ~SelectActivityPresenter();
 
     virtual void onEnter() override;
