@@ -110,6 +110,7 @@ size_t VListWidget::getCurrentSelectionIdx() {
 
 void VListWidget::updateElements(const std::vector<std::string> elements) {
     elements_ = elements;
+    current_selection_ = 0;
     el_height_ = (area_.y1 - area_.y0) / elements_.size();
     el_width_ = area_.x1 - area_.x0;
     center_vert_ = (el_height_ - font_.Height) / 2;

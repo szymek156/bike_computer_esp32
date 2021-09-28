@@ -63,8 +63,46 @@ std::string ActivityService::getCurrentActivityType() {
     // Torvalds was right, he was so goddam right.
     return ACTIVITIES[(size_t)current_activity_type_];
 }
+
+// Description of crap below:
+// It creates a struct from template parameters and uses them as overload
+// operator(), next define deduction guide
+// All of that in completely unreadable syntax for mere human.
+// Finally generate a struct with lambdas inside with different arguments
+template <class... Ts>
+struct overloaded : Ts... {
+    using Ts::operator()...;
+};
+// explicit deduction guide (not needed as of C++20)
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+
+// All of it could be achieved simply by:
+// struct Visitor {
+//     void operator()(A)  {}
+//     void operator()(B) {}
+// };
+// But I just wanted to see how ugly C++ could be.
+// I am satisfied.
+
 std::string ActivityService::getCurrentActivityWorkout() {
-    return "";
+    // Of course, there is no IDE that could handle this,
+    // everything is red-squiggled
+    return std::visit(overloaded{
+                          [&](RunningWorkouts w) {
+                              // not known conversion from const char* to string
+                              // in this case (Why? Because fuck you!)
+                              // - compiler splits directly to your face
+                              // error message with 10 000 characters (no kidding)
+                              // which is still reasonable amount while working with
+                              // templates.
+                              return std::string(RUNNING_WORKOUTS[(size_t)w]);
+                          },
+                          [&](CyclingWorkouts w) {
+                              return CYCLING_WORKOUTS[(size_t)w];
+                          },
+                      },
+                      current_workout_type_);
 }
 
 std::vector<std::string> ActivityService::getActivities() {
@@ -96,22 +134,8 @@ std::string ActivityService::getCurrentWorkoutDescription() {
     return "";
 }
 
-std::string ActivityService::enum2str(Activities e) {
-    switch (e) {
-        case Activities::Running: {
-        }
-        case Activities::Cycling: {
-        }
-        case Activities::Hiking: {
-        }
-        case Activities::IndoorCycling: {
-        }
-    }
-    return "";
-}
-std::string ActivityService::enum2str(RunningWorkouts e) {
-    return "";
-}
-std::string ActivityService::enum2str(CyclingWorkouts e) {
-    return "";
-}
+// std::string ActivityService::visitWorkout(RunningWorkouts workout) {
+// }
+
+// std::string ActivityService::visitWorkout(CyclingWorkouts workout) {
+// }

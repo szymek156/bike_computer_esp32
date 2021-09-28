@@ -36,6 +36,7 @@ void ActivityWorkoutsPresenter::onButtonPressed(const KeypadData &data) {
     } else if (data.lu_pressed) {
         view_.getWorkouts().goUp();
     } else if (data.rd_pressed) {
+        ActivityService::instance().setActivityWorkout(view_.getWorkouts().getCurrentSelection());
         events_->widgetEvent(WidgetData{.new_widget = WidgetData::more});
     } else if (data.ld_pressed) {
         events_->widgetEvent(WidgetData{.new_widget = WidgetData::less});

@@ -1,4 +1,5 @@
 #include "activity_selected_presenter.h"
+#include "activity_service.h"
 
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include <esp_log.h>
@@ -16,6 +17,8 @@ ActivitySelectedPresenter::~ActivitySelectedPresenter() {
 
 void ActivitySelectedPresenter::onEnter() {
     view_.getOptions().updateElements({"Do It", "View"});
+    view_.setActivity(ActivityService::instance().getCurrentActivityType());
+    view_.setWorkout(ActivityService::instance().getCurrentActivityWorkout());
 
     view_.drawStatic();
 
