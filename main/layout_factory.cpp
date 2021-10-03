@@ -2,6 +2,7 @@
 
 #include "activity_service.h"
 #include "presenter/TEMPLATE_presenter.h"
+#include "presenter/activity_do_it_presenter.h"
 #include "presenter/activity_selected_presenter.h"
 #include "presenter/activity_splash_presenter.h"
 #include "presenter/activity_workouts_presenter.h"
@@ -31,6 +32,7 @@ StatusAndMain LayoutFactory::create() {
     auto activity_workouts = std::make_shared<ActivityWorkoutsPresenter>(display_, events_);
 
     auto activity_selected = std::make_shared<ActivitySelectedPresenter>(display_, events_);
+    auto activity_do_it = std::make_shared<ActivityDoItPresenter>(display_, events_);
 
     auto stats_splash = std::make_shared<StatsSplashPresenter>(display_, events_);
     auto select_stats = std::make_shared<StatsPresenter>(display_, events_);
@@ -52,8 +54,11 @@ StatusAndMain LayoutFactory::create() {
     activity_workouts->setMore(activity_selected);
     activity_workouts->setLess(select_activity);
 
-    // activity_selected->setMore(activity_get_ready);
+    activity_selected->setMore(activity_do_it);
     activity_selected->setLess(activity_workouts);
+
+    activity_do_it->setLess(activity_selected);
+    // More - start recording, move to first page of dynamically created layout
 
     stats_splash->setNext(test);
     stats_splash->setPrevious(activity_splash);

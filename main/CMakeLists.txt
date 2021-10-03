@@ -16,6 +16,7 @@ idf_component_register(SRCS
     "view/select_activity_view.cpp"
     "view/activity_workouts_view.cpp"
     "view/activity_selected_view.cpp"
+    "view/activity_do_it_view.cpp"
 
     "view/stats_splash_view.cpp"
     "view/stats_view.cpp"
@@ -32,6 +33,8 @@ idf_component_register(SRCS
     "presenter/select_activity_presenter.cpp"
     "presenter/activity_workouts_presenter.cpp"
     "presenter/activity_selected_presenter.cpp"
+    "presenter/activity_do_it_presenter.cpp"
+
     "presenter/stats_splash_presenter.cpp"
     "presenter/stats_presenter.cpp"
     "presenter/stats_selected_presenter.cpp"
