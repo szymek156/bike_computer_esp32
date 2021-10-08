@@ -1,11 +1,15 @@
 
 #pragma once
 
+#include "fit_activity.h"
+
 #include <array>
 #include <map>
+#include <memory>
 #include <string>
 #include <variant>
 #include <vector>
+namespace bk {
 
 /**
  * @brief Service for querying / setting state of current activity
@@ -71,7 +75,9 @@ class ActivityService {
 
     // TODO: keep FIT instance as a pointer, delete, when activity finished
     // create, when user hits "do it" button
+    std::unique_ptr<FITActivity> fit_activity_;
 
     // TODO: and others ctors, assign operators -> delete,
     // bla bla bla, too lazy to write them
 };
+}  // namespace bk

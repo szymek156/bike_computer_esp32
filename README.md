@@ -1,24 +1,46 @@
 # bike_computer_esp32
 
 ## TODO:
-[x] Assemble a prototype, sensors, display, buttons
-[x] Read from GPS, ALT/TEMP sensors
-[x] Provide an architecture (MVP) for handling GUI
-[x] Create a tool to do GUI mockups fast
-[ ] Support FIT Activity files
-[ ] Find out faster way for display to show now only 1fps is effective
-[ ] Frame transfer takes 200ms, consider transferring only dirty regions
-[ ] Add ghost runner functionality
-[ ] Support FIT Workout files
-[ ] Support FIT Course files
-[ ] Add travis CI
-[ ] clang-tidy?
-[ ] Calibrate altitude
-[ ] Read about temp, seems to be off by 2*
-[ ] Consider making paint class more cache friendly
-[ ] Create a tool to make Workout FIT files (WASM?)
-[ ] Create charts (WASM?)
-[ ] Use FIT files on the device
+- [x] Assemble a prototype, sensors, display, buttons
+- [x] Read from GPS, ALT/TEMP sensors
+- [x] Provide an architecture (MVP) for handling GUI
+- [x] Create a tool to do GUI mockups fast
+- [ ] Support FIT Activity files
+- [ ] Find out faster way for display to show now only 1fps is effective
+- [ ] Frame transfer takes 200ms, consider transferring only dirty regions
+- [ ] Add ghost runner functionality
+- [ ] Support FIT Workout files
+- [ ] Support FIT Course files
+- [ ] Add travis CI
+- [ ] clang-tidy?
+- [ ] Calibrate altitude
+- [ ] Read about temp, seems to be off by 2*
+- [ ] Consider making paint class more cache friendly
+- [ ] Create a tool to make Workout FIT files (WASM?)
+- [ ] Create charts (WASM?)
+- [ ] Use FIT files on the device
+
+
+## Very Quick & Dirty notes for FIT_SDK
+To compile C:
+Make sure ```#define FIT_USE_STDINT_H``` is set in fit_config.h
+
+```
+~/Downloads/FIT_SDK/c/examples/encode$
+gcc -I../../ ../../fit.c ../../fit_example.c ../../fit_crc.c ../../fit_convert.c encode.c
+```
+
+To compile C++:
+```
+~/Downloads/FIT_SDK/cpp/examples/encode$
+g++ -I../../ ../../*.cpp encode.cpp
+```
+
+There is a FitGen.exe binary (can be launched from wine!) which takes messages definitions from config.csv and generates C code. Can be used to reduce binary size. Currently it works only for C, it has no effect on C++.
+```
+ wine FitGen.exe -c
+```
+
 ## Connect to uart
 screen /dev/ttyUSB0 115200
 

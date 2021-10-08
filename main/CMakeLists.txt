@@ -43,6 +43,8 @@ idf_component_register(SRCS
 
     "layout_factory.cpp"
 
+    "fit_activity.cpp"
+
     "application.cpp"
 
     INCLUDE_DIRS ".")

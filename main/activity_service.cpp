@@ -2,7 +2,11 @@
 
 #include <algorithm>
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+#include "fit_activity.h"
+
 #include <esp_log.h>
+
+namespace bk {
 ActivityService &ActivityService::instance() {
     static ActivityService current;
 
@@ -39,6 +43,8 @@ size_t getIdx(Idiots &collection, const std::string &key) {
 
 void ActivityService::setCurrentActivityType(const std::string &activity) {
     current_activity_type_ = (Activities)getIdx(ACTIVITIES, activity);
+
+    FITActivity fit;
 }
 
 void ActivityService::setActivityWorkout(const std::string &workout) {
@@ -109,6 +115,7 @@ std::vector<std::string> ActivityService::getActivities() {
     return std::vector<std::string>(ACTIVITIES.cbegin(), ACTIVITIES.cend());
 }
 
+// TODO: use FIT workout file type to handle workouts, descriptions etc.
 std::vector<std::string> ActivityService::getWorkouts() {
     switch (current_activity_type_) {
         case Activities::Running: {
@@ -134,8 +141,4 @@ std::string ActivityService::getCurrentWorkoutDescription() {
     return "";
 }
 
-// std::string ActivityService::visitWorkout(RunningWorkouts workout) {
-// }
-
-// std::string ActivityService::visitWorkout(CyclingWorkouts workout) {
-// }
+}  // namespace bk
