@@ -1,15 +1,24 @@
 # bike_computer_esp32
 
 ## TODO:
-Add travis CI  
-Docker image for build environment?  
-clang-tidy?  
-Calibrate altitude  
-Read about temp, seems to be off by 2*  
-Consider making paint class more cache friendly  
-
-Find out faster way for display to show now only 1fps is effective  
-Frame transfer takes 200ms, consider transfering only dirty regions  
+[x] Assemble a prototype, sensors, display, buttons
+[x] Read from GPS, ALT/TEMP sensors
+[x] Provide an architecture (MVP) for handling GUI
+[x] Create a tool to do GUI mockups fast
+[ ] Support FIT Activity files
+[ ] Find out faster way for display to show now only 1fps is effective
+[ ] Frame transfer takes 200ms, consider transferring only dirty regions
+[ ] Add ghost runner functionality
+[ ] Support FIT Workout files
+[ ] Support FIT Course files
+[ ] Add travis CI
+[ ] clang-tidy?
+[ ] Calibrate altitude
+[ ] Read about temp, seems to be off by 2*
+[ ] Consider making paint class more cache friendly
+[ ] Create a tool to make Workout FIT files (WASM?)
+[ ] Create charts (WASM?)
+[ ] Use FIT files on the device
 ## Connect to uart
 screen /dev/ttyUSB0 115200
 

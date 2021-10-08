@@ -15,6 +15,8 @@ list(APPEND EXTRA_COMPONENT_DIRS "components/weather/SF-MPL3115A2")
 list(APPEND EXTRA_COMPONENT_DIRS "components/gnss/NEO-7M-C")
 list(APPEND EXTRA_COMPONENT_DIRS "components/display/waveshare2in9")
 list(APPEND EXTRA_COMPONENT_DIRS "components/keypad")
+list(APPEND EXTRA_COMPONENT_DIRS "components/FIT/c")
+
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(bike_computer_esp32)
