@@ -1,0 +1,9 @@
+# ESP-IDF Partition Table
+# Name, Type, SubType, Offset, Size, Flags
+# TODO: add OTA support (2 partitions)
+nvs,data,nvs,0x9000,24K,
+phy_init,data,phy,0xf000,4K,
+factory,app,factory,0x10000,1M,
+# TODO: Decide on the size of the partition, now size is out of thin air.
+storage,  data, spiffs,  , 1M,
+

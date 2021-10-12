@@ -12,6 +12,7 @@
 - [ ] Support FIT Workout files
 - [ ] Support FIT Course files
 - [ ] Add travis CI
+- [ ] Add OTA support (2 partitions + factory)
 - [ ] clang-tidy?
 - [ ] Calibrate altitude
 - [ ] Read about temp, seems to be off by 2*
@@ -40,6 +41,9 @@ There is a FitGen.exe binary (can be launched from wine!) which takes messages d
 ```
  wine FitGen.exe -c
 ```
+## Partition table:
+https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/partition-tables.html
+https://github.com/espressif/esp-idf/blob/master/examples/storage/spiffs/main/spiffs_example_main.c
 
 ## Connect to uart
 screen /dev/ttyUSB0 115200
