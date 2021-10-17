@@ -26,8 +26,6 @@ void ActivityDoItPresenter::onEnter() {
 }
 
 void ActivityDoItPresenter::onLeave() {
-    // TODO: this is a segfault, altering collection while iterating
-    // Lost focus unsub for keypad events
     events_->unSubForKeypad(this);
     events_->unSubForGNSS(this);
 }

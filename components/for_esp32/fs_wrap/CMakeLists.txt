@@ -13,7 +13,5 @@ idf_component_register(SRCS "fs_wrapper.cpp"
 
 
 
-# include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-
 # use gnu, not cpp  because freertos depends on some gnu extensions (fix to be shipped in esp-idf in master)
 component_compile_options(-std=gnu++17)

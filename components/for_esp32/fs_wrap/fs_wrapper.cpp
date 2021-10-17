@@ -6,7 +6,6 @@
 
 namespace bk {
 
-
 void FSWrapper::mountStorage() {
     const char* TAG = "FSWrapper";
     ESP_LOGI(TAG, "Initializing SPIFFS");

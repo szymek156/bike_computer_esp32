@@ -5,6 +5,8 @@
 - [x] Read from GPS, ALT/TEMP sensors
 - [x] Provide an architecture (MVP) for handling GUI
 - [x] Create a tool to do GUI mockups fast
+- [x] Figure out how to create and read/write partitions
+- [ ] Figure out BLE communication
 - [ ] Support FIT Activity files
 - [ ] Find out faster way for display to show now only 1fps is effective
 - [ ] Frame transfer takes 200ms, consider transferring only dirty regions
@@ -136,8 +138,8 @@ Defined and described in
 
 
 ## Partition table:
-https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/partition-tables.html
-https://github.com/espressif/esp-idf/blob/master/examples/storage/spiffs/main/spiffs_example_main.c
+- https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/partition-tables.html
+- https://github.com/espressif/esp-idf/blob/master/examples/storage/spiffs/main/spiffs_example_main.c
 
 ## Connect to uart
 screen /dev/ttyUSB0 115200
