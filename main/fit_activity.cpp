@@ -31,6 +31,7 @@
 #include "fit_crc.h"
 #include "fit_example.h"
 #include "stdio.h"
+#include <cstring>
 
 namespace bk {
 // TODO: well, fix it
@@ -39,8 +40,8 @@ static FIT_UINT16 data_crc;
 // It's hard to believe that's not part of the API, but, well, it's not.
 // Makes my pretty code to look like sh*t.
 // TODO: move to some separate file, or something
-void WriteData(const void *data, FIT_UINT8 data_size, FILE *fp) {
-    FIT_UINT8 offset;
+void WriteData(const void *data, size_t data_size, FILE *fp) {
+    size_t offset;
 
     fwrite(data, 1, data_size, fp);
 
@@ -50,7 +51,7 @@ void WriteData(const void *data, FIT_UINT8 data_size, FILE *fp) {
 
 void WriteMessageDefinition(FIT_UINT8 local_mesg_number,
                             const void *mesg_def_pointer,
-                            FIT_UINT8 mesg_def_size,
+                            size_t mesg_def_size,
                             FILE *fp) {
     FIT_UINT8 header = local_mesg_number | FIT_HDR_TYPE_DEF_BIT;
     WriteData(&header, FIT_HDR_SIZE, fp);
@@ -59,7 +60,7 @@ void WriteMessageDefinition(FIT_UINT8 local_mesg_number,
 
 void WriteMessage(FIT_UINT8 local_mesg_number,
                   const void *mesg_pointer,
-                  FIT_UINT8 mesg_size,
+                  size_t mesg_size,
                   FILE *fp) {
     WriteData(&local_mesg_number, FIT_HDR_SIZE, fp);
     WriteData(mesg_pointer, mesg_size, fp);

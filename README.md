@@ -25,7 +25,7 @@
 
 
 ## Very Quick & Dirty notes for FIT_SDK
-TODO: 
+TODO:
 * Familiarize with Scale/Offset feature
 * Dynamic Fields
 * Components
@@ -44,7 +44,15 @@ There is a FitGen.exe binary (can be launched from wine!) which takes messages d
  wine FitGen.exe -c
 ```
 
-### Compilation
+### Compiling C example inside FIT module
+Changed encode.c code that shows how to create example FIT files. Can be used as a reference for FIT creation on the target. Note encode.c changed to encode.cpp, to allow lambdas in the macro.
+
+```
+~/source/esp/bike_computer_esp32/components/FIT/c/examples/encode$
+
+g++ -I../../ ../../fit.c ../../fit_example.c ../../fit_crc.c ../../fit_convert.c encode.cpp
+```
+### Compilation of FIT_SDK
 To compile C:
 Make sure ```#define FIT_USE_STDINT_H``` is set in fit_config.h
 
@@ -69,7 +77,7 @@ The data records in the FIT file are the main content and purpose of the FIT pro
 these define the upcoming data messages. A definition message will define a local message type and associate it to a specific FIT message, and then designate the byte alignment and field contents of the upcoming data message.
 
 * **Data message**
-these contain a local message type and populated data fields in the format described by the preceding definition message. The definition message and its associated data messages will have matching **local message types**. 
+these contain a local message type and populated data fields in the format described by the preceding definition message. The definition message and its associated data messages will have matching **local message types**.
 
 All records contain a __1 byte Record Header__ that indicates whether the Record Content is a definition message, a normal data message or a compressed timestamp data message (Figure 6.b). The lengths of the records vary in size depending on the number and size of fields within them.
 
@@ -107,20 +115,20 @@ Here FIT file contains only two Definition Messages records, no need to write it
 Header definition implies there can be 16 local messages defined at once. It may happen that FIT file will use more than that. Then Message Definition will have to be overwritten.
 
 ### Message types
-1) __Definition Message__: this describes the architecture, format, and fields of upcoming data messages  
+1) __Definition Message__: this describes the architecture, format, and fields of upcoming data messages
 ```| Header | Reserved 1byte | Arch 1byte | Global Msg Number 2 bytes | #of fields 1byte | Field definition 3 bytes per field |```
 
     Optionally, record may be extended after Field definitions with:
-    
+
     ```|#of Dev fields 1 byte|Dev field definition 3 bytes per field|```
 
     Definition message associates Global Msg Number from Global FIT profile to the local message (set in the header) in local profile. It additionally selects which fields from Global FIT are used in this local instance, and also, if there is such need, may define developer custom fields.
 
-    Field definition is structured as follows:  
+    Field definition is structured as follows:
     ```| Field def. number 1 byte | Size 1 byte | Base type 1 byte |```
 
-    * Field def. number is the number from global FIT profile  
-    * Size describes length of the field in bytes. Multiples of it indicates that's an array. That's actually strange, that should be a number of elements of length defined for underlying Base type, not size in bytes.  
+    * Field def. number is the number from global FIT profile
+    * Size describes length of the field in bytes. Multiples of it indicates that's an array. That's actually strange, that should be a number of elements of length defined for underlying Base type, not size in bytes.
     * Base type describes which type field holds, what number refers to what type is described in fit.h file. It also describes length in bytes for each type.
 
         Base type field is destructured further to single bits definition, but is skipped here for brevity.
@@ -130,7 +138,7 @@ Header definition implies there can be 16 local messages defined at once. It may
 
 
 ### FIT Messages
-Defined and described in 
+Defined and described in
 * https://developer.garmin.com/fit/file-types/activity/
 * https://developer.garmin.com/fit/file-types/course/
 * https://developer.garmin.com/fit/file-types/workout/
