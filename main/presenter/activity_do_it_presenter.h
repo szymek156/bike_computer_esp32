@@ -5,6 +5,7 @@
 #include "listerers_interface.h"
 #include "page_presenter.h"
 #include "view/activity_do_it_view.h"
+#include "layout_factory.h"
 
 #include <display.h>
 
@@ -23,6 +24,7 @@ class ActivityDoItPresenter : public PagePresenter, public KeypadListener, publi
 
  private:
     ActivityDoItView view_;
+    ActivityLayoutFactory layout_factory_;
 };
 
 }  // namespace bk

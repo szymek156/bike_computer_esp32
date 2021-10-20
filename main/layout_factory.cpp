@@ -15,6 +15,9 @@
 #include "presenter/welcome_presenter.h"
 
 #include <vector>
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+#include <esp_log.h>
+
 namespace bk {
 LayoutFactory::LayoutFactory(IDisplay *display, IEventDispatcher *events)
     : display_(display),
@@ -72,4 +75,27 @@ StatusAndMain LayoutFactory::create() {
     // Return init view
     return {std::move(status), std::move(welcome)};
 }
+
+ActivityLayoutFactory::ActivityLayoutFactory(IDisplay *display, IEventDispatcher *events)
+    : display_(display),
+      events_(events) {
+}
+
+std::shared_ptr<PagePresenter> ActivityLayoutFactory::create(ActivityService::Activities activity) {
+    static const char* TAG = "ActivityLayoutFactory";
+
+    switch (activity) {
+        case ActivityService::Activities::Running: {
+            return nullptr;
+        }
+        case ActivityService::Activities::Cycling: {
+            return nullptr;
+        }
+
+        default:
+            ESP_LOGE(TAG, "Unable to create a layout for activity %u", static_cast<uint32_t>(activity));
+            return nullptr;
+    }
+}
+
 }  // namespace bk

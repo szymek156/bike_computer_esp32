@@ -141,4 +141,24 @@ std::string ActivityService::getCurrentWorkoutDescription() {
     return "";
 }
 
+ActivityService::Activities ActivityService::getCurrentActivity() {
+    return current_activity_type_;
+}
+
+
+
+void ActivityService::newActivity() {
+    fit_activity_.reset(new FITActivity());
+}
+
+
+void ActivityService::discardActivity() {
+    fit_activity_.reset(nullptr);
+}
+
+
+void ActivityService::startActivity() {
+
+}
+
 }  // namespace bk

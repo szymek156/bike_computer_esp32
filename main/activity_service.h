@@ -16,6 +16,13 @@ namespace bk {
  * */
 class ActivityService {
  public:
+    enum class Activities {
+        Running = 0,
+        Cycling,
+        Hiking,
+        IndoorCycling,
+    };
+
     static ActivityService &instance();
 
     // Set and get strings, not enums, because this is what
@@ -33,6 +40,20 @@ class ActivityService {
 
     std::string getCurrentWorkoutDescription();
 
+    Activities getCurrentActivity();
+
+    /** @brief New FIT activity is created.
+     */
+    void newActivity();
+
+    /** @brief Activity is removed from the storage
+     */
+    void discardActivity();
+
+    /** @brief Starts data recording
+     */
+    void startActivity();
+
  private:
     ActivityService() = default;
 
@@ -43,13 +64,6 @@ class ActivityService {
     // one library per 3 years, and say that "we did it".
     const std::array<const char *, 4> ACTIVITIES = {
         "Running", "Cycling", "Hiking", "Indoor Cycling"};
-
-    enum class Activities {
-        Running = 0,
-        Cycling,
-        Hiking,
-        IndoorCycling,
-    };
 
     // Compiler has no idea this has 5 elements, you need to write it!
     // auto of course does not work here too!
@@ -73,8 +87,6 @@ class ActivityService {
     Activities current_activity_type_;
     std::variant<RunningWorkouts, CyclingWorkouts> current_workout_type_;
 
-    // TODO: keep FIT instance as a pointer, delete, when activity finished
-    // create, when user hits "do it" button
     std::unique_ptr<FITActivity> fit_activity_;
 
     // TODO: and others ctors, assign operators -> delete,

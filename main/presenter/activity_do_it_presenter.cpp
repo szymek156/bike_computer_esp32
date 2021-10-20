@@ -8,7 +8,8 @@ namespace bk {
 
 ActivityDoItPresenter::ActivityDoItPresenter(IDisplay *display, IEventDispatcher *events)
     : PagePresenter(events),
-      view_(ActivityDoItView(display)) {
+      view_(ActivityDoItView(display)),
+      layout_factory_(display, events_) {
 }
 
 ActivityDoItPresenter::~ActivityDoItPresenter() {
@@ -20,6 +21,11 @@ void ActivityDoItPresenter::onEnter() {
     view_.setWorkout(ActivityService::instance().getCurrentActivityWorkout());
 
     view_.drawStatic();
+
+    // Create widgets according to the selected activity
+    setMore(layout_factory_.create(ActivityService::instance().getCurrentActivity()));
+
+    ActivityService::instance().newActivity();
 
     events_->subForGNSS(this);
     events_->subForKeypad(this);
@@ -40,8 +46,10 @@ void ActivityDoItPresenter::onButtonPressed(const KeypadData &data) {
     } else if (data.lu_pressed) {
         events_->widgetEvent(WidgetData{.new_widget = WidgetData::prev});
     } else if (data.rd_pressed) {
+        ActivityService::instance().startActivity();
         events_->widgetEvent(WidgetData{.new_widget = WidgetData::more});
     } else if (data.ld_pressed) {
+        ActivityService::instance().discardActivity();
         events_->widgetEvent(WidgetData{.new_widget = WidgetData::less});
     }
 }

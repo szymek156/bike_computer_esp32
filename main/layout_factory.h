@@ -1,7 +1,7 @@
 #pragma once
 #include "event_dispatcher.h"
 #include "presenter/page_presenter.h"
-
+#include "activity_service.h"
 #include <memory>
 #include <utility>
 
@@ -18,8 +18,19 @@ class LayoutFactory {
 
     StatusAndMain create();
 
+ private:
     IDisplay *display_;
     IEventDispatcher *events_;
 };
 
+class ActivityLayoutFactory {
+ public:
+    ActivityLayoutFactory(IDisplay *display, IEventDispatcher *events);
+
+    std::shared_ptr<PagePresenter> create(ActivityService::Activities activity);
+
+ private:
+    IDisplay *display_;
+    IEventDispatcher *events_;
+};
 }  // namespace bk

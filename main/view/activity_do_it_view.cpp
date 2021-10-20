@@ -31,8 +31,6 @@ void ActivityDoItView::drawStatic() {
         },
         // Rectangle needs to cover whole widget area
         {0, 14, display_->getHeight(), display_->getWidth()});
-
-    ESP_LOGE("STATS", "FREE HEAP: %d", xPortGetFreeHeapSize());
 }
 
 void ActivityDoItView::drawGNSSData(const GNSSData &data) {

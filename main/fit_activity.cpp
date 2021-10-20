@@ -28,58 +28,12 @@
 // - Other libraries (hopefully there should be none?), maybe timezone as
 // a stretch goal
 #include "fit.h"
-#include "fit_crc.h"
 #include "fit_example.h"
 #include "stdio.h"
+
 #include <cstring>
 
 namespace bk {
-// TODO: well, fix it
-static FIT_UINT16 data_crc;
-
-// It's hard to believe that's not part of the API, but, well, it's not.
-// Makes my pretty code to look like sh*t.
-// TODO: move to some separate file, or something
-void WriteData(const void *data, size_t data_size, FILE *fp) {
-    size_t offset;
-
-    fwrite(data, 1, data_size, fp);
-
-    for (offset = 0; offset < data_size; offset++)
-        data_crc = FitCRC_Get16(data_crc, *((FIT_UINT8 *)data + offset));
-}
-
-void WriteMessageDefinition(FIT_UINT8 local_mesg_number,
-                            const void *mesg_def_pointer,
-                            size_t mesg_def_size,
-                            FILE *fp) {
-    FIT_UINT8 header = local_mesg_number | FIT_HDR_TYPE_DEF_BIT;
-    WriteData(&header, FIT_HDR_SIZE, fp);
-    WriteData(mesg_def_pointer, mesg_def_size, fp);
-}
-
-void WriteMessage(FIT_UINT8 local_mesg_number,
-                  const void *mesg_pointer,
-                  size_t mesg_size,
-                  FILE *fp) {
-    WriteData(&local_mesg_number, FIT_HDR_SIZE, fp);
-    WriteData(mesg_pointer, mesg_size, fp);
-}
-
-void WriteFileHeader(FILE *fp) {
-    FIT_FILE_HDR file_header;
-
-    file_header.header_size = FIT_FILE_HDR_SIZE;
-    file_header.profile_version = FIT_PROFILE_VERSION;
-    file_header.protocol_version = FIT_PROTOCOL_VERSION_20;
-    memcpy((FIT_UINT8 *)&file_header.data_type, ".FIT", 4);
-    fseek(fp, 0, SEEK_END);
-    file_header.data_size = ftell(fp) - FIT_FILE_HDR_SIZE - sizeof(FIT_UINT16);
-    file_header.crc = FitCRC_Calc16(&file_header, FIT_STRUCT_OFFSET(crc, FIT_FILE_HDR));
-
-    fseek(fp, 0, SEEK_SET);
-    fwrite((void *)&file_header, 1, FIT_FILE_HDR_SIZE, fp);
-}
 
 // This macro hides C API boilerplate. Repetitive stuff that
 // is needed to create every single record in the FIT file.
@@ -88,16 +42,23 @@ void WriteFileHeader(FILE *fp) {
 // Finally, writes mesg definition and a message itself to the file.
 // Lambdas uses operator () which is implicitly inlined,
 // meaning there should be no overhead for calling it.
-#define ADD_MESSAGE(NAME, LOCAL_MESG_NUMBER, LAMBDA)                                            \
-    {                                                                                           \
-        FIT_##NAME##_MESG the_mesg;                                                             \
-        Fit_InitMesg(fit_mesg_defs[FIT_MESG_##NAME], &the_mesg);                                \
-        [&] LAMBDA();                                                                           \
-                                                                                                \
-        /* TODO: add definition only if needed */                                               \
-        WriteMessageDefinition(                                                                 \
-            LOCAL_MESG_NUMBER, fit_mesg_defs[FIT_MESG_##NAME], FIT_##NAME##_MESG_DEF_SIZE, fp); \
-        WriteMessage(LOCAL_MESG_NUMBER, &the_mesg, FIT_##NAME##_MESG_SIZE, fp);                 \
+
+// TODO: try to find FIT_MESG_##NAME in some dict {FIT_NAME -> LOCAL_MESG_NR}
+// if returns none, set local mesg to 0 and write definition
+// else don't add definition just a message
+// TODO: set most common messages to local_message = 1..15, 0 keep for one time garbage
+#define ADD_MESSAGE(NAME, LOCAL_MESG_NUMBER, LAMBDA)                                  \
+    {                                                                                 \
+        FIT_##NAME##_MESG the_mesg;                                                   \
+        Fit_InitMesg(fit_mesg_defs[FIT_MESG_##NAME], &the_mesg);                      \
+        [&] LAMBDA();                                                                 \
+        fit_file_.writeMessage(LOCAL_MESG_NUMBER, &the_mesg, FIT_##NAME##_MESG_SIZE); \
+    }
+
+#define ADD_MESSAGE_DEF(NAME, LOCAL_MESG_NUMBER)                                            \
+    {                                                                                       \
+        fit_file_.writeMessageDefinition(                                                   \
+            LOCAL_MESG_NUMBER, fit_mesg_defs[FIT_MESG_##NAME], FIT_##NAME##_MESG_DEF_SIZE); \
     }
 
 FITActivity::FITActivity() {
@@ -111,15 +72,12 @@ FITActivity::FITActivity() {
     FIT_FILE_ID_MESG file_id;
     Fit_InitMesg(fit_mesg_defs[FIT_MESG_FILE_ID], &file_id);
 
-    FILE *fp = fopen("test.fit", "w+b");
-
-    WriteFileHeader(fp);
-
     ADD_MESSAGE(FILE_ID, 0, { the_mesg.type = FIT_FILE_ACTIVITY; });
-
-    // Update the header, must be last step!
-    WriteFileHeader(fp);
-
-    fclose(fp);
 }
+
+void FITActivity::onGNSSData(const GNSSData &data) {
+    // TODO: accumulate distance
+    // create record message and write it
+}
+
 }  // namespace bk
