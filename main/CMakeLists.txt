@@ -22,6 +22,9 @@ idf_component_register(SRCS
     "view/stats_view.cpp"
     "view/stats_selected_view.cpp"
 
+    "view/running_1_view.cpp"
+    "view/running_2_view.cpp"
+
 
     "view/TEMPLATE_view.cpp"
 
@@ -38,6 +41,9 @@ idf_component_register(SRCS
     "presenter/stats_splash_presenter.cpp"
     "presenter/stats_presenter.cpp"
     "presenter/stats_selected_presenter.cpp"
+
+    "presenter/running_1_presenter.cpp"
+    "presenter/running_2_presenter.cpp"
 
     "presenter/TEMPLATE_presenter.cpp"
 

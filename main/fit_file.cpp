@@ -1,13 +1,15 @@
 #include "fit_file.h"
 
 #include "fit_crc.h"
+#include "fs_wrapper.h"
 
 #include <cstring>
 
+#include <esp_log.h>
 namespace bk {
 FITFile::FITFile() {
-    // TODO: come up with more fancy name
-    fp_ = fopen("test.fit", "w+b");
+    // TODO: come up with fancier name
+    fp_ = fopen("/storage/test.fit", "w+b");
 
     writeFileHeader();
 }
@@ -22,8 +24,9 @@ FITFile::~FITFile() {
 void FITFile::writeData(const void *data, size_t data_size) {
     fwrite(data, 1, data_size, fp_);
 
-    for (size_t offset = 0; offset < data_size; offset++)
+    for (size_t offset = 0; offset < data_size; offset++){
         data_crc_ = FitCRC_Get16(data_crc_, *((FIT_UINT8 *)data + offset));
+    }
 }
 
 void FITFile::writeMessageDefinition(FIT_UINT8 local_mesg_number,

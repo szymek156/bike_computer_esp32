@@ -13,6 +13,8 @@
 #include "presenter/status_presenter.h"
 #include "presenter/test_presenter.h"
 #include "presenter/welcome_presenter.h"
+#include "presenter/running_1_presenter.h"
+#include "presenter/running_2_presenter.h"
 
 #include <vector>
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
@@ -86,7 +88,17 @@ std::shared_ptr<PagePresenter> ActivityLayoutFactory::create(ActivityService::Ac
 
     switch (activity) {
         case ActivityService::Activities::Running: {
-            return nullptr;
+            auto r1 = std::make_shared<Running1Presenter>(display_, events_);
+            auto r2 = std::make_shared<Running2Presenter>(display_, events_);
+
+            // TODO: this is a memleak, one of pointers should be weak
+            r1->setNext(r2);
+            r1->setPrevious(r2);
+
+            r2->setNext(r1);
+            r2->setPrevious(r1);
+
+            return r1;
         }
         case ActivityService::Activities::Cycling: {
             return nullptr;

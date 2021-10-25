@@ -10,7 +10,7 @@ void FSWrapper::mountStorage() {
     const char* TAG = "FSWrapper";
     ESP_LOGI(TAG, "Initializing SPIFFS");
 
-    esp_vfs_spiffs_conf_t conf = {.base_path = "/spiffs",
+    esp_vfs_spiffs_conf_t conf = {.base_path = "/storage",
                                   .partition_label = NULL,
                                   .max_files = 5,
                                   .format_if_mount_failed = true};

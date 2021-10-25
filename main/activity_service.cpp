@@ -43,8 +43,6 @@ size_t getIdx(Idiots &collection, const std::string &key) {
 
 void ActivityService::setCurrentActivityType(const std::string &activity) {
     current_activity_type_ = (Activities)getIdx(ACTIVITIES, activity);
-
-    FITActivity fit;
 }
 
 void ActivityService::setActivityWorkout(const std::string &workout) {
@@ -148,7 +146,7 @@ ActivityService::Activities ActivityService::getCurrentActivity() {
 
 
 void ActivityService::newActivity() {
-    fit_activity_.reset(new FITActivity());
+    fit_activity_.reset(new FITActivity(events_));
 }
 
 
@@ -158,7 +156,12 @@ void ActivityService::discardActivity() {
 
 
 void ActivityService::startActivity() {
+    fit_activity_->start();
 
+}
+
+void ActivityService::setEventDispatcher(IEventDispatcher *events) {
+    events_ = events;
 }
 
 }  // namespace bk

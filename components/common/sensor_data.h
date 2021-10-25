@@ -1,23 +1,17 @@
 #pragma once
-#include <memory>
 #include <ctime>
+#include <memory>
 namespace bk {
 
 class PagePresenter;
 
 struct WidgetData {
-    enum Widget {
-        next,
-        prev,
-        more,
-        less
-    };
-    
+    enum Widget { next, prev, more, less };
+
     Widget new_widget;
 };
 
-struct TimeData {
-};
+struct TimeData {};
 
 struct DisplayData {};
 
@@ -45,6 +39,10 @@ struct GNSSData {
         fair = 20,
         poor = 21
     };
+
+    // TODO: and others
+    GNSSData() : fix_status(noFix) {
+    }
 
     std::tm date_time;
 

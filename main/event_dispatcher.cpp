@@ -15,6 +15,10 @@ EventDispatcher::EventDispatcher(AbstractTask *weather,
 }
 
 void EventDispatcher::EventDispatcher::listenForEvents() {
+    // TODO: there should be a pool, but with current
+    // esp-idf official version, FreeRTOS has a bug that
+    // makes use of it impossible. However, using esp-idf
+    // from master has newest RTOS with the fix
     auto *weather_q = weather_->getQueue();
     auto *gnss_q = gnss_->getQueue();
     auto *keypad_q = keypad_->getQueue();

@@ -30,6 +30,9 @@ void StartApplication() {
 
     bk::EventDispatcher dispatcher(&weather, &gnss, &keypad, &time_service);
     time_service.setEventDispatcher(&dispatcher);
+    // TODO: This is a dangling pointer - in theory
+    // In practice application never ends
+    bk::ActivityService::instance().setEventDispatcher(&dispatcher);
 
     weather.start();
     gnss.start();

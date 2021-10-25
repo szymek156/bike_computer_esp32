@@ -2,6 +2,7 @@
 #pragma once
 
 #include "fit_activity.h"
+#include "event_dispatcher.h"
 
 #include <array>
 #include <map>
@@ -54,6 +55,9 @@ class ActivityService {
      */
     void startActivity();
 
+    /** @brief Adds handle to the EventDispatcher */
+    void setEventDispatcher(IEventDispatcher *events);
+
  private:
     ActivityService() = default;
 
@@ -89,6 +93,7 @@ class ActivityService {
 
     std::unique_ptr<FITActivity> fit_activity_;
 
+    IEventDispatcher *events_;
     // TODO: and others ctors, assign operators -> delete,
     // bla bla bla, too lazy to write them
 };
