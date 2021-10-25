@@ -22,7 +22,8 @@
 - [ ] Create a tool to make Workout FIT files (WASM?)
 - [ ] Create charts (WASM?)
 - [ ] Use FIT files on the device
-
+- [ ] Looks like workouts are written in ZWO file format https://github.com/h4l/zwift-workout-file-reference
+- [ ] https://medium.com/hackernoon/cloning-zwift-on-ios-part-2-reverse-engineering-a-workout-9d4ffabc29e8
 
 ## Very Quick & Dirty notes for FIT_SDK
 TODO:
