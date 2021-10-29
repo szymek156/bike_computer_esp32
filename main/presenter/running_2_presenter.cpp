@@ -17,16 +17,14 @@ Running2Presenter::~Running2Presenter() {
 void Running2Presenter::onEnter() {
     view_.drawStatic();
 
-    view_.drawLapTime(2, 14, 34);
-    view_.drawLapDistance(15.06);
-    view_.drawTotalDistance(21.37);
-    view_.drawTotalTime(2, 3, 4);
     events_->subForKeypad(this);
+    events_->subForActivityData(this);
 }
 
 void Running2Presenter::onLeave() {
     // Lost focus unsub for keypad events
     events_->unSubForKeypad(this);
+    events_->unSubForActivityData(this);
 }
 
 void Running2Presenter::onButtonPressed(const KeypadData &data) {
@@ -40,4 +38,13 @@ void Running2Presenter::onButtonPressed(const KeypadData &data) {
         events_->widgetEvent(WidgetData{.new_widget = WidgetData::less});
     }
 }
+
+void Running2Presenter::onActivityData(const ActivityData &data) {
+    view_.drawLapDistance(data.lap_distance);
+    view_.drawLapTime(data.lap_time.hours, data.lap_time.minutes, data.lap_time.seconds);
+
+    view_.drawTotalDistance(data.total_distance);
+    view_.drawTotalTime(data.total_time.hours, data.total_time.minutes, data.total_time.seconds);
+}
+
 }  // namespace bk

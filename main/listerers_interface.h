@@ -26,4 +26,9 @@ class WidgetListener {
  public:
     virtual void onWidgetChange(const WidgetData &data) = 0;
 };
+
+class ActivityDataListener {
+ public:
+    virtual void onActivityData(const ActivityData &data) = 0;
+};
 }  // namespace bk

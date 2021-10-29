@@ -112,7 +112,9 @@ void FITActivity::onGNSSData(const GNSSData &data) {
 
         // the_mesg.distance // accumulative distance
         // the_mesg.timestamp
-    })
+    });
+
+    events_->activityDataEvent(ActivityData{});
 }
 
 void FITActivity::start() {
@@ -154,7 +156,7 @@ void FITActivity::stop() {
 void FITActivity::addPrelude() {
     ESP_LOGI(TAG, "Writing a prelude");
 
-    // Create file prelude, start listening
+    // Create file prelude
     // Add message definition to often used messages at the beginning of the file
     // That's the best practice.
     ADD_MESSAGE_DEF(RECORD, local_msgs[FIT_MESG_RECORD]);

@@ -1,13 +1,14 @@
 #include "application.h"
 
 #include "event_dispatcher.h"
+#include "fs_wrapper.h"
 #include "gnss.h"
 #include "keypad.h"
 #include "layout_factory.h"
 #include "root_window.h"
 #include "time_service.hpp"
 #include "weather.h"
-#include "fs_wrapper.h"
+
 #include <display.h>
 #include <string.h>
 
@@ -28,7 +29,9 @@ void StartApplication() {
     bk::Keypad keypad;
     bk::TimeService time_service;
 
-    bk::EventDispatcher dispatcher(&weather, &gnss, &keypad, &time_service);
+    bk::EventDispatcher dispatcher(
+        weather.getQueue(), gnss.getQueue(), keypad.getQueue(), time_service.getQueue());
+
     time_service.setEventDispatcher(&dispatcher);
     // TODO: This is a dangling pointer - in theory
     // In practice application never ends

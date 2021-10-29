@@ -63,9 +63,23 @@ struct GNSSData {
     int sats_tracked;
 };
 
-union SensorMessage {
-    WeatherData weather;
-    GNSSData gnss;
+struct Time {
+    int hours;
+    int minutes;
+    int seconds;
 };
+struct ActivityData
+{
+    int speed_kmh;
+    float lap_distance;
+    float total_distance;
+    // hr_zone
+    // cadence
+    // stride?
+    Time lap_time;
+    Time total_time;
+    // TODO: more to come...
+};
+
 
 }  // namespace bk

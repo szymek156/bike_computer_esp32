@@ -3,15 +3,16 @@
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include <esp_log.h>
 namespace bk {
-EventDispatcher::EventDispatcher(AbstractTask *weather,
-                                 AbstractTask *gnss,
-                                 AbstractTask *keypad,
-                                 AbstractTask *time)
-    : weather_(weather),
-      gnss_(gnss),
-      keypad_(keypad),
-      time_(time),
-      widget_q_(xQueueCreate(1, sizeof(WidgetData))) {
+EventDispatcher::EventDispatcher(QueueHandle_t weather,
+                                 QueueHandle_t gnss,
+                                 QueueHandle_t keypad,
+                                 QueueHandle_t time)
+    : weather_q_(weather),
+      gnss_q_(gnss),
+      keypad_q_(keypad),
+      time_q_(time),
+      widget_q_(xQueueCreate(1, sizeof(WidgetData))),
+      activity_q_(xQueueCreate(1, sizeof(ActivityData))) {
 }
 
 void EventDispatcher::EventDispatcher::listenForEvents() {
@@ -19,21 +20,18 @@ void EventDispatcher::EventDispatcher::listenForEvents() {
     // esp-idf official version, FreeRTOS has a bug that
     // makes use of it impossible. However, using esp-idf
     // from master has newest RTOS with the fix
-    auto *weather_q = weather_->getQueue();
-    auto *gnss_q = gnss_->getQueue();
-    auto *keypad_q = keypad_->getQueue();
-    auto *time_q = time_->getQueue();
 
     WeatherData weather_data = {};
     GNSSData gnss_data = {};
     KeypadData keypad_data = {};
     TimeData time_data = {};
     WidgetData widget_data = {};
+    ActivityData activity_data = {};
 
     static const TickType_t TIMEOUT = pdMS_TO_TICKS(20);
 
     while (true) {
-        if (xQueueReceive(keypad_q, &keypad_data, TIMEOUT) == pdPASS) {
+        if (xQueueReceive(keypad_q_, &keypad_data, TIMEOUT) == pdPASS) {
             ESP_LOGV(TAG, "Got Keypad event");
             notifyKeypad(keypad_data);
         }
@@ -43,19 +41,24 @@ void EventDispatcher::EventDispatcher::listenForEvents() {
             notifyWidgetChange(widget_data);
         }
 
-        if (xQueueReceive(weather_q, &weather_data, 0) == pdPASS) {
+        if (xQueueReceive(weather_q_, &weather_data, 0) == pdPASS) {
             ESP_LOGV(TAG, "Got Weather event");
             notifyWeather(weather_data);
         }
 
-        if (xQueueReceive(gnss_q, &gnss_data, 0) == pdPASS) {
+        if (xQueueReceive(gnss_q_, &gnss_data, 0) == pdPASS) {
             ESP_LOGV(TAG, "Got GNSS event");
             notifyGNSS(gnss_data);
         }
 
-        if (xQueueReceive(time_q, &time_data, 0) == pdPASS) {
+        if (xQueueReceive(time_q_, &time_data, 0) == pdPASS) {
             ESP_LOGV(TAG, "Got TimeService event");
             notifyTime(time_data);
+        }
+
+        if (xQueueReceive(activity_q_, &activity_data, 0) == pdPASS) {
+            ESP_LOGV(TAG, "Got Activity event");
+            notifyActivityData(activity_data);
         }
     }
 }
@@ -80,6 +83,10 @@ void EventDispatcher::subForWidgetChange(WidgetListener *listener) {
     widget_listeners_.insert(listener);
 }
 
+void EventDispatcher::subForActivityData(ActivityDataListener *listener) {
+    activity_listeners_.insert(listener);
+}
+
 void EventDispatcher::unSubForKeypad(KeypadListener *listener) {
     keypad_listeners_.erase(listener);
 }
@@ -100,9 +107,19 @@ void EventDispatcher::unSubForWidgetChange(WidgetListener *listener) {
     widget_listeners_.erase(listener);
 }
 
+void EventDispatcher::unSubForActivityData(ActivityDataListener *listener) {
+    activity_listeners_.erase(listener);
+}
+
 void EventDispatcher::widgetEvent(const WidgetData &data) {
     if (xQueueOverwrite(widget_q_, &data) != pdPASS) {
         ESP_LOGE(TAG, "Failed to send  widget data");
+    }
+}
+
+void EventDispatcher::activityDataEvent(const ActivityData &data) {
+    if (xQueueOverwrite(activity_q_, &data) != pdPASS) {
+        ESP_LOGE(TAG, "Failed to send  activity data");
     }
 }
 
@@ -133,6 +150,12 @@ void EventDispatcher::notifyTime(const TimeData &data) {
 void EventDispatcher::notifyWidgetChange(const WidgetData &data) {
     for (auto *observer : widget_listeners_) {
         observer->onWidgetChange(data);
+    }
+}
+
+void EventDispatcher::notifyActivityData(const ActivityData &data) {
+    for (auto *observer : activity_listeners_) {
+        observer->onActivityData(data);
     }
 }
 }  // namespace bk

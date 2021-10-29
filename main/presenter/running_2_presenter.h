@@ -10,7 +10,7 @@
 
 namespace bk {
 // TODO: that could be composition, instead of inheritance (strategy) consider refactor
-class Running2Presenter : public PagePresenter, public KeypadListener {
+class Running2Presenter : public PagePresenter, public KeypadListener, public ActivityDataListener {
  public:
     Running2Presenter(IDisplay *display, IEventDispatcher *events);
     ~Running2Presenter();
@@ -19,6 +19,8 @@ class Running2Presenter : public PagePresenter, public KeypadListener {
     virtual void onLeave() override;
 
     virtual void onButtonPressed(const KeypadData &data) override;
+
+    virtual void onActivityData(const ActivityData &data) override;
 
  private:
     Running2View view_;

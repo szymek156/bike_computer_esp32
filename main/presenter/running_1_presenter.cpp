@@ -17,18 +17,19 @@ Running1Presenter::~Running1Presenter() {
 void Running1Presenter::onEnter() {
     view_.drawStatic();
 
-    // TODO: testing
-    view_.drawCadence(69);
-    view_.drawHRZone(4.2);
-    view_.drawStride(1.23);
-    view_.drawPace(4.27);
+    view_.drawCadence(0);
+    view_.drawHRZone(0);
+    view_.drawStride(0);
+    view_.drawPace(0);
 
     events_->subForKeypad(this);
+    events_->subForActivityData(this);
 }
 
 void Running1Presenter::onLeave() {
     // Lost focus unsub for keypad events
     events_->unSubForKeypad(this);
+    events_->unSubForActivityData(this);
 }
 
 void Running1Presenter::onButtonPressed(const KeypadData &data) {
@@ -42,4 +43,9 @@ void Running1Presenter::onButtonPressed(const KeypadData &data) {
         events_->widgetEvent(WidgetData{.new_widget = WidgetData::less});
     }
 }
+
+void Running1Presenter::onActivityData(const ActivityData &data) {
+    view_.drawPace(60.0 / data.speed_kmh);
+}
+
 }  // namespace bk

@@ -79,22 +79,25 @@ class IEventDispatcher {
     virtual void subForWeather(WeatherListener *listener) = 0;
     virtual void subForTime(TimeListener *listener) = 0;
     virtual void subForWidgetChange(WidgetListener *listener) = 0;
+    virtual void subForActivityData(ActivityDataListener *listener) = 0;
 
     virtual void unSubForKeypad(KeypadListener *listener) = 0;
     virtual void unSubForGNSS(GNSSListener *listener) = 0;
     virtual void unSubForWeather(WeatherListener *listener) = 0;
     virtual void unSubForTime(TimeListener *listener) = 0;
     virtual void unSubForWidgetChange(WidgetListener *listener) = 0;
+    virtual void unSubForActivityData(ActivityDataListener *listener) = 0;
 
     virtual void widgetEvent(const WidgetData &data) = 0;
+    virtual void activityDataEvent(const ActivityData &data) = 0;
 };
 
 class EventDispatcher : public IEventDispatcher {
  public:
-    EventDispatcher(AbstractTask *weather,
-                    AbstractTask *gnss,
-                    AbstractTask *keypad,
-                    AbstractTask *time);
+    EventDispatcher(QueueHandle_t weather,
+                    QueueHandle_t gnss,
+                    QueueHandle_t keypad,
+                    QueueHandle_t time);
 
     virtual void listenForEvents() override;
 
@@ -108,6 +111,8 @@ class EventDispatcher : public IEventDispatcher {
 
     virtual void subForWidgetChange(WidgetListener *listener) override;
 
+    virtual void subForActivityData(ActivityDataListener *listener) override;
+
     virtual void unSubForKeypad(KeypadListener *listener) override;
 
     virtual void unSubForGNSS(GNSSListener *listener) override;
@@ -118,18 +123,23 @@ class EventDispatcher : public IEventDispatcher {
 
     virtual void unSubForWidgetChange(WidgetListener *listener) override;
 
+    virtual void unSubForActivityData(ActivityDataListener *listener) override;
+
     void widgetEvent(const WidgetData &data) override;
+
+    void activityDataEvent(const ActivityData &data) override;
 
  private:
     static constexpr const char *TAG = "EventDispatcher";
 
-    AbstractTask *weather_;
-    AbstractTask *gnss_;
-    AbstractTask *keypad_;
-    AbstractTask *time_;
+    QueueHandle_t weather_q_;
+    QueueHandle_t gnss_q_;
+    QueueHandle_t keypad_q_;
+    QueueHandle_t time_q_;
 
     // TODO: that could be separate event service, but what the hell?
     QueueHandle_t widget_q_;
+    QueueHandle_t activity_q_;
 
     std::set<KeypadListener *>::iterator keypad_iter_;
     std::set<KeypadListener *> keypad_listeners_;
@@ -137,6 +147,7 @@ class EventDispatcher : public IEventDispatcher {
     std::set<WeatherListener *> weather_listeners_;
     std::set<TimeListener *> time_listeners_;
     std::set<WidgetListener *> widget_listeners_;
+    std::set<ActivityDataListener *> activity_listeners_;
 
     void notifyKeypad(const KeypadData &data);
 
@@ -147,6 +158,8 @@ class EventDispatcher : public IEventDispatcher {
     void notifyTime(const TimeData &data);
 
     void notifyWidgetChange(const WidgetData &data);
+
+    void notifyActivityData(const ActivityData &data);
 };
 
 }  // namespace bk
