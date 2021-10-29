@@ -15,6 +15,7 @@
 #include "presenter/welcome_presenter.h"
 #include "presenter/running_1_presenter.h"
 #include "presenter/running_2_presenter.h"
+#include "presenter/workout_steps_presenter.h"
 
 #include <vector>
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
@@ -90,13 +91,18 @@ std::shared_ptr<PagePresenter> ActivityLayoutFactory::create(ActivityService::Ac
         case ActivityService::Activities::Running: {
             auto r1 = std::make_shared<Running1Presenter>(display_, events_);
             auto r2 = std::make_shared<Running2Presenter>(display_, events_);
+            auto r3 = std::make_shared<WorkoutStepsPresenter>(display_, events_);
 
             // TODO: this is a memleak, one of pointers should be weak
             r1->setNext(r2);
-            r1->setPrevious(r2);
+            r1->setPrevious(r3);
 
-            r2->setNext(r1);
+            r2->setNext(r3);
             r2->setPrevious(r1);
+
+            // TODO: detailed descritpion
+            // r3->setMore()
+            r3->setLess(r1);
 
             return r1;
         }

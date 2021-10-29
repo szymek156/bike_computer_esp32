@@ -1,27 +1,24 @@
 #include "workout_steps_presenter.h"
 
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
-#include <esp_log.h>
 #include <epdpaint.h>
+#include <esp_log.h>
 
 namespace bk {
 
 using bk::COLORED;
 
-WorkoutStepsView::WorkoutStepsView(IDisplay *display) : display_(display) {
+WorkoutStepsView::WorkoutStepsView(IDisplay *display)
+    : display_(display),
+      workout_steps_(VListWidget(display, Font16, {1, 13, 295, 127}, 4, Alignment::Left)) {
 }
 
 void WorkoutStepsView::drawStatic() {
-    display_->enqueueStaticDraw(
-        [](Paint &paint) {
-            const int msg_size = 128;
-            char message[msg_size];
+    workout_steps_.drawStatic();
+}
 
-            snprintf(message, msg_size, "WorkoutSteps");
-            paint.DrawStringAt(50, paint.GetWidth() / 2 - 6, message, &Font24, COLORED);
-        },
-        // Rectangle needs to cover whole widget area
-        {0, 14, display_->getHeight(), display_->getWidth()});
+VListWidget &WorkoutStepsView::getWorkoutSteps() {
+    return workout_steps_;
 }
 
 WorkoutStepsPresenter::WorkoutStepsPresenter(IDisplay *display, IEventDispatcher *events)
@@ -34,22 +31,31 @@ WorkoutStepsPresenter::~WorkoutStepsPresenter() {
 }
 
 void WorkoutStepsPresenter::onEnter() {
-    view_.drawStatic();
+    // TODO: get that from the activity service
+    view_.getWorkoutSteps().updateElements({"run 5.00 1/5",
+                                            "cool down 2 minutes",
+                                            "run 5.00 2/5",
+                                            "cool down 2 minutes",
+                                            "run 5.00 3/5",
+                                            "cool down 2 minutes",
+                                            "run 5.00 4/5",
+                                            "cool down 2 minutes",
+                                            "run 5.00 5/5",
+                                            "cool down 2 minutes"});
 
+    view_.drawStatic();
     events_->subForKeypad(this);
 }
 
 void WorkoutStepsPresenter::onLeave() {
-    // TODO: this is a segfault, altering collection while iterating
-    // Lost focus unsub for keypad events
     events_->unSubForKeypad(this);
 }
 
 void WorkoutStepsPresenter::onButtonPressed(const KeypadData &data) {
     if (data.ru_pressed) {
-        events_->widgetEvent(WidgetData{.new_widget = WidgetData::next});
+        view_.getWorkoutSteps().goDown();
     } else if (data.lu_pressed) {
-        events_->widgetEvent(WidgetData{.new_widget = WidgetData::prev});
+        view_.getWorkoutSteps().goUp();
     } else if (data.rd_pressed) {
         events_->widgetEvent(WidgetData{.new_widget = WidgetData::more});
     } else if (data.ld_pressed) {
