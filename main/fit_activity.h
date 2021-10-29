@@ -27,7 +27,7 @@ class FITActivity : public GNSSListener {
     /** @brief Adds initial messages to the FIT file */
     void addPrelude();
 
-   float calculateHaversine(const GNSSData &data);
+    float calculateHaversine(const GNSSData &data);
 
     /** @brief Keeps summary data for whole Session */
     struct Session {};
@@ -47,8 +47,7 @@ class FITActivity : public GNSSListener {
     Lap current_lap_;
     Activity current_activity_;
 
-   GNSSData previous_point_;
+    GNSSData previous_point_;
     static constexpr const char *TAG = "FIT";
-
 };
 }  // namespace bk

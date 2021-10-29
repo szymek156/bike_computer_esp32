@@ -17,6 +17,10 @@ Running2Presenter::~Running2Presenter() {
 void Running2Presenter::onEnter() {
     view_.drawStatic();
 
+    view_.drawLapTime(2, 14, 34);
+    view_.drawLapDistance(15.06);
+    view_.drawTotalDistance(21.37);
+    view_.drawTotalTime(2, 3, 4);
     events_->subForKeypad(this);
 }
 

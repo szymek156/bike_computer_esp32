@@ -17,7 +17,6 @@ SelectActivityPresenter::~SelectActivityPresenter() {
 
 void SelectActivityPresenter::onEnter() {
     auto activities = ActivityService::instance().getActivities();
-
     view_.getActivities().updateElements(activities);
     view_.drawStatic();
     events_->subForKeypad(this);

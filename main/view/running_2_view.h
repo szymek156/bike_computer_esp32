@@ -9,6 +9,11 @@ class Running2View {
     // Draw static components not changing over time
     void drawStatic();
 
+    void drawTotalDistance(float total_distance);
+    void drawLapDistance(float lap_distance);
+    void drawLapTime(int hours, int minutes, int seconds);
+    void drawTotalTime(int hours, int minutes, int seconds);
+
  protected:
     IDisplay *display_;
 };

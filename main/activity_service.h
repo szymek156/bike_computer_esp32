@@ -22,6 +22,7 @@ class ActivityService {
         Cycling,
         Hiking,
         IndoorCycling,
+        NordicWalking
     };
 
     static ActivityService &instance();
@@ -66,8 +67,8 @@ class ActivityService {
     // enum to string yet.
     // And never will be, they are too busy copy pasting from boost,
     // one library per 3 years, and say that "we did it".
-    const std::array<const char *, 4> ACTIVITIES = {
-        "Running", "Cycling", "Hiking", "Indoor Cycling"};
+    const std::array<const char *, 5> ACTIVITIES = {
+        "Running", "Cycling", "Hiking", "Indoor Cycling", "Nordic Walking"};
 
     // Compiler has no idea this has 5 elements, you need to write it!
     // auto of course does not work here too!

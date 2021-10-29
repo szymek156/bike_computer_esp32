@@ -17,6 +17,12 @@ Running1Presenter::~Running1Presenter() {
 void Running1Presenter::onEnter() {
     view_.drawStatic();
 
+    // TODO: testing
+    view_.drawCadence(69);
+    view_.drawHRZone(4.2);
+    view_.drawStride(1.23);
+    view_.drawPace(4.27);
+
     events_->subForKeypad(this);
 }
 
