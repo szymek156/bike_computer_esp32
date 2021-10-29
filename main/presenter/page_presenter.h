@@ -4,6 +4,7 @@
 #include "sensor_data.h"
 
 #include <memory>
+#include <vector>
 
 namespace bk {
 class PagePresenter;
@@ -29,6 +30,11 @@ class PagePresenter {
     }
 
     void setMore(PresenterPtr more) {
+        more_ = {more};
+    }
+
+    void setMore(const std::vector<PresenterPtr> &more) {
+        // TODO: there should be move, investigate if intuition is correct
         more_ = more;
     }
 
@@ -36,14 +42,18 @@ class PagePresenter {
         less_ = less;
     }
 
-    PresenterPtr getWidget(WidgetData::Widget widget) {
-        switch (widget) {
+    PresenterPtr getWidget(const WidgetData &widget) {
+        switch (widget.new_widget) {
             case WidgetData::next:
                 return next_;
             case WidgetData::prev:
                 return prev_;
-            case WidgetData::more:
-                return more_;
+            case WidgetData::more: {
+                if (widget.widget_idx < more_.size()) {
+                    return more_[widget.widget_idx];
+                }
+                break;
+            }
             case WidgetData::less:
                 return less_;
         }
@@ -54,7 +64,8 @@ class PagePresenter {
  protected:
     PresenterPtr next_;
     PresenterPtr prev_;
-    PresenterPtr more_;
+    // There can be more than one "more" widgets, depending on the user selection
+    std::vector<PresenterPtr> more_;
     PresenterPtr less_;
 
     IEventDispatcher *events_;

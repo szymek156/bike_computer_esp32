@@ -44,6 +44,9 @@ StatusAndMain LayoutFactory::create() {
     auto select_stats = std::make_shared<StatsPresenter>(display_, events_);
     auto stats_summary = std::make_shared<StatsSelectedPresenter>(display_, events_);
 
+    auto workout_steps = std::make_shared<WorkoutStepsPresenter>(display_, events_);
+
+
     test->setNext(welcome);
     test->setPrevious(activity_splash);
 
@@ -60,11 +63,19 @@ StatusAndMain LayoutFactory::create() {
     activity_workouts->setMore(activity_selected);
     activity_workouts->setLess(select_activity);
 
-    activity_selected->setMore(activity_do_it);
+    //This is a case where going to next widget depends on the
+    // value selected from the list.
+    // Here are 2 options "do it" and "view", view should go to the
+    // WorkoutStepsPresenter,
+    activity_selected->setMore({activity_do_it, workout_steps});
     activity_selected->setLess(activity_workouts);
+
+    workout_steps->setLess(activity_selected);
+    // setMore() - detailed description
 
     activity_do_it->setLess(activity_selected);
     // More - start recording, move to first page of dynamically created layout
+    // Done inside activity_do_it presenter
 
     stats_splash->setNext(test);
     stats_splash->setPrevious(activity_splash);

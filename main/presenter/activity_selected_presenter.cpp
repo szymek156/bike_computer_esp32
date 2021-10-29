@@ -1,4 +1,5 @@
 #include "activity_selected_presenter.h"
+
 #include "activity_service.h"
 
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
@@ -37,7 +38,9 @@ void ActivitySelectedPresenter::onButtonPressed(const KeypadData &data) {
     } else if (data.lu_pressed) {
         view_.getOptions().goUp();
     } else if (data.rd_pressed) {
-        events_->widgetEvent(WidgetData{.new_widget = WidgetData::more});
+        // Go to next widget depending on the user selection
+        events_->widgetEvent(WidgetData{.new_widget = WidgetData::more,
+                                        .widget_idx = view_.getOptions().getCurrentSelectionIdx()});
     } else if (data.ld_pressed) {
         events_->widgetEvent(WidgetData{.new_widget = WidgetData::less});
     }

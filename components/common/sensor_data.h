@@ -9,6 +9,9 @@ struct WidgetData {
     enum Widget { next, prev, more, less };
 
     Widget new_widget;
+    // There are cases, where can be many "more" widgets
+    // this fields specifies exactly which one is it
+    size_t widget_idx = 0;
 };
 
 struct TimeData {};

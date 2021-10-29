@@ -20,7 +20,7 @@ RootWindow::~RootWindow() {
 
 void RootWindow::onWidgetChange(const WidgetData &data) {
     if (current_widget_) {
-        auto upcoming_widget = current_widget_->getWidget(data.new_widget);
+        auto upcoming_widget = current_widget_->getWidget(data);
 
         if (upcoming_widget) {
             current_widget_->onLeave();
