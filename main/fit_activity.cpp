@@ -31,8 +31,8 @@
 #include "fit_example.h"
 #include "stdio.h"
 
-#include <cstring>
 #include <cmath>
+#include <cstring>
 
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include <esp_log.h>
@@ -44,6 +44,8 @@ static u_char local_msgs[FIT_MESGS] = {};
 
 // Needed for conversion from UNIX time to FIT time
 static const time_t system_time_offset = 631065600;
+
+static const u_char NOT_SET = 0;
 
 #define ADD_MESSAGE_DEF(NAME, LOCAL_MESG_NUMBER)                                            \
     {                                                                                       \
@@ -58,24 +60,29 @@ static const time_t system_time_offset = 631065600;
 // Finally, writes mesg definition and a message itself to the file.
 // Lambdas uses operator () which is implicitly inlined,
 // meaning there should be no overhead for calling it.
-#define ADD_MESSAGE(NAME, LAMBDA)                                         \
-    {                                                                     \
-        FIT_##NAME##_MESG the_mesg;                                       \
-        Fit_InitMesg(fit_mesg_defs[FIT_MESG_##NAME], &the_mesg);          \
-        [&] LAMBDA();                                                     \
-                                                                          \
-        auto local = local_msgs[FIT_MESG_##NAME];                         \
-        if (local == 0) {                                                 \
-            ADD_MESSAGE_DEF(NAME, local);                                 \
-        }                                                                 \
-                                                                          \
-        fit_file_.writeMessage(local, &the_mesg, FIT_##NAME##_MESG_SIZE); \
+#define ADD_MESSAGE(NAME, LAMBDA)                                             \
+    {                                                                         \
+        FIT_##NAME##_MESG the_mesg;                                           \
+        Fit_InitMesg(fit_mesg_defs[FIT_MESG_##NAME], &the_mesg);              \
+        [&] LAMBDA();                                                         \
+                                                                              \
+        /* If local is zero - means there is no definition, so add it      */ \
+        /* This is not the optimal solution, consider 2 messages which     */ \
+        /* does not have local_msg, then definition will be written every  */ \
+        /* time msg is used. Something like LRU should be used, but that's */ \
+        /* a stretch goal, current solution is simple, and good enough.    */ \
+        auto local = local_msgs[FIT_MESG_##NAME];                             \
+        if (local == NOT_SET) {                                               \
+            ADD_MESSAGE_DEF(NAME, local);                                     \
+        }                                                                     \
+                                                                              \
+        fit_file_.writeMessage(local, &the_mesg, FIT_##NAME##_MESG_SIZE);     \
     }
 
 FITActivity::FITActivity(IEventDispatcher *events) : events_(events) {
-    // Set all to 0
-    memset(local_msgs, 0, FIT_MESGS);
-    // 0 is reserved for rare messages
+    // Set all to NOT_SET
+    memset(local_msgs, NOT_SET, FIT_MESGS);
+    // NOT_SET is reserved for rare messages
     // Add here message which happens to show up often
     local_msgs[FIT_MESG_RECORD] = 1;
     local_msgs[FIT_MESG_EVENT] = 2;
@@ -86,40 +93,102 @@ FITActivity::FITActivity(IEventDispatcher *events) : events_(events) {
 }
 
 void FITActivity::onGNSSData(const GNSSData &data) {
-    // TODO: accumulate distance
     // create record message and write it
     if (data.fix_status == GNSSData::noFix) {
         return;
     }
 
-    float distance = calculateHaversine(data);
-
-    ESP_LOGI(TAG, "Calculated distance %f", distance);
+    updateByGNSS(data);
 
     FIT_RECORD_MESG the_mesg;
     ADD_MESSAGE(RECORD, {
+
+        // TODO: scale/offset here!
         if (data.fix_status > GNSSData::fix2d) {
             the_mesg.altitude = data.altitude;
         }
 
-        the_mesg.position_long = data.longitude;
-        the_mesg.position_lat = data.latitude;
+        // the_mesg.position_long = data.longitude;
+        // the_mesg.position_lat = data.latitude;
 
-        the_mesg.speed = data.speed_kmh;
+        the_mesg.speed = 1000 * data.speed_ms;
+
+        the_mesg.timestamp = getFITTimestamp();
 
         // Azimuth
         // data.track_degrees
 
-        // the_mesg.distance // accumulative distance
-        // the_mesg.timestamp
+        // accumulative distance
+        // the_mesg.distance = current_session_.total_distance;
     });
 
-    events_->activityDataEvent(ActivityData{});
+    events_->activityDataEvent(ActivityData{.lap_distance = current_lap_.total_distance,
+                                            .total_distance = current_session_.total_distance});
+}
+
+void FITActivity::updateByGNSS(const GNSSData &data) {
+    float distance = calculateHaversine(data);
+    ESP_LOGV(TAG, "Calculated distance %f", distance);
+
+    current_lap_.total_distance += distance;
+    current_lap_.n_samples++;
+    current_lap_.avg_speed += data.speed_ms;
+
+    current_session_.total_distance += distance;
+}
+
+uint32_t FITActivity::getFITTimestamp() {
+    // Set FIT time from UTC time
+    time_t now = time(0);
+
+    struct tm utc_tm;
+    // Convert local to UTC
+    gmtime_r(&now, &utc_tm);
+    // Convert UTC tm, to UTC time_t
+    time_t utc_time = mktime(&utc_tm);
+
+    // Move to FIT epoch
+    return utc_time - system_time_offset;
+}
+
+void FITActivity::storeLap() {
+    current_lap_.lap.end_position_lat = last_point_.latitude;
+    current_lap_.lap.end_position_long = last_point_.longitude;
+
+    // Store float to uint
+    current_lap_.avg_speed /= current_lap_.n_samples;
+    current_lap_.lap.avg_speed = 1000 * current_lap_.avg_speed;
+
+    current_lap_.lap.total_distance = 100 * current_lap_.total_distance;
+
+    auto timestamp = getFITTimestamp();
+    current_lap_.lap.timestamp = timestamp;
+    current_lap_.lap.total_elapsed_time = timestamp - current_lap_.lap.start_time;
+
+    // TODO: support pausing
+    current_lap_.lap.total_timer_time = timestamp - current_lap_.lap.start_time;
+
+    fit_file_.writeMessage(local_msgs[FIT_MESG_LAP], &current_lap_.lap, FIT_LAP_MESG_SIZE);
+}
+
+void FITActivity::storeSession() {
+    fit_file_.writeMessage(local_msgs[FIT_MESG_SESSION], &current_session_.session, FIT_SESSION_MESG_SIZE);
+
+}
+void FITActivity::storeActivity() {
+    fit_file_.writeMessage(local_msgs[FIT_MESG_ACTIVITY], &current_activity_.activity, FIT_ACTIVITY_MESG_SIZE);
 }
 
 void FITActivity::start() {
     ESP_LOGI(TAG, "Starting activity");
 
+    auto ts = getFITTimestamp();
+    current_session_.session.start_time = ts;
+    current_lap_.lap.start_time = ts;
+
+    // timestamp - when message is written
+    // total_elapsed_time - Time (includes pauses) timestamp - start_time
+    // total_timer_time - Timer Time (excludes pauses)
     addPrelude();
     events_->subForGNSS(this);
 }
@@ -151,6 +220,10 @@ void FITActivity::stop() {
         the_mesg.event = FIT_EVENT_TIMER;
         the_mesg.event_type = FIT_EVENT_TYPE_STOP;
     });
+
+    storeLap();
+    storeActivity();
+    storeSession();
 }
 
 void FITActivity::addPrelude() {
@@ -170,15 +243,7 @@ void FITActivity::addPrelude() {
 
     // FILE_ID is expected to be the first message in the file
     ADD_MESSAGE(FILE_ID, {
-        // Set FIT time from UTC time
-        time_t now = time(0);
-
-        struct tm utc_tm;
-        // Convert local to UTC
-        gmtime_r(&now, &utc_tm);
-        // Convert UTC tm, to UTC time_t
-        time_t utc_time = mktime(&utc_tm);
-        the_mesg.time_created = utc_time - system_time_offset;
+        the_mesg.time_created = getFITTimestamp();
 
         strcpy(the_mesg.product_name, "my_esp32_bc_proto");
 
@@ -205,8 +270,8 @@ void FITActivity::addPrelude() {
 }
 
 float FITActivity::calculateHaversine(const GNSSData &data) {
-    if (previous_point_.fix_status == GNSSData::noFix) {
-        previous_point_ = data;
+    if (last_point_.fix_status == GNSSData::noFix) {
+        last_point_ = data;
 
         return 0;
     }
@@ -214,18 +279,18 @@ float FITActivity::calculateHaversine(const GNSSData &data) {
     const float EARTH_RADIUS_KM = 6371;
     const float RADIANS = M_PI / 180.0;
 
-    float rad_lat = (data.latitude - previous_point_.latitude) * RADIANS;
-    float rad_lon = (data.longitude - previous_point_.longitude) * RADIANS;
+    float rad_lat = (data.latitude - last_point_.latitude) * RADIANS;
+    float rad_lon = (data.longitude - last_point_.longitude) * RADIANS;
 
     float a = sin(rad_lat / 2) * sin(rad_lat / 2) + sin(rad_lon / 2) * sin(rad_lon / 2) *
-                                                      cos(previous_point_.latitude * RADIANS) *
-                                                      cos(data.latitude * RADIANS);
+                                                        cos(last_point_.latitude * RADIANS) *
+                                                        cos(data.latitude * RADIANS);
 
     float c = 2 * atan2(sqrt(a), sqrt(1 - a));
 
     float distance = EARTH_RADIUS_KM * c;
 
-    previous_point_ = data;
+    last_point_ = data;
 
     return distance;
 }

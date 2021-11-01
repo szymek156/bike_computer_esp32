@@ -1,7 +1,8 @@
 #pragma once
 
-#include "cstdio"
-#include "fit.h"
+#include <cstdio>
+
+#include <fit.h>
 
 namespace bk {
 /** @brief Abstraction over writing FIT data to the file */

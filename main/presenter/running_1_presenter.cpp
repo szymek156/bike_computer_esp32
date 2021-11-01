@@ -45,7 +45,13 @@ void Running1Presenter::onButtonPressed(const KeypadData &data) {
 }
 
 void Running1Presenter::onActivityData(const ActivityData &data) {
-    view_.drawPace(60.0 / data.speed_kmh);
+    // To convert m/s to minutes/km (pace)
+    // m/s -> km/h X * 3.6
+    // km/h -> m / km 60 / (X * 3,6)
+    // 60 / 3.6 = 16.(6)
+    // m/s -> m / km
+    // 16.(6) / X
+    view_.drawPace(16.66666666666 / data.speed_ms);
 }
 
 }  // namespace bk

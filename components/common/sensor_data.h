@@ -53,7 +53,7 @@ struct GNSSData {
     float longitude;
     float altitude;
 
-    float speed_kmh;
+    float speed_ms;
     float track_degrees;
 
     FixStatus fix_status;
@@ -70,7 +70,7 @@ struct Time {
 };
 struct ActivityData
 {
-    int speed_kmh;
+    int speed_ms;
     float lap_distance;
     float total_distance;
     // hr_zone

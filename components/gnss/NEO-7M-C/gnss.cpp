@@ -103,8 +103,9 @@ void GNSS::run() {
                                 data.longitude = gps.longitude;
                                 data.altitude = gps.altitude;
 
-                                // Converting to km/h
-                                data.speed_kmh = gps.speed * 3.6;
+                                // m / s
+                                data.speed_ms = gps.speed;
+
                                 data.track_degrees = gps.cog;
 
                                 data.fix_status = (GNSSData::FixStatus)gps.fix_mode;

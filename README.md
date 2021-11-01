@@ -6,8 +6,8 @@
 - [x] Provide an architecture (MVP) for handling GUI
 - [x] Create a tool to do GUI mockups fast
 - [x] Figure out how to create and read/write partitions
-- [ ] Figure out BLE communication
 - [ ] Support FIT Activity files
+- [ ] Figure out BLE communication
 - [ ] Find out faster way for display to show now only 1fps is effective
 - [ ] Frame transfer takes 200ms, consider transferring only dirty regions
 - [ ] Add ghost runner functionality
