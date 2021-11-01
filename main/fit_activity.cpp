@@ -102,14 +102,26 @@ void FITActivity::onGNSSData(const GNSSData &data) {
 
     FIT_RECORD_MESG the_mesg;
     ADD_MESSAGE(RECORD, {
-
         // TODO: scale/offset here!
         if (data.fix_status > GNSSData::fix2d) {
             the_mesg.altitude = data.altitude;
         }
 
+        // A semicircle is a unit of location-based measurement on an arc.
+        // An arc of 180 degrees is made up of many semicircle units; 2^31 semicircles to be exact.
+        // Semicircles that correspond to North latitudes and East longitudes are indicated with
+        // positive values; semicircles that correspond to South latitudes and West longitudes are
+        // indicated with negative values.
+
+        // The following formulas show how to convert between degrees and semicircles:
+        // degrees = semicircles * (180 / 2^31)
+        // semicircles = degrees * (2^31 / 180)
+
         // the_mesg.position_long = data.longitude;
         // the_mesg.position_lat = data.latitude;
+
+        // Look for float -> uint scaling reference
+        // /FIT_SDK/cpp/fit_field_base.cpp void FieldBase::SetFLOAT64Value
 
         the_mesg.speed = 1000 * data.speed_ms;
 
@@ -172,11 +184,12 @@ void FITActivity::storeLap() {
 }
 
 void FITActivity::storeSession() {
-    fit_file_.writeMessage(local_msgs[FIT_MESG_SESSION], &current_session_.session, FIT_SESSION_MESG_SIZE);
-
+    fit_file_.writeMessage(
+        local_msgs[FIT_MESG_SESSION], &current_session_.session, FIT_SESSION_MESG_SIZE);
 }
 void FITActivity::storeActivity() {
-    fit_file_.writeMessage(local_msgs[FIT_MESG_ACTIVITY], &current_activity_.activity, FIT_ACTIVITY_MESG_SIZE);
+    fit_file_.writeMessage(
+        local_msgs[FIT_MESG_ACTIVITY], &current_activity_.activity, FIT_ACTIVITY_MESG_SIZE);
 }
 
 void FITActivity::start() {
