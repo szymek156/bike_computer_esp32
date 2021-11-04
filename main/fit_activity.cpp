@@ -27,6 +27,7 @@
 // - Activities, other FIT files
 // - Other libraries (hopefully there should be none?), maybe timezone as
 // a stretch goal
+#include "activity_service.h"
 #include "fit.h"
 #include "fit_example.h"
 #include "stdio.h"
@@ -45,6 +46,7 @@ static u_char local_msgs[FIT_MESGS] = {};
 // Needed for conversion from UNIX time to FIT time
 static const time_t system_time_offset = 631065600;
 
+// Reserved index for messages, which do not have prior definition written in the FIT file
 static const u_char NOT_SET = 0;
 
 #define ADD_MESSAGE_DEF(NAME, LOCAL_MESG_NUMBER)                                            \
@@ -60,6 +62,8 @@ static const u_char NOT_SET = 0;
 // Finally, writes mesg definition and a message itself to the file.
 // Lambdas uses operator () which is implicitly inlined,
 // meaning there should be no overhead for calling it.
+// Macros are not pretty, and never been, but here they save the developer from
+// copy pasting error, and that's already something!
 #define ADD_MESSAGE(NAME, LAMBDA)                                             \
     {                                                                         \
         FIT_##NAME##_MESG the_mesg;                                           \
@@ -98,41 +102,27 @@ void FITActivity::onGNSSData(const GNSSData &data) {
         return;
     }
 
-    updateByGNSS(data);
-
-    FIT_RECORD_MESG the_mesg;
     ADD_MESSAGE(RECORD, {
-        // TODO: scale/offset here!
+        the_mesg.timestamp = getFITTimestamp();
+
+        // FIT expects to have lat/long in semicircle units
+        the_mesg.position_lat = GNSSData::toSemiCircles(data.latitude);
+        the_mesg.position_long = GNSSData::toSemiCircles(data.longitude);
+
+        // accumulative distance
+        the_mesg.distance = 100 * current_session_.total_distance;
+
         if (data.fix_status > GNSSData::fix2d) {
-            the_mesg.altitude = data.altitude;
+            the_mesg.altitude = 5 * data.altitude + 500;
         }
 
-        // A semicircle is a unit of location-based measurement on an arc.
-        // An arc of 180 degrees is made up of many semicircle units; 2^31 semicircles to be exact.
-        // Semicircles that correspond to North latitudes and East longitudes are indicated with
-        // positive values; semicircles that correspond to South latitudes and West longitudes are
-        // indicated with negative values.
-
-        // The following formulas show how to convert between degrees and semicircles:
-        // degrees = semicircles * (180 / 2^31)
-        // semicircles = degrees * (2^31 / 180)
-
-        // the_mesg.position_long = data.longitude;
-        // the_mesg.position_lat = data.latitude;
-
-        // Look for float -> uint scaling reference
+        // TODO: Look for float -> uint scaling reference
         // /FIT_SDK/cpp/fit_field_base.cpp void FieldBase::SetFLOAT64Value
 
         the_mesg.speed = 1000 * data.speed_ms;
-
-        the_mesg.timestamp = getFITTimestamp();
-
-        // Azimuth
-        // data.track_degrees
-
-        // accumulative distance
-        // the_mesg.distance = current_session_.total_distance;
     });
+
+    updateByGNSS(data);
 
     events_->activityDataEvent(ActivityData{.lap_distance = current_lap_.total_distance,
                                             .total_distance = current_session_.total_distance});
@@ -142,9 +132,14 @@ void FITActivity::updateByGNSS(const GNSSData &data) {
     float distance = calculateHaversine(data);
     ESP_LOGV(TAG, "Calculated distance %f", distance);
 
+    // TODO: set start_position_lat/long
     current_lap_.total_distance += distance;
     current_lap_.n_samples++;
     current_lap_.avg_speed += data.speed_ms;
+
+    if (current_lap_.total_distance > 1000) {
+        storeLap();
+    }
 
     current_session_.total_distance += distance;
 }
@@ -164,32 +159,53 @@ uint32_t FITActivity::getFITTimestamp() {
 }
 
 void FITActivity::storeLap() {
-    current_lap_.lap.end_position_lat = last_point_.latitude;
-    current_lap_.lap.end_position_long = last_point_.longitude;
+    auto timestamp = getFITTimestamp();
+    current_lap_.lap.timestamp = timestamp;
+
+    current_lap_.lap.end_position_lat = GNSSData::toSemiCircles(last_point_.latitude);
+    current_lap_.lap.end_position_long = GNSSData::toSemiCircles(last_point_.longitude);
+
+    current_lap_.lap.total_elapsed_time = timestamp - current_lap_.lap.start_time;
+    // TODO: support pausing
+    current_lap_.lap.total_timer_time = timestamp - current_lap_.lap.start_time;
+
+    current_lap_.lap.total_distance = 100 * current_lap_.total_distance;
 
     // Store float to uint
     current_lap_.avg_speed /= current_lap_.n_samples;
     current_lap_.lap.avg_speed = 1000 * current_lap_.avg_speed;
 
-    current_lap_.lap.total_distance = 100 * current_lap_.total_distance;
-
-    auto timestamp = getFITTimestamp();
-    current_lap_.lap.timestamp = timestamp;
-    current_lap_.lap.total_elapsed_time = timestamp - current_lap_.lap.start_time;
-
-    // TODO: support pausing
-    current_lap_.lap.total_timer_time = timestamp - current_lap_.lap.start_time;
+    current_lap_.lap.sport = getFITSport();
+    current_lap_.lap.sub_sport = getFITSubSport();
 
     fit_file_.writeMessage(local_msgs[FIT_MESG_LAP], &current_lap_.lap, FIT_LAP_MESG_SIZE);
+
+    // Increase number of laps
+    current_session_.session.num_laps++;
+    current_lap_ = Lap();
 }
 
 void FITActivity::storeSession() {
+    current_session_.session.timestamp = getFITTimestamp();
+    current_session_.session.sport = getFITSport();
+    current_session_.session.sub_sport = getFITSubSport();
+    // TODO: that should be dynamic
+    current_session_.session.trigger = FIT_SESSION_TRIGGER_ACTIVITY_END;
+
     fit_file_.writeMessage(
         local_msgs[FIT_MESG_SESSION], &current_session_.session, FIT_SESSION_MESG_SIZE);
+
+    current_activity_.activity.num_sessions++;
+    current_session_ = Session();
 }
 void FITActivity::storeActivity() {
+    current_activity_.activity.timestamp = getFITTimestamp();
+    current_activity_.activity.type = FIT_ACTIVITY_MANUAL;
+
     fit_file_.writeMessage(
         local_msgs[FIT_MESG_ACTIVITY], &current_activity_.activity, FIT_ACTIVITY_MESG_SIZE);
+
+    current_activity_ = Activity();
 }
 
 void FITActivity::start() {
@@ -199,9 +215,6 @@ void FITActivity::start() {
     current_session_.session.start_time = ts;
     current_lap_.lap.start_time = ts;
 
-    // timestamp - when message is written
-    // total_elapsed_time - Time (includes pauses) timestamp - start_time
-    // total_timer_time - Timer Time (excludes pauses)
     addPrelude();
     events_->subForGNSS(this);
 }
@@ -210,6 +223,7 @@ void FITActivity::pause() {
     ESP_LOGI(TAG, "Activity paused");
 
     ADD_MESSAGE(EVENT, {
+        the_mesg.timestamp = getFITTimestamp();
         the_mesg.event = FIT_EVENT_TIMER;
         the_mesg.event_type = FIT_EVENT_TYPE_STOP;
     });
@@ -219,6 +233,7 @@ void FITActivity::resume() {
     ESP_LOGI(TAG, "Activity resumed");
 
     ADD_MESSAGE(EVENT, {
+        the_mesg.timestamp = getFITTimestamp();
         the_mesg.event = FIT_EVENT_TIMER;
         the_mesg.event_type = FIT_EVENT_TYPE_START;
     });
@@ -230,6 +245,7 @@ void FITActivity::stop() {
     events_->unSubForGNSS(this);
 
     ADD_MESSAGE(EVENT, {
+        the_mesg.timestamp = getFITTimestamp();
         the_mesg.event = FIT_EVENT_TIMER;
         the_mesg.event_type = FIT_EVENT_TYPE_STOP;
     });
@@ -275,6 +291,7 @@ void FITActivity::addPrelude() {
 
     // Here we go!
     ADD_MESSAGE(EVENT, {
+        the_mesg.timestamp = getFITTimestamp();
         the_mesg.event = FIT_EVENT_TIMER;
         the_mesg.event_type = FIT_EVENT_TYPE_START;
     });
@@ -307,4 +324,62 @@ float FITActivity::calculateHaversine(const GNSSData &data) {
 
     return distance;
 }
+
+FIT_SPORT FITActivity::getFITSport() {
+    using Activities = ActivityService::Activities;
+
+    // TODO: calling activity service here is circular dependency
+    // I don't quite like it
+    auto activity = ActivityService::instance().getCurrentActivity();
+
+    switch (activity) {
+        case Activities::Running: {
+            return FIT_SPORT_RUNNING;
+        }
+        case Activities::Cycling: {
+            return FIT_SPORT_CYCLING;
+        }
+        case Activities::Hiking: {
+            return FIT_SPORT_HIKING;
+        }
+        case Activities::IndoorCycling: {
+            return FIT_SPORT_CYCLING;
+        }
+        case Activities::NordicWalking: {
+            return FIT_SPORT_RUNNING;
+        }
+    }
+
+    ESP_LOGE(TAG, "Invalid activity received for sport %d", (int)activity);
+
+    return FIT_SPORT_INVALID;
+}
+
+FIT_SUB_SPORT FITActivity::getFITSubSport() {
+    using Activities = ActivityService::Activities;
+
+    auto activity = ActivityService::instance().getCurrentActivity();
+
+    switch (activity) {
+        case Activities::Running: {
+            return FIT_SUB_SPORT_GENERIC;
+        }
+        case Activities::Cycling: {
+            return FIT_SUB_SPORT_GENERIC;
+        }
+        case Activities::Hiking: {
+            return FIT_SUB_SPORT_GENERIC;
+        }
+        case Activities::IndoorCycling: {
+            return FIT_SUB_SPORT_INDOOR_CYCLING;
+        }
+        case Activities::NordicWalking: {
+            return FIT_SUB_SPORT_SPEED_WALKING;
+        }
+    }
+
+    ESP_LOGE(TAG, "Invalid activity received for sub_sport %d", (int)activity);
+    return FIT_SUB_SPORT_INVALID;
+}
+
 }  // namespace bk

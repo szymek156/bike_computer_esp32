@@ -42,7 +42,7 @@ java -jar FitCSVTool.jar
 ### Defining local FIT profile
 There is a FitGen.exe binary (can be launched from wine!) which takes messages definitions from config.csv and generates C code. Can be used to reduce binary size. Currently it works only for C, it has no effect on C++.
 ```
- wine FitGen.exe -c
+ wine FitGen.exe -c -norewrite
 ```
 
 ### Compiling C example inside FIT module

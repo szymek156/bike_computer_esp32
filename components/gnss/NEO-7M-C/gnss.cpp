@@ -25,6 +25,7 @@ void GNSS::start() {
     start_execution(TAG);
 }
 
+
 void GNSS::run() {
     uart_event_t event;
     while (true) {

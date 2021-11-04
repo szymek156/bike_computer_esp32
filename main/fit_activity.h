@@ -7,6 +7,7 @@
 
 namespace bk {
 
+// TODO: This class screams for UT's, create fit_file as an DI
 class FITActivity : public GNSSListener {
  public:
     FITActivity(IEventDispatcher *events);
@@ -33,6 +34,9 @@ class FITActivity : public GNSSListener {
 
     float calculateHaversine(const GNSSData &data);
 
+    FIT_SPORT getFITSport();
+    FIT_SUB_SPORT getFITSubSport();
+
     uint32_t getFITTimestamp();
 
     void storeLap();
@@ -51,6 +55,7 @@ class FITActivity : public GNSSListener {
             // By default set all fields to values "invalid" (representation set to all 1's in
             // binary). They are ignored during decoding, or used if are set to something meaningful
             Fit_InitMesg(fit_mesg_defs[FIT_MESG_ACTIVITY], &activity);
+            activity.num_sessions = 0;
         }
 
         FIT_ACTIVITY_MESG activity;
@@ -61,6 +66,7 @@ class FITActivity : public GNSSListener {
         Session() {
             Fit_InitMesg(fit_mesg_defs[FIT_MESG_SESSION], &session);
 
+            session.num_laps = 0;
             total_distance = 0;
         }
 

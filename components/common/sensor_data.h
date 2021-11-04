@@ -47,6 +47,26 @@ struct GNSSData {
     GNSSData() : fix_status(noFix) {
     }
 
+    /** @brief A semicircle is an unit of location-based measurement on an arc.
+     * An arc of 180 degrees is made up of many semicircle units; 2^31 semicircles to be exact.
+     * Semicircles that correspond to North latitudes and East longitudes are indicated with
+     * positive values; semicircles that correspond to South latitudes and West longitudes are
+     * indicated with negative values.
+     *
+     * The following formulas show how to convert between degrees and semicircles:
+     * degrees = semicircles * (180 / 2^31)
+     * semicircles = degrees * (2^31 / 180)
+     */
+    static int32_t toSemiCircles(float degrees) {
+        static constexpr auto convert = double(1 << 31) / 180.0;
+        return degrees * convert;
+    }
+
+    static float toDegrees(int32_t semicircles) {
+        static constexpr auto convert = 180.0 / double(1 << 31);
+        return semicircles * convert;
+    }
+
     std::tm date_time;
 
     float latitude;
@@ -68,8 +88,7 @@ struct Time {
     int minutes;
     int seconds;
 };
-struct ActivityData
-{
+struct ActivityData {
     int speed_ms;
     float lap_distance;
     float total_distance;
@@ -80,6 +99,5 @@ struct ActivityData
     Time total_time;
     // TODO: more to come...
 };
-
 
 }  // namespace bk
