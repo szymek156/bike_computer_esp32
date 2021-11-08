@@ -5301,8 +5301,8 @@ typedef struct
 
 // lap message
 
-#define FIT_LAP_MESG_SIZE                                                       54
-#define FIT_LAP_MESG_DEF_SIZE                                                   65
+#define FIT_LAP_MESG_SIZE                                                       50
+#define FIT_LAP_MESG_DEF_SIZE                                                   62
 
 typedef struct
 {
@@ -5315,7 +5315,6 @@ typedef struct
    FIT_UINT32 total_elapsed_time; // 1000 * s + 0, Time (includes pauses)
    FIT_UINT32 total_timer_time; // 1000 * s + 0, Timer Time (excludes pauses)
    FIT_UINT32 total_distance; // 100 * m + 0,
-   FIT_UINT32 total_moving_time; // 1000 * s + 0,
    FIT_MESSAGE_INDEX message_index; //
    FIT_UINT16 avg_speed; // 1000 * m/s + 0,
    FIT_UINT16 repetition_num; //
@@ -5339,7 +5338,6 @@ typedef FIT_UINT8 FIT_LAP_FIELD_NUM;
 #define FIT_LAP_FIELD_NUM_TOTAL_ELAPSED_TIME ((FIT_LAP_FIELD_NUM)7)
 #define FIT_LAP_FIELD_NUM_TOTAL_TIMER_TIME ((FIT_LAP_FIELD_NUM)8)
 #define FIT_LAP_FIELD_NUM_TOTAL_DISTANCE ((FIT_LAP_FIELD_NUM)9)
-#define FIT_LAP_FIELD_NUM_TOTAL_MOVING_TIME ((FIT_LAP_FIELD_NUM)52)
 #define FIT_LAP_FIELD_NUM_MESSAGE_INDEX ((FIT_LAP_FIELD_NUM)254)
 #define FIT_LAP_FIELD_NUM_AVG_SPEED ((FIT_LAP_FIELD_NUM)13)
 #define FIT_LAP_FIELD_NUM_REPETITION_NUM ((FIT_LAP_FIELD_NUM)61)
@@ -5362,7 +5360,6 @@ typedef enum
    FIT_LAP_MESG_TOTAL_ELAPSED_TIME,
    FIT_LAP_MESG_TOTAL_TIMER_TIME,
    FIT_LAP_MESG_TOTAL_DISTANCE,
-   FIT_LAP_MESG_TOTAL_MOVING_TIME,
    FIT_LAP_MESG_MESSAGE_INDEX,
    FIT_LAP_MESG_AVG_SPEED,
    FIT_LAP_MESG_REPETITION_NUM,

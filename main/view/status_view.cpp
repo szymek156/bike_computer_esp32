@@ -18,14 +18,29 @@ void StatusView::drawStatic() {
 }
 
 void StatusView::drawGNSSData(const GNSSData &data) {
+    static bool blink_status = false;
+
     // GPS 3D
     display_->enqueueDraw(
-        [&data](Paint &paint) {
+        [&](Paint &paint) {
             const int msg_size = 128;
             char message[msg_size];
-
             snprintf(message, msg_size, "GPS %1d", data.fix_status);
-            paint.DrawStringAt(132, 2, message, &Font8, COLORED);
+
+            if (data.fix_status <= GNSSData::noFix) {
+                paint.DrawFilledRectangle(99, 1, 195, 11, blink_status ? COLORED : UNCOLORED);
+                paint.DrawStringAt(132, 2, message, &Font8, blink_status ? UNCOLORED : COLORED);
+
+                blink_status = !blink_status;
+
+            } else {
+                if (blink_status) {
+                    paint.DrawFilledRectangle(99, 1, 195, 11, UNCOLORED);
+                    blink_status = false;
+                }
+
+                paint.DrawStringAt(132, 2, message, &Font8, COLORED);
+            }
         },
         {99, 1, 195, 11});
 }

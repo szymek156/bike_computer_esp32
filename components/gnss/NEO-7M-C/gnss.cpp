@@ -1,6 +1,6 @@
 #include "gnss.h"
 
-// #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+#define LOG_LOCAL_LEVEL ESP_LOG_INFO
 #include <esp_log.h>
 #include <string.h>
 #include <uart_wrapper.h>
@@ -24,7 +24,6 @@ GNSS::~GNSS() {
 void GNSS::start() {
     start_execution(TAG);
 }
-
 
 void GNSS::run() {
     uart_event_t event;
@@ -105,7 +104,8 @@ void GNSS::run() {
                                 data.altitude = gps.altitude;
 
                                 // m / s
-                                data.speed_ms = gps.speed;
+                                // filter out very small movements
+                                data.speed_ms = gps.speed <= 1.0f ? 0.0f : gps.speed;
 
                                 data.track_degrees = gps.cog;
 

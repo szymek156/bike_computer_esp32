@@ -26,8 +26,11 @@ class RootWindow : public WidgetListener {
     // Status widget
     PresenterPtr status_widget_;
 
-    // Main widget
+    // Widget currently presented
     PresenterPtr current_widget_;
+
+    // Widget set as first one seen by the user
+    PresenterPtr welcome_widget_;
 
     IEventDispatcher *events_;
 };

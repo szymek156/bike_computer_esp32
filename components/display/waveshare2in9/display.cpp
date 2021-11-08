@@ -31,7 +31,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+#define LOG_LOCAL_LEVEL ESP_LOG_INFO
 #include <esp_log.h>
 
 /** @brief show time spent on communicating with display HW */
@@ -202,10 +202,10 @@ void Display::swapBuffers() {
 
     // Dirty means, new data is ready to be shown
     if (dirty_) {
-        // TODO: swapping buffers causes show of old data, in case of 
+        // TODO: swapping buffers causes show of old data, in case of
         // views updating less often than refresh-rate of display.
         // For example weather which seems to spam every 2 seconds,
-        // in result, on display there is flickering new and old value 
+        // in result, on display there is flickering new and old value
 
         // So instead of swapping buffers, everything what is on back
         // (always holds newest data) is copyied to front_.

@@ -56,8 +56,12 @@ class PagePresenter {
             }
             case WidgetData::less:
                 return less_;
+            default:
+                return nullptr;
         }
 
+        // Control reaches end of non void function
+        // Yeah whatever, there is a DEFAULT switch case defined you MORON!
         return nullptr;
     }
 

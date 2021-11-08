@@ -143,21 +143,30 @@ ActivityService::Activities ActivityService::getCurrentActivity() {
     return current_activity_type_;
 }
 
-
-
 void ActivityService::newActivity() {
     fit_activity_.reset(new FITActivity(events_));
 }
 
-
 void ActivityService::discardActivity() {
+    // If discard is called on nullptr - that's a bug so go investigate it!
+    fit_activity_->setDiscard(true);
     fit_activity_.reset(nullptr);
 }
 
-
 void ActivityService::startActivity() {
     fit_activity_->start();
+}
 
+void ActivityService::pauseActivity() {
+    fit_activity_->pause();
+}
+void ActivityService::resumeActivity() {
+    fit_activity_->resume();
+}
+void ActivityService::storeActivity() {
+    fit_activity_->stop();
+    fit_activity_->setDiscard(false);
+    fit_activity_.reset(nullptr);
 }
 
 void ActivityService::setEventDispatcher(IEventDispatcher *events) {

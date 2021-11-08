@@ -6,6 +6,8 @@
 #include "presenter/activity_selected_presenter.h"
 #include "presenter/activity_splash_presenter.h"
 #include "presenter/activity_workouts_presenter.h"
+#include "presenter/running_1_presenter.h"
+#include "presenter/running_2_presenter.h"
 #include "presenter/select_activity_presenter.h"
 #include "presenter/stats_presenter.h"
 #include "presenter/stats_selected_presenter.h"
@@ -13,9 +15,9 @@
 #include "presenter/status_presenter.h"
 #include "presenter/test_presenter.h"
 #include "presenter/welcome_presenter.h"
-#include "presenter/running_1_presenter.h"
-#include "presenter/running_2_presenter.h"
 #include "presenter/workout_steps_presenter.h"
+#include "presenter/workout_steps_splash.h"
+#include "presenter/activity_paused.h"
 
 #include <vector>
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
@@ -46,7 +48,6 @@ StatusAndMain LayoutFactory::create() {
 
     auto workout_steps = std::make_shared<WorkoutStepsPresenter>(display_, events_);
 
-
     test->setNext(welcome);
     test->setPrevious(activity_splash);
 
@@ -63,7 +64,7 @@ StatusAndMain LayoutFactory::create() {
     activity_workouts->setMore(activity_selected);
     activity_workouts->setLess(select_activity);
 
-    //This is a case where going to next widget depends on the
+    // This is a case where going to next widget depends on the
     // value selected from the list.
     // Here are 2 options "do it" and "view", view should go to the
     // WorkoutStepsPresenter,
@@ -96,24 +97,39 @@ ActivityLayoutFactory::ActivityLayoutFactory(IDisplay *display, IEventDispatcher
 }
 
 std::shared_ptr<PagePresenter> ActivityLayoutFactory::create(ActivityService::Activities activity) {
-    static const char* TAG = "ActivityLayoutFactory";
+    static const char *TAG = "ActivityLayoutFactory";
 
     switch (activity) {
         case ActivityService::Activities::Running: {
             auto r1 = std::make_shared<Running1Presenter>(display_, events_);
             auto r2 = std::make_shared<Running2Presenter>(display_, events_);
-            auto r3 = std::make_shared<WorkoutStepsPresenter>(display_, events_);
+            auto workouts_splash = std::make_shared<WorkoutStepsSplashPresenter>(display_, events_);
+            auto workouts = std::make_shared<WorkoutStepsPresenter>(display_, events_);
+            auto paused = std::make_shared<ActivityPausedPresenter>(display_, events_);
+
 
             // TODO: this is a memleak, one of pointers should be weak
             r1->setNext(r2);
-            r1->setPrevious(r3);
+            r1->setPrevious(workouts_splash);
 
-            r2->setNext(r3);
+            r2->setNext(workouts_splash);
             r2->setPrevious(r1);
+
+            workouts_splash->setNext(r1);
+            workouts_splash->setPrevious(r2);
+
+            workouts_splash->setMore(workouts);
 
             // TODO: detailed descritpion
             // r3->setMore()
-            r3->setLess(r1);
+            workouts->setLess(workouts_splash);
+
+            r1->setMore(paused);
+            r2->setMore(paused);
+
+            std::shared_ptr<PagePresenter> save = nullptr;
+            std::shared_ptr<PagePresenter> discard = nullptr;
+            paused->setMore({r1, save, discard});
 
             return r1;
         }
@@ -122,7 +138,8 @@ std::shared_ptr<PagePresenter> ActivityLayoutFactory::create(ActivityService::Ac
         }
 
         default:
-            ESP_LOGE(TAG, "Unable to create a layout for activity %u", static_cast<uint32_t>(activity));
+            ESP_LOGE(
+                TAG, "Unable to create a layout for activity %u", static_cast<uint32_t>(activity));
             return nullptr;
     }
 }

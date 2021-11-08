@@ -139,6 +139,7 @@ void VListWidget::updateElements(const std::vector<std::string> elements) {
 
     viewport_size_ = std::min(el_in_view_, elements_.size());
     current_selection_ = 0;
+    viewport_start_ = 0;
     el_height_ = (area_.y1 - area_.y0) / viewport_size_;
     el_width_ = area_.x1 - area_.x0;
     center_vert_ = (el_height_ - font_.Height) / 2;

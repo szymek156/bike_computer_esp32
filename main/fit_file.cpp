@@ -7,9 +7,13 @@
 
 #include <esp_log.h>
 namespace bk {
-FITFile::FITFile() {
-    // TODO: come up with fancier name
-    fp_ = fopen("/storage/test.fit", "w+b");
+
+// TODO: come up with fancier name
+static const char *FILE_PATH = "/storage/test_walk.fit";
+
+FITFile::FITFile() : discard_(false) {
+    fp_ = fopen(FILE_PATH, "w+b");
+    ESP_LOGI(TAG, "Creating a file: %s %p", FILE_PATH, fp_);
 
     writeFileHeader();
 }
@@ -19,12 +23,24 @@ FITFile::~FITFile() {
     writeFileHeader();
 
     fclose(fp_);
+
+    if (discard_) {
+        int res = remove(FILE_PATH);
+
+        ESP_LOGI(TAG, "File %s removed with status %d", FILE_PATH, res);
+    } else {
+        ESP_LOGI(TAG, "File %s saves", FILE_PATH);
+    }
+}
+
+void FITFile::setDiscard(bool to_discard) {
+    discard_ = to_discard;
 }
 
 void FITFile::writeData(const void *data, size_t data_size) {
     fwrite(data, 1, data_size, fp_);
 
-    for (size_t offset = 0; offset < data_size; offset++){
+    for (size_t offset = 0; offset < data_size; offset++) {
         data_crc_ = FitCRC_Get16(data_crc_, *((FIT_UINT8 *)data + offset));
     }
 }

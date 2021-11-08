@@ -96,6 +96,10 @@ FITActivity::FITActivity(IEventDispatcher *events) : events_(events) {
     // max 16 local messages can be defined
 }
 
+FITActivity::~FITActivity() {
+    events_->unSubForGNSS(this);
+}
+
 void FITActivity::onGNSSData(const GNSSData &data) {
     // create record message and write it
     if (data.fix_status == GNSSData::noFix) {
@@ -124,20 +128,34 @@ void FITActivity::onGNSSData(const GNSSData &data) {
 
     updateByGNSS(data);
 
-    events_->activityDataEvent(ActivityData{.lap_distance = current_lap_.total_distance,
-                                            .total_distance = current_session_.total_distance});
+    ESP_LOGD(TAG, "got speed %f", data.speed_ms);
+
+    events_->activityDataEvent(ActivityData{
+        .speed_ms = data.speed_ms,
+        .lap_distance = current_lap_.total_distance,
+        .total_distance = current_session_.total_distance,
+    });
 }
 
 void FITActivity::updateByGNSS(const GNSSData &data) {
     float distance = calculateHaversine(data);
     ESP_LOGV(TAG, "Calculated distance %f", distance);
 
-    // TODO: set start_position_lat/long
+    if (current_lap_.lap.start_position_lat == FIT_SINT32_INVALID) {
+        current_lap_.lap.start_position_lat = GNSSData::toSemiCircles(data.latitude);
+        current_lap_.lap.start_position_long = GNSSData::toSemiCircles(data.longitude);
+    }
+
+    if (current_session_.session.start_position_lat == FIT_SINT32_INVALID) {
+        current_session_.session.start_position_lat = GNSSData::toSemiCircles(data.latitude);
+        current_session_.session.start_position_long = GNSSData::toSemiCircles(data.longitude);
+    }
+
     current_lap_.total_distance += distance;
     current_lap_.n_samples++;
     current_lap_.avg_speed += data.speed_ms;
 
-    if (current_lap_.total_distance > 1000) {
+    if (current_lap_.total_distance > 100) {
         storeLap();
     }
 
@@ -159,6 +177,8 @@ uint32_t FITActivity::getFITTimestamp() {
 }
 
 void FITActivity::storeLap() {
+    ESP_LOGD(TAG, "Storing lap at distance %f", current_lap_.total_distance);
+
     auto timestamp = getFITTimestamp();
     current_lap_.lap.timestamp = timestamp;
 
@@ -183,6 +203,7 @@ void FITActivity::storeLap() {
     // Increase number of laps
     current_session_.session.num_laps++;
     current_lap_ = Lap();
+    current_lap_.lap.start_time = getFITTimestamp();
 }
 
 void FITActivity::storeSession() {
@@ -197,7 +218,10 @@ void FITActivity::storeSession() {
 
     current_activity_.activity.num_sessions++;
     current_session_ = Session();
+
+    current_session_.session.start_time = getFITTimestamp();
 }
+
 void FITActivity::storeActivity() {
     current_activity_.activity.timestamp = getFITTimestamp();
     current_activity_.activity.type = FIT_ACTIVITY_MANUAL;
@@ -221,6 +245,8 @@ void FITActivity::start() {
 
 void FITActivity::pause() {
     ESP_LOGI(TAG, "Activity paused");
+
+    // TODO: unusb for GNSS?
 
     ADD_MESSAGE(EVENT, {
         the_mesg.timestamp = getFITTimestamp();
@@ -253,6 +279,10 @@ void FITActivity::stop() {
     storeLap();
     storeActivity();
     storeSession();
+}
+
+void FITActivity::setDiscard(bool to_discard) {
+    fit_file_.setDiscard(to_discard);
 }
 
 void FITActivity::addPrelude() {

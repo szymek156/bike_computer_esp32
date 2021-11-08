@@ -11,7 +11,7 @@ void FSWrapper::mountStorage() {
     ESP_LOGI(TAG, "Initializing SPIFFS");
 
     esp_vfs_spiffs_conf_t conf = {.base_path = "/storage",
-                                  .partition_label = NULL,
+                                  .partition_label = "storage",
                                   .max_files = 5,
                                   .format_if_mount_failed = true};
 
@@ -29,6 +29,12 @@ void FSWrapper::mountStorage() {
         }
         return;
     }
+
+    // ESP_LOGE(TAG, "Formatting ....");
+
+    // ret = esp_spiffs_format(conf.partition_label);
+
+    // ESP_LOGE(TAG, "Format result (%s)", esp_err_to_name(ret));
 
     size_t total = 0, used = 0;
     ret = esp_spiffs_info(conf.partition_label, &total, &used);

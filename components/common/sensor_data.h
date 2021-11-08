@@ -6,7 +6,9 @@ namespace bk {
 class PagePresenter;
 
 struct WidgetData {
-    enum Widget { next, prev, more, less };
+    /** @brief next, prev, more, less - one of those buttons were pressed
+     * welcome - there are no more widgets to show, go to welcome page */
+    enum Widget { next, prev, more, less, welcome };
 
     Widget new_widget;
     // There are cases, where can be many "more" widgets
@@ -89,7 +91,7 @@ struct Time {
     int seconds;
 };
 struct ActivityData {
-    int speed_ms;
+    float speed_ms;
     float lap_distance;
     float total_distance;
     // hr_zone

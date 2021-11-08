@@ -50,6 +50,7 @@ void ActivityDoItPresenter::onButtonPressed(const KeypadData &data) {
         events_->widgetEvent(WidgetData{.new_widget = WidgetData::more});
     } else if (data.ld_pressed) {
         ActivityService::instance().discardActivity();
+
         events_->widgetEvent(WidgetData{.new_widget = WidgetData::less});
     }
 }

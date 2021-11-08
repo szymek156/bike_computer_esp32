@@ -11,6 +11,7 @@ namespace bk {
 class FITActivity : public GNSSListener {
  public:
     FITActivity(IEventDispatcher *events);
+    ~FITActivity();
 
     void onGNSSData(const GNSSData &data) override;
 
@@ -23,8 +24,12 @@ class FITActivity : public GNSSListener {
     /** @brief Resumes data collection and writing to the file */
     void resume();
 
-    /** @brief Creates final file */
+    /** @brief Stores all data that is left */
     void stop();
+
+    // TODO: I don't like that interface, come up with something clever
+    /** @brief Indicates if FIT file should be discarded */
+    void setDiscard(bool to_discard);
 
  private:
     /** @brief Adds initial messages to the FIT file */

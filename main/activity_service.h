@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "fit_activity.h"
 #include "event_dispatcher.h"
+#include "fit_activity.h"
 
 #include <array>
 #include <map>
@@ -17,13 +17,7 @@ namespace bk {
  * */
 class ActivityService {
  public:
-    enum class Activities {
-        Running = 0,
-        Cycling,
-        Hiking,
-        IndoorCycling,
-        NordicWalking
-    };
+    enum class Activities { Running = 0, Cycling, Hiking, IndoorCycling, NordicWalking };
 
     static ActivityService &instance();
 
@@ -55,6 +49,15 @@ class ActivityService {
     /** @brief Starts data recording
      */
     void startActivity();
+
+    /** @brief Pauses the activity */
+    void pauseActivity();
+
+    /** @brief Resumes the activity */
+    void resumeActivity();
+
+    /** @brief Saves the activity to the file */
+    void storeActivity();
 
     /** @brief Adds handle to the EventDispatcher */
     void setEventDispatcher(IEventDispatcher *events);

@@ -8,10 +8,12 @@ namespace bk {
 RootWindow::RootWindow(IEventDispatcher *events, LayoutFactory *factory) : events_(events) {
     events_->subForWidgetChange(this);
 
-    auto [status, curr] = factory->create();
+    auto [status, welcome] = factory->create();
 
     setStatusWidget(status);
-    setCurrentWidget(curr);
+    setCurrentWidget(welcome);
+
+    welcome_widget_ = welcome;
 }
 
 RootWindow::~RootWindow() {
@@ -19,7 +21,15 @@ RootWindow::~RootWindow() {
 }
 
 void RootWindow::onWidgetChange(const WidgetData &data) {
-    if (current_widget_) {
+    if (data.new_widget == WidgetData::welcome) {
+        ESP_LOGD(TAG, "Got request to change to welcome page");
+
+        current_widget_->onLeave();
+
+        current_widget_ = welcome_widget_;
+
+        current_widget_->onEnter();
+    } else {
         auto upcoming_widget = current_widget_->getWidget(data);
 
         if (upcoming_widget) {
@@ -40,9 +50,7 @@ void RootWindow::setStatusWidget(PresenterPtr status) {
     }
 
     status_widget_ = status;
-    if (status_widget_) {
-        status_widget_->onEnter();
-    }
+    status_widget_->onEnter();
 }
 
 void RootWindow::setCurrentWidget(PresenterPtr current) {
@@ -51,9 +59,7 @@ void RootWindow::setCurrentWidget(PresenterPtr current) {
     }
 
     current_widget_ = current;
-    if (current_widget_) {
-        current_widget_->onEnter();
-    }
+    current_widget_->onEnter();
 }
 
 }  // namespace bk

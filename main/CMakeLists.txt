@@ -45,6 +45,9 @@ idf_component_register(SRCS
     "presenter/running_1_presenter.cpp"
     "presenter/running_2_presenter.cpp"
     "presenter/workout_steps_presenter.cpp"
+    "presenter/workout_steps_splash.cpp"
+    "presenter/activity_paused.cpp"
+
 
     "presenter/TEMPLATE_presenter.cpp"
 
