@@ -3,6 +3,7 @@
 #include "event_dispatcher.h"
 #include "fs_wrapper.h"
 #include "gnss.h"
+#include "health_service.h"
 #include "keypad.h"
 #include "layout_factory.h"
 #include "root_window.h"
@@ -45,6 +46,8 @@ void StartApplication() {
     bk::LayoutFactory factory(&display, &dispatcher);
 
     bk::RootWindow root(&dispatcher, &factory);
+
+    HealthService::report();
 
     dispatcher.listenForEvents();
 }

@@ -140,6 +140,7 @@ class EventDispatcher : public IEventDispatcher {
     // TODO: that could be separate event service, but what the hell?
     QueueHandle_t widget_q_;
     QueueHandle_t activity_q_;
+    QueueHandle_t health_q_;
 
     std::set<KeypadListener *>::iterator keypad_iter_;
     std::set<KeypadListener *> keypad_listeners_;
@@ -160,6 +161,7 @@ class EventDispatcher : public IEventDispatcher {
     void notifyWidgetChange(const WidgetData &data);
 
     void notifyActivityData(const ActivityData &data);
+
 };
 
 }  // namespace bk

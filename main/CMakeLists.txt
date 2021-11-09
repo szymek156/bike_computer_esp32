@@ -55,6 +55,7 @@ idf_component_register(SRCS
 
     "fit_file.cpp"
     "fit_activity.cpp"
+    "health_service.cpp"
 
     "application.cpp"
 

@@ -158,4 +158,5 @@ void EventDispatcher::notifyActivityData(const ActivityData &data) {
         observer->onActivityData(data);
     }
 }
+
 }  // namespace bk

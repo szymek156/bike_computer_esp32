@@ -31,4 +31,5 @@ class ActivityDataListener {
  public:
     virtual void onActivityData(const ActivityData &data) = 0;
 };
+
 }  // namespace bk
