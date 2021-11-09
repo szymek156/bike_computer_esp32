@@ -76,20 +76,26 @@ void ActivityPausedPresenter::onButtonPressed(const KeypadData &data) {
         switch (idx) {
             case Resume: {
                 ActivityService::instance().resumeActivity();
+                events_->widgetEvent(WidgetData{.new_widget = WidgetData::more});
                 break;
             }
             case Save: {
                 ActivityService::instance().storeActivity();
+                // TODO: show summary, then go to the welcome page
+                events_->widgetEvent(
+                    WidgetData{.new_widget = WidgetData::welcome, .widget_idx = idx});
                 break;
             }
             case Discard: {
                 ActivityService::instance().discardActivity();
+                // TODO: show confirmation, then go to the welcome page
+                events_->widgetEvent(
+                    WidgetData{.new_widget = WidgetData::welcome, .widget_idx = idx});
+
                 break;
             }
         }
 
-        // TODO: show summary, then go to the welcome page
-        events_->widgetEvent(WidgetData{.new_widget = WidgetData::welcome, .widget_idx = idx});
     } else if (data.ld_pressed) {
         // events_->widgetEvent(WidgetData{.new_widget = WidgetData::less});
     }
