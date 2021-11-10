@@ -1,7 +1,8 @@
 #include "activity_do_it_presenter.h"
 
-#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include <activity_service.h>
+#include <health_service.h>
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include <esp_log.h>
 
 namespace bk {
@@ -47,6 +48,7 @@ void ActivityDoItPresenter::onButtonPressed(const KeypadData &data) {
         events_->widgetEvent(WidgetData{.new_widget = WidgetData::prev});
     } else if (data.rd_pressed) {
         ActivityService::instance().startActivity();
+        HealthService::reportAll();
         events_->widgetEvent(WidgetData{.new_widget = WidgetData::more});
     } else if (data.ld_pressed) {
         ActivityService::instance().discardActivity();

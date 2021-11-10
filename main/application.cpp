@@ -47,7 +47,7 @@ void StartApplication() {
 
     bk::RootWindow root(&dispatcher, &factory);
 
-    HealthService::report();
+    HealthService::reportAll();
 
     dispatcher.listenForEvents();
 }

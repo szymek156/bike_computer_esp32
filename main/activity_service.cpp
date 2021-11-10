@@ -9,6 +9,9 @@
 namespace bk {
 ActivityService &ActivityService::instance() {
     static ActivityService current;
+    // TODO: not thread safety is OK as long as it's called
+    // from event_dispatcher thread only.
+    // Thats true so far.
 
     return current;
 }
