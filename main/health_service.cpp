@@ -64,6 +64,8 @@ void HealthService::reportFS() {
 }
 
 void HealthService::reportFiles(const std::string &partition) {
+    // In year 2021 C++ compilers still does not support std::filesystem yay!
+    // Switch to the old C API!
     std::string path = "/" + partition;
     DIR *dir;
     struct dirent *ent;
@@ -111,13 +113,20 @@ void HealthService::reportCPU() {
 void HealthService::reportOS() {
     ESP_LOGI(TAG, "OS:");
 
-    auto num_of_ticks = xTaskGetTickCount();
+    auto reset_reason = esp_reset_reason();
+    ESP_LOGI(TAG, " Last reset reason %u", reset_reason);
 
+    auto *idf_version = esp_get_idf_version();
+    ESP_LOGI(TAG, " ESP-IDF used to compile: %s", idf_version);
+
+
+    auto num_of_ticks = xTaskGetTickCount();
     ESP_LOGI(TAG, " Uptime %u ms", pdTICKS_TO_MS(num_of_ticks));
 
     auto num_of_tasks = uxTaskGetNumberOfTasks();
     ESP_LOGI(TAG, " Number of managed tasks %u", num_of_tasks);
 
+// Get task info, if FreeRTOS is configured with that feature
 #if configUSE_TRACE_FACILITY == 1 && configUSE_STATS_FORMATTING_FUNCTIONS == 1
     std::string buff;
     // Approximately 40 bytes per task should be sufficient.
