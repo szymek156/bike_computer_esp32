@@ -26,6 +26,8 @@
 #include <mutex>
 
 #include <epd2in9.h>
+#include <epd2in9_V2.h>
+
 #include <epdpaint.h>
 
 namespace bk {
@@ -79,7 +81,7 @@ class Display : public AbstractTask, public IDisplay {
  protected:
     static constexpr const char *TAG = "Display";
 
-    Epd epd_;
+    EpdV2 epd_;
 
     std::uint8_t *front_;
     std::uint8_t *back_;

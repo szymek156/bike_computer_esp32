@@ -105,7 +105,7 @@ int EpdIf::IfInit(void) {
     devcfg.address_bits = 0;
     devcfg.dummy_bits = 0;
     devcfg.mode = 0;
-    devcfg.clock_speed_hz = SPI_MASTER_FREQ_8M; //SPI_MASTER_FREQ_26M
+    devcfg.clock_speed_hz = SPI_MASTER_FREQ_8M;
     devcfg.spics_io_num = CS_PIN;
     devcfg.queue_size = 1;
 

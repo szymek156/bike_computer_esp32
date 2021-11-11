@@ -1,4 +1,4 @@
-idf_component_register(SRCS "display.cpp" "epd2in9.cpp" "epdif.cpp" "epdpaint.cpp"
+idf_component_register(SRCS "display.cpp" "epd2in9.cpp" "epd2in9_V2.cpp" "epdif.cpp" "epdpaint.cpp"
                     "font8.c" "font12.c" "font16.c" "font20.c" "font24.c"
                     REQUIRES "common"
                     INCLUDE_DIRS ".")
