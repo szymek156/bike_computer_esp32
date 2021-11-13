@@ -59,10 +59,10 @@ Display::Display()
 void Display::start() {
     prettyClean();
 
-    // if (epd_.Init(/*lut_partial_update*/) != 0) {
-    // ESP_LOGE(TAG, "e-Paper init failed");
-    // return;
-    // }
+    if (epd_.Init(lut_partial_update) != 0) {
+        ESP_LOGE(TAG, "e-Paper init failed");
+        return;
+    }
 
     start_execution(TAG);
 }
@@ -112,31 +112,14 @@ void Display::draw() {
         std::chrono::system_clock::now();
 #endif
 
-    // epd_.SetFrameMemory(front_, 0, 0, epd_.width, epd_.height);
-
-    static int cnt = 0;
-    const int msg_size = 128;
-    char message[msg_size];
-
-    cnt++;
-
-    snprintf(message, msg_size, "%d %d %d", cnt, 10 * cnt + cnt, rand());
-
-    paint_.SetWidth(128);
-    paint_.SetHeight(296);
-    paint_.SetRotate(ROTATE_90);
-
-    paint_.Clear(UNCOLORED);
-    paint_.DrawStringAt(0, 0, message, &Font24, COLORED);
-    epd_.SetFrameMemory_Partial(paint_.GetImage(), 0, 0, paint_.GetWidth(), paint_.GetHeight());
+    epd_.SetFrameMemory(front_, 0, 0, epd_.width, epd_.height);
 
 #if defined(PERF)
     std::chrono::time_point<std::chrono::system_clock> after_set_frame =
         std::chrono::system_clock::now();
 #endif
 
-    epd_.DisplayFrame_Partial();
-    // epd_.DisplayFrame();
+    epd_.DisplayFrame();
 
     std::chrono::time_point<std::chrono::system_clock> after_display =
         std::chrono::system_clock::now();
@@ -174,40 +157,15 @@ void Display::prepareCanvas(const Rect& rect) {
 }
 
 void Display::prettyClean() {
-    if (epd_.Init(/*lut_full_update*/) != 0) {
+    if (epd_.Init(lut_full_update) != 0) {
         ESP_LOGE(TAG, "e-Paper initialization failed");
         return;
     }
 
     epd_.ClearFrameMemory(0xFF);
     epd_.DisplayFrame();
-    // epd_.ClearFrameMemory(0xFF);
-    // epd_.DisplayFrame();
-
-    paint_.SetRotate(ROTATE_90);
-    paint_.SetWidth(128);
-    paint_.SetHeight(296);
-
-    //   /* For simplicity, the arguments are explicit numerical coordinates */
-    //   paint_.Clear(COLORED);
-    //   paint_.DrawStringAt(0, 4, "Hello world!", &Font12, UNCOLORED);
-    //   epd_.SetFrameMemory(paint_.GetImage(), 0, 10, paint_.GetWidth(), paint_.GetHeight());
-
-    // paint_.Clear(UNCOLORED);
-    //   paint_.DrawStringAt(0, 4, "e-Paper Demo", &Font24, COLORED);
-    //   epd_.SetFrameMemory_Partial(paint_.GetImage(), 0, 0, paint_.GetWidth(),
-    //   paint_.GetHeight());
-    // epd_.DisplayFrame();
-    // epd_.DisplayFrame_Partial();
-
-    //     paint_.SetWidth(32);
-    //   paint_.SetHeight(96);
-    //   paint_.SetRotate(ROTATE_90);
-
-    //   paint_.Clear(UNCOLORED);
-    //   paint_.DrawStringAt(0, 4, "TESTO", &Font24, COLORED);
-    //   epd_.SetFrameMemory_Partial(paint_.GetImage(), 80, 72, paint_.GetWidth(),
-    //   paint_.GetHeight()); epd_.DisplayFrame_Partial();
+    epd_.ClearFrameMemory(0xFF);
+    epd_.DisplayFrame();
 }
 
 void Display::swapBuffers() {

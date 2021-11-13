@@ -81,7 +81,7 @@ class Display : public AbstractTask, public IDisplay {
  protected:
     static constexpr const char *TAG = "Display";
 
-    EpdV2 epd_;
+    Epd epd_;
 
     std::uint8_t *front_;
     std::uint8_t *back_;
