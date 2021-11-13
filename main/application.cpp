@@ -1,5 +1,6 @@
 #include "application.h"
 
+#include "ble_wrapper.h"
 #include "event_dispatcher.h"
 #include "fs_wrapper.h"
 #include "gnss.h"
@@ -16,8 +17,22 @@
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include <esp_log.h>
 
+static const char* TAG = "Application";
+
+void btTesting() {
+    bk::BLEWrapper ble;
+    ble.enable();
+
+    ESP_LOGI(TAG, "BLE enabled...");
+
+    while (true) {
+        HealthService::reportAll();
+        vTaskDelay(pdMS_TO_TICKS(2000));
+    }
+}
+
 void StartApplication() {
-    static const char* TAG = "Application";
+    btTesting();
 
     bk::FSWrapper::mountStorage();
 

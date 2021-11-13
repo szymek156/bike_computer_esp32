@@ -6,6 +6,12 @@
 - [x] Provide an architecture (MVP) for handling GUI
 - [x] Create a tool to do GUI mockups fast
 - [x] Figure out how to create and read/write partitions
+- [ ] https://www.sharpmemorylcd.com/2-7-inch-memory-lcd.html
+- [ ] https://ep.com.pl/rynek/wybor-konstruktora/13867-wyswietlacze-najnowsze-technologie
+- [ ] https://rk.edu.pl/pl/energooszczedne-wyswietlacze-dla-mikrokontrolerow/
+- [ ] https://learn.adafruit.com/adafruit-sharp-memory-display-breakout/programming?view=all#downloads
+- [ ] https://github.com/adafruit/Adafruit_SHARP_Memory_Display
+- [ ] https://github.com/adafruit/Adafruit-GFX-Library
 - [ ] Add health service monitoring every hour for CPU, RAM, FLASH, uptime, write data to the log.
 - [ ] Support FIT Activity files
 - [ ] Figure out BLE communication
@@ -26,6 +32,10 @@
 - [ ] Looks like workouts are written in ZWO file format https://github.com/h4l/zwift-workout-file-reference
 - [ ] https://medium.com/hackernoon/cloning-zwift-on-ios-part-2-reverse-engineering-a-workout-9d4ffabc29e8
 
+## Bluetooth
+* https://www.jaredwolff.com/get-started-with-bluetooth-low-energy/
+* https://www.espressif.com/sites/default/files/documentation/esp32_bluetooth_architecture_en.pdf
+* https://learn.adafruit.com/introduction-to-bluetooth-low-energy/gatt
 ## Very Quick & Dirty notes for FIT_SDK
 TODO:
 * Familiarize with Scale/Offset feature
