@@ -36,17 +36,15 @@ namespace bk {
 #define LOW 0
 #define HIGH 1
 
-static const int COLORED = 0;
-static const int UNCOLORED = 1;
-
 Driver::Driver(uint16_t width, uint16_t height)
     : width_(width),
       height_(height),
       vcom_(SHARPMEM_BIT_VCOM),
       // TODO: there is no reason to have it dynamically allocated, move to global
       buffer_((uint8_t *)malloc((width_ * height_) / 8)),
-      paint_(Paint(buffer_, width_, height_)) {
+      paint_(Paint(buffer_, width_, height_, Endian::Little)) {
     clearDisplayBuffer();
+    paint_.SetRotate(ROTATE_0);
 }
 
 void Driver::init() {
@@ -93,10 +91,6 @@ void Driver::clearDisplay() {
 }
 
 void Driver::refresh() {
-
-    paint_.DrawStringAt(50, 50, "HELLO ESP32", &Font24, COLORED);
-
-
     uint8_t bytes_per_line = width_ / 8;
     for (auto idx = 0; idx < height_; idx++) {
         // command | address | data | trailer 2bytes
@@ -106,8 +100,8 @@ void Driver::refresh() {
         line[1] = idx;
         memcpy(line + 2, buffer_ + (bytes_per_line * idx), bytes_per_line);
 
-        line[bytes_per_line + 1] = 0;
-        line[bytes_per_line + 2] = 0;
+        line[bytes_per_line + 3] = 0;
+        line[bytes_per_line + 4] = 0;
 
         transfer(line, bytes_per_line + 4);
     }

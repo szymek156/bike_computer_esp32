@@ -33,6 +33,10 @@ class Driver {
     void clearDisplay();
     void refresh(void);
 
+    Paint &getPaint() {
+       return paint_;
+    }
+
  private:
     static constexpr const char *TAG = "MEM_LCD";
 

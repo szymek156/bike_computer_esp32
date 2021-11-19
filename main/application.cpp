@@ -10,8 +10,10 @@
 #include "root_window.h"
 #include "time_service.hpp"
 #include "weather.h"
-#include <driver.h>
+
 #include <display.h>
+#include <paint.h>
+#include <driver.h>
 #include <string.h>
 
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
@@ -48,11 +50,30 @@ void StartApplication() {
     bk::Driver d;
     d.init();
     d.clearDisplay();
-    d.refresh();
 
+    auto paint = d.getPaint();
+
+    int cnt = 0;
     while (true) {
+        using bk::COLORED;
         HealthService::reportAll();
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        d.clearDisplay();
+
+        const int msg_size = 128;
+        char message[msg_size];
+
+        snprintf(message, msg_size, "BLAH: %d", cnt);
+        cnt++;
+
+        paint.DrawStringAt(50, 50, message, &Font24, COLORED);
+        paint.DrawCircle(50, 50, 30, COLORED);
+        paint.DrawFilledCircle(200, 200, 50, COLORED);
+        paint.DrawFilledRectangle(100, 100, 150, 150, COLORED);
+        paint.DrawVerticalLine(100, 100, 100, COLORED);
+
+        d.refresh();
     }
 
     bk::FSWrapper::mountStorage();

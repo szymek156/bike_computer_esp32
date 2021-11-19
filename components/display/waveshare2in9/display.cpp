@@ -50,7 +50,7 @@ Display::Display()
       front_((uint8_t*)malloc(epd_.width / 8 * epd_.height)),
       back_((uint8_t*)malloc(epd_.width / 8 * epd_.height)),
       dirty_(false),
-      paint_(back_, epd_.width, epd_.height) {
+      paint_(back_, epd_.width, epd_.height, Endian::Big) {
     memset(back_, 0xFF, epd_.width / 8 * epd_.height);
     memset(front_, 0xFF, epd_.width / 8 * epd_.height);
     paint_.SetRotate(rotate);

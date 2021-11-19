@@ -36,11 +36,16 @@
 // Color inverse. 1 or 0 = set or reset a bit if set a colored pixel
 #define IF_INVERT_COLOR     1
 
+
 #include "fonts.h"
 
+enum class Endian {
+    Big,
+    Little
+};
 class Paint {
 public:
-    Paint(unsigned char* image, int width, int height);
+    Paint(unsigned char* image, int width, int height, Endian endian);
     ~Paint();
     void Clear(int colored);
     int  GetWidth(void);
@@ -68,6 +73,11 @@ private:
     int width;
     int height;
     int rotate;
+    /** @brief Defines how pixels should be stored in the buffer
+     * Little means leftmost pixel first, used by Sharp memory buffer
+     * Big is other way around, used by E-Ink display
+     */
+    Endian endian_;
 };
 
 #endif
