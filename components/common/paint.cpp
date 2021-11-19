@@ -66,9 +66,9 @@ void Paint::DrawAbsolutePixel(int x, int y, int colored) {
         }
     } else {
         if (colored) {
-            image[(x + y * this->width) / 8] &= ~(0x80 >> (x % 8));
-        } else {
             image[(x + y * this->width) / 8] |= 0x80 >> (x % 8);
+        } else {
+            image[(x + y * this->width) / 8] &= ~(0x80 >> (x % 8));
         }
     }
 }

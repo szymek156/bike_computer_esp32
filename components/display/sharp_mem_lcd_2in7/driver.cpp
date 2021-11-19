@@ -17,11 +17,13 @@ All text above, and the splash screen must be included in any redistribution
 *********************************************************************/
 
 #include "driver.h"
-#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
+
+#include <array>
 #include <chrono>
 #include <cstring>
 
 #include <esp_heap_caps.h>
+#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include <esp_log.h>
 
 namespace bk {
@@ -38,19 +40,28 @@ namespace bk {
 #define LOW 0
 #define HIGH 1
 
+/** @brief show time spent on drawing on the display */
 #define PERF
+
 Driver::Driver(uint16_t width, uint16_t height)
     : width_(width),
       height_(height),
       vcom_(SHARPMEM_BIT_VCOM),
-      // TODO: there is no reason to have it dynamically allocated, move to global
-      buffer_((uint8_t *)malloc((width_ * height_) / 8)),
-      paint_(Paint(buffer_, width_, height_, Endian::Little)) {
-    clearDisplayBuffer();
+      // Back holds raw pixel data
+      // Template argument deduction my ass
+      back_(std::vector<uint8_t>((width_ * height_) / 8, 0)),
+      // Front holds raw pixel data + SPI command overhead, held on the DMA region
+      // 1 = command, 1 = address, width / 8 = bytes per row, 1 = trailer, * height = all rows, 1 =
+      // final trailer of the command
+      // Template argument deduction my ass
+      front_(std::vector<uint8_t, DMAAllocator<uint8_t> >(1 + (1 + width_ / 8 + 1) * height_ + 1)),
+      paint_(Paint(back_.data(), width_, height_, Endian::Little)) {
     paint_.SetRotate(ROTATE_0);
+
+    initSPI();
 }
 
-void Driver::init() {
+void Driver::initSPI() {
     spi_bus_config_t buscfg = {};
     buscfg.miso_io_num = -1;
     buscfg.mosi_io_num = MOSI_PIN;
@@ -58,19 +69,14 @@ void Driver::init() {
     buscfg.quadwp_io_num = -1;
     buscfg.quadhd_io_num = -1;
 
-    // buscfg.max_transfer_sz = 0;
-    // ESP_ERROR_CHECK(spi_bus_initialize(HSPI_HOST, &buscfg, SPI_DMA_DISABLED));
-
-    // Initialize the SPI bus
-    // TODO: should we set DMA channel?
-    // TODO:
     // Maximum transfer size, in bytes. Defaults to 4092 if 0 when DMA enabled,
     // or to SOC_SPI_MAXIMUM_BUFFER_SIZE if DMA is disabled.
     // #define SOC_SPI_MAXIMUM_BUFFER_SIZE 64
+    // buscfg.max_transfer_sz = 0;
+    // ESP_ERROR_CHECK(spi_bus_initialize(HSPI_HOST, &buscfg, SPI_DMA_DISABLED));
 
-    size_t data_len = 1 + (1 + 1) * height_ + (height_ * width_ / 8) + 1;
-    buscfg.max_transfer_sz = data_len;
-    ESP_ERROR_CHECK(spi_bus_initialize(HSPI_HOST, &buscfg, SPI_DMA_CH1));
+    buscfg.max_transfer_sz = front_.size();
+    ESP_ERROR_CHECK(spi_bus_initialize(HSPI_HOST, &buscfg, SPI_DMA_CH_AUTO));
 
     spi_device_interface_config_t devcfg = {};
     devcfg.command_bits = 0;
@@ -79,7 +85,7 @@ void Driver::init() {
     devcfg.mode = 0;
     // 10MHz is the max, for higher values display shows squashed data (weird!),
     // and for even higher values (like 20MHz) it shows nothing
-    // TODO: in case of troubles, reduce to 2MHz, it's a value from Arduino library
+    // In case of troubles, reduce to 2MHz, it's a value from Arduino library
     // devcfg.clock_speed_hz = 2000000;
     // TODO: does frequency impacts battery comsumption?
     devcfg.clock_speed_hz = SPI_MASTER_FREQ_10M;
@@ -91,23 +97,21 @@ void Driver::init() {
     devcfg.flags = SPI_DEVICE_TXBIT_LSBFIRST | SPI_DEVICE_POSITIVE_CS;
     devcfg.spics_io_num = CS_PIN;
 
-    // TODO: decide on queue size
+    // Set queue to 1, because all transmissions are synchronous
     devcfg.queue_size = 1;
 
-    // Attach the EPD to the SPI bus
     ESP_ERROR_CHECK(spi_bus_add_device(HSPI_HOST, &devcfg, &spi_));
 }
 
 void Driver::clearDisplay() {
     clearDisplayBuffer();
 
-    uint8_t clear_data[2] = {uint8_t(vcom_ | SHARPMEM_BIT_CLEAR), 0x00};
-    transfer(clear_data, 2);
-
-    toggleVCom();
+    static const size_t data_size = 2;
+    uint8_t clear_data[data_size] = {uint8_t(getToggledVCom() | SHARPMEM_BIT_CLEAR), 0x00};
+    transfer(clear_data, data_size);
 }
 
-/** @brief each line is a single TX takes 21ms at SPI freq 10MHz */
+/** @brief each line is a single TX, takes 21ms at SPI freq 10MHz */
 // void Driver::refresh() {
 // #if defined(PERF)
 //     std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
@@ -136,41 +140,30 @@ void Driver::clearDisplay() {
 // #endif
 // }
 
-/** @brief one full TX, use DMA memory  takes 11ms at SPI freq 10MHz*/
+/** @brief one full TX, use DMA memory  takes 10ms at SPI freq 10MHz*/
 void Driver::refresh() {
 #if defined(PERF)
     std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
 #endif
-    // command + (address + trailer) * # of lines + buffer + final_trailer
-    size_t data_len = 1 + (1 + 1) * height_ + (height_ * width_ / 8) + 1;
-
-    ESP_LOGI(TAG, "Total data len %u", data_len);
-
-    // Set all to 0, so you don't need to set trailers
-    uint8_t *data = (uint8_t *)heap_caps_calloc(
-        data_len, sizeof(uint8_t), MALLOC_CAP_DMA);  // calloc(data_len, sizeof(uint8_t));
-
-    data[0] = uint8_t(vcom_ | SHARPMEM_BIT_WRITECMD);
-    uint8_t *lines = data + 1;
+    front_[0] = uint8_t(getToggledVCom() | SHARPMEM_BIT_WRITECMD);
+    uint8_t *lines = &front_[1];
 
     auto line_stride = width_ / 8;
-    auto trailer = 1;
-    auto address = 1;
+    auto trailer_size = 1;
+    auto address_size = 1;
 
     for (auto idx = 0; idx < height_; idx++) {
-        auto row = idx * (address + line_stride + trailer);
+        auto row = idx * (address_size + line_stride + trailer_size);
 
         // address
         lines[row] = idx;
         // line data
-        memcpy(lines + row + address, buffer_ + idx * line_stride, line_stride);
+        memcpy(lines + row + address_size, &back_[idx * line_stride], line_stride);
         // trailer
-        lines[row + address + line_stride] = 0;
+        // lines[row + address + line_stride] = 0;
     }
 
-    transfer(data, data_len);
-
-    heap_caps_free(data);
+    transfer(front_.data(), front_.size());
 
 #if defined(PERF)
     std::chrono::time_point<std::chrono::system_clock> stop = std::chrono::system_clock::now();
@@ -184,11 +177,18 @@ void Driver::refresh() {
 }
 
 void Driver::clearDisplayBuffer() {
-    memset(buffer_, 0xff, (width_ * height_) / 8);
+    // I could write:
+    // std::fill(v.begin(), v.end(), 0);
+    // But I can't stand this API.
+    memset(back_.data(), 0xff, back_.size());
 }
 
-void Driver::toggleVCom() {
+// TODO: docs suggests (but do not clearly state, doh!) vcom_ should be toggled every second -
+// create a timer?
+uint8_t Driver::getToggledVCom() {
     vcom_ ^= SHARPMEM_BIT_VCOM;
+
+    return vcom_;
 }
 
 void Driver::digitalWrite(gpio_num_t pin, int value) {
@@ -204,11 +204,6 @@ int Driver::digitalRead(gpio_num_t pin) {
 
 void Driver::transfer(unsigned char *data, size_t len) {
     spi_transaction_t t = {};
-    // t.flags = SPI_TRANS_USE_TXDATA;
-    // t.tx_data[0] = data;
-    // t.tx_data[1] = data;
-    // t.tx_data[2] = data;
-    // t.tx_data[3] = data;
 
     t.length = len * 8;  // transaction length is in bits
     t.tx_buffer = data;

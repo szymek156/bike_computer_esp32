@@ -6,7 +6,7 @@
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include <esp_log.h>
 namespace bk {
-using bk::COLORED;
+;
 
 ActivityDoItView::ActivityDoItView(IDisplay *display)
     : display_(display),

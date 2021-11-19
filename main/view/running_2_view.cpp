@@ -2,7 +2,7 @@
 
 #include <paint.h>
 namespace bk {
-using bk::COLORED;
+;
 
 Running2View::Running2View(IDisplay *display) : display_(display) {
 }

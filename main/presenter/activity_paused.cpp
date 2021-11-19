@@ -8,7 +8,7 @@
 
 namespace bk {
 
-using bk::COLORED;
+;
 
 ActivityPausedView::ActivityPausedView(IDisplay *display)
     : display_(display),

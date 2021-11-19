@@ -48,14 +48,12 @@ void StartApplication() {
     // btTesting();
 
     bk::Driver d;
-    d.init();
-    d.clearDisplay();
+    // d.clearDisplay();
 
     auto paint = d.getPaint();
 
     int cnt = 0;
     while (true) {
-        using bk::COLORED;
         HealthService::reportAll();
         vTaskDelay(pdMS_TO_TICKS(1000));
 

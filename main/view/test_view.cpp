@@ -2,7 +2,6 @@
 
 #include <paint.h>
 namespace bk {
-using bk::COLORED;
 
 TestView::TestView(IDisplay *display) : display_(display) {
 }

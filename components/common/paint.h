@@ -28,34 +28,30 @@
 #define EPDPAINT_H
 
 // Display orientation
-#define ROTATE_0            0
-#define ROTATE_90           1
-#define ROTATE_180          2
-#define ROTATE_270          3
+#define ROTATE_0 0
+#define ROTATE_90 1
+#define ROTATE_180 2
+#define ROTATE_270 3
 
-// Color inverse. 1 or 0 = set or reset a bit if set a colored pixel
-#define IF_INVERT_COLOR     1
-
+#define COLORED 0
+#define UNCOLORED 1
 
 #include "fonts.h"
 
-enum class Endian {
-    Big,
-    Little
-};
+enum class Endian { Big, Little };
 class Paint {
-public:
+ public:
     Paint(unsigned char* image, int width, int height, Endian endian);
     ~Paint();
     void Clear(int colored);
-    int  GetWidth(void);
+    int GetWidth(void);
     void SetWidth(int width);
-    int  GetHeight(void);
+    int GetHeight(void);
     void SetHeight(int height);
-    int  GetRotate(void);
+    int GetRotate(void);
     void SetRotate(int rotate);
     unsigned char* GetImage(void);
-    void SetImage(unsigned char *image);
+    void SetImage(unsigned char* image);
     void DrawAbsolutePixel(int x, int y, int colored);
     void DrawPixel(int x, int y, int colored);
     void DrawCharAt(int x, int y, char ascii_char, sFONT* font, int colored);
@@ -68,7 +64,7 @@ public:
     void DrawCircle(int x, int y, int radius, int colored);
     void DrawFilledCircle(int x, int y, int radius, int colored);
 
-private:
+ private:
     unsigned char* image;
     int width;
     int height;
@@ -83,4 +79,3 @@ private:
 #endif
 
 /* END OF FILE */
-

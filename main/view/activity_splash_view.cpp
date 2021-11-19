@@ -2,7 +2,7 @@
 
 #include <paint.h>
 namespace bk {
-using bk::COLORED;
+;
 
 ActivitySplashView::ActivitySplashView(IDisplay *display) : display_(display) {
 }

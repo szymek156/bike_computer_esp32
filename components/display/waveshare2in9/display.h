@@ -59,9 +59,6 @@ class IDisplay {
     virtual int getHeight() = 0;
 };
 
-const int COLORED = 0;
-const int UNCOLORED = 1;
-
 class Display : public AbstractTask, public IDisplay {
  public:
     Display();

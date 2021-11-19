@@ -6,7 +6,7 @@
 
 namespace bk {
 
-using bk::COLORED;
+;
 
 WorkoutStepsView::WorkoutStepsView(IDisplay *display)
     : display_(display),

@@ -6,7 +6,7 @@
 
 namespace bk {
 
-using bk::COLORED;
+;
 
 TEMPLATEView::TEMPLATEView(IDisplay *display) : display_(display) {
 }

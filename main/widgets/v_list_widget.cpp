@@ -2,8 +2,6 @@
 
 #include <paint.h>
 namespace bk {
-using bk::COLORED;
-using bk::UNCOLORED;
 
 VListWidget::VListWidget(
     IDisplay *display, const sFONT &font, const Rect &area, size_t el_in_view, Alignment Alignment)

@@ -2,7 +2,7 @@
 
 #include <paint.h>
 namespace bk {
-using bk::COLORED;
+;
 
 StatsSelectedView::StatsSelectedView(IDisplay *display)
     : display_(display){

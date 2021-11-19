@@ -6,7 +6,7 @@
 
 namespace bk {
 
-using bk::COLORED;
+;
 
 WorkoutStepsSplashView::WorkoutStepsSplashView(IDisplay *display) : display_(display) {
 }

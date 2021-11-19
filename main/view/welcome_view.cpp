@@ -2,7 +2,7 @@
 
 #include <paint.h>
 namespace bk {
-using bk::COLORED;
+;
 
 WelcomeView::WelcomeView(IDisplay *display) : display_(display) {
 }

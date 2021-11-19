@@ -2,7 +2,7 @@
 
 #include <paint.h>
 namespace bk {
-using bk::COLORED;
+;
 
 SelectActivityView::SelectActivityView(IDisplay *display)
     : display_(display),
