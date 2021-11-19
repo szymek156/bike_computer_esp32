@@ -18,8 +18,10 @@ All text above, and the splash screen must be included in any redistribution
 
 #include "driver.h"
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
+#include <chrono>
 #include <cstring>
 
+#include <esp_heap_caps.h>
 #include <esp_log.h>
 
 namespace bk {
@@ -36,6 +38,7 @@ namespace bk {
 #define LOW 0
 #define HIGH 1
 
+#define PERF
 Driver::Driver(uint16_t width, uint16_t height)
     : width_(width),
       height_(height),
@@ -54,23 +57,37 @@ void Driver::init() {
     buscfg.sclk_io_num = CLK_PIN;
     buscfg.quadwp_io_num = -1;
     buscfg.quadhd_io_num = -1;
-    // TODO:
-    // Maximum transfer size, in bytes. Defaults to 4092 if 0 when DMA enabled,
-    // or to SOC_SPI_MAXIMUM_BUFFER_SIZE if DMA is disabled.
-    // buscfg.max_transfer_sz = ??;
+
+    // buscfg.max_transfer_sz = 0;
+    // ESP_ERROR_CHECK(spi_bus_initialize(HSPI_HOST, &buscfg, SPI_DMA_DISABLED));
 
     // Initialize the SPI bus
     // TODO: should we set DMA channel?
-    ESP_ERROR_CHECK(spi_bus_initialize(HSPI_HOST, &buscfg, SPI_DMA_DISABLED));
+    // TODO:
+    // Maximum transfer size, in bytes. Defaults to 4092 if 0 when DMA enabled,
+    // or to SOC_SPI_MAXIMUM_BUFFER_SIZE if DMA is disabled.
+    // #define SOC_SPI_MAXIMUM_BUFFER_SIZE 64
+
+    size_t data_len = 1 + (1 + 1) * height_ + (height_ * width_ / 8) + 1;
+    buscfg.max_transfer_sz = data_len;
+    ESP_ERROR_CHECK(spi_bus_initialize(HSPI_HOST, &buscfg, SPI_DMA_CH1));
 
     spi_device_interface_config_t devcfg = {};
     devcfg.command_bits = 0;
     devcfg.address_bits = 0;
     devcfg.dummy_bits = 0;
     devcfg.mode = 0;
-    devcfg.clock_speed_hz = 2000000;
+    // 10MHz is the max, for higher values display shows squashed data (weird!),
+    // and for even higher values (like 20MHz) it shows nothing
+    // TODO: in case of troubles, reduce to 2MHz, it's a value from Arduino library
+    // devcfg.clock_speed_hz = 2000000;
+    // TODO: does frequency impacts battery comsumption?
+    devcfg.clock_speed_hz = SPI_MASTER_FREQ_10M;
+
     // Keep CS high, when transmission is ongoing, set to low, when finished
     // this display is weird in that CS is active HIGH not LOW like every other
+    // Data send in little-endian - another weirdo, thankfully it's easy
+    // to set those up in IDF
     devcfg.flags = SPI_DEVICE_TXBIT_LSBFIRST | SPI_DEVICE_POSITIVE_CS;
     devcfg.spics_io_num = CS_PIN;
 
@@ -90,89 +107,81 @@ void Driver::clearDisplay() {
     toggleVCom();
 }
 
-void Driver::refresh() {
-    uint8_t bytes_per_line = width_ / 8;
-    for (auto idx = 0; idx < height_; idx++) {
-        // command | address | data | trailer 2bytes
-        uint8_t line[bytes_per_line + 4] = {};
-
-        line[0] = uint8_t(vcom_ | SHARPMEM_BIT_WRITECMD);
-        line[1] = idx;
-        memcpy(line + 2, buffer_ + (bytes_per_line * idx), bytes_per_line);
-
-        line[bytes_per_line + 3] = 0;
-        line[bytes_per_line + 4] = 0;
-
-        transfer(line, bytes_per_line + 4);
-    }
-}
-
+/** @brief each line is a single TX takes 21ms at SPI freq 10MHz */
 // void Driver::refresh() {
-//     // command + (address + trailer) * # of lines + buffer + final_trailer
-//     // TODO: that's too much to transfer, maybe there is other way in IDF, like
-//     // begin transaction .... end transaction
-//     size_t data_len = 1 + (1 + 1) * height_ + (height_ * width_ / 8) + 1;
-
-//     ESP_LOGI(TAG, "Total data len %u", data_len);
-
-//     // Set all to 0, so you don't need to set trailers
-//     uint8_t *data = (uint8_t *)calloc(data_len, sizeof(uint8_t));
-
-//     data[0] = uint8_t(vcom_ | SHARPMEM_BIT_WRITECMD);
-//     uint8_t *lines = data + 1;
-
-//     auto line_stride = width_ / 8;
-//     auto trailer = 1;
+// #if defined(PERF)
+//     std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
+// #endif
+//     uint8_t bytes_per_line = width_ / 8;
+//     uint8_t line[bytes_per_line + 4];
+//     // command | address | data | trailer 2bytes
+//     line[0] = uint8_t(vcom_ | SHARPMEM_BIT_WRITECMD);
+//     line[bytes_per_line + 3] = 0;
+//     line[bytes_per_line + 4] = 0;
 
 //     for (auto idx = 0; idx < height_; idx++) {
-//         auto row = idx * (line_stride + trailer);
-
-//         // address
-//         lines[row] = idx;
-//         // line data
-//         memcpy(lines + row + 1, buffer_ + idx * line_stride, line_stride);
-//         // trailer
-//         // lines[row + line_stride + 1] = 0
+//         line[1] = idx;
+//         memcpy(line + 2, buffer_ + (bytes_per_line * idx), bytes_per_line);
+//         transfer(line, bytes_per_line + 4);
 //     }
 
-//     transfer(data, data_len);
+// #if defined(PERF)
+//     std::chrono::time_point<std::chrono::system_clock> stop = std::chrono::system_clock::now();
+// #endif
+
+// #if defined(PERF)
+//     ESP_LOGD(TAG,
+//              "writing whole frame tx per each line %llu ms",
+//              std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count());
+// #endif
 // }
 
-// void Driver::refresh(void) {
-//     // memset(buffer_, 0xAB, (width_ * height_) / 8);
+/** @brief one full TX, use DMA memory  takes 11ms at SPI freq 10MHz*/
+void Driver::refresh() {
+#if defined(PERF)
+    std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
+#endif
+    // command + (address + trailer) * # of lines + buffer + final_trailer
+    size_t data_len = 1 + (1 + 1) * height_ + (height_ * width_ / 8) + 1;
 
-//     // spidev->beginTransaction();
-//     // Send the write command
-//     // digitalWrite(CS_PIN, HIGH);
+    ESP_LOGI(TAG, "Total data len %u", data_len);
 
-//     uint8_t data = vcom_ | SHARPMEM_BIT_WRITECMD;
-//     transfer(&data, 1);
+    // Set all to 0, so you don't need to set trailers
+    uint8_t *data = (uint8_t *)heap_caps_calloc(
+        data_len, sizeof(uint8_t), MALLOC_CAP_DMA);  // calloc(data_len, sizeof(uint8_t));
 
-//     toggleVCom();
+    data[0] = uint8_t(vcom_ | SHARPMEM_BIT_WRITECMD);
+    uint8_t *lines = data + 1;
 
-//     uint8_t bytes_per_line = width_ / 8;
-//     uint16_t totalbytes = (width_ * height_) / 8;
+    auto line_stride = width_ / 8;
+    auto trailer = 1;
+    auto address = 1;
 
-//     for (uint16_t i = 0; i < totalbytes; i += bytes_per_line) {
-//         uint8_t line[bytes_per_line + 2];
+    for (auto idx = 0; idx < height_; idx++) {
+        auto row = idx * (address + line_stride + trailer);
 
-//         // Send address byte
-//         uint8_t currentline = ((i + 1) / (width_ / 8)) + 1;
-//         line[0] = currentline;
-//         // copy over this line
-//         memcpy(line + 1, buffer_ + i, bytes_per_line);
-//         // Send end of line
-//         line[bytes_per_line + 1] = 0x00;
-//         // send it!
-//         transfer(line, bytes_per_line + 2);
-//     }
+        // address
+        lines[row] = idx;
+        // line data
+        memcpy(lines + row + address, buffer_ + idx * line_stride, line_stride);
+        // trailer
+        lines[row + address + line_stride] = 0;
+    }
 
-//     // Send another trailing 8 bits for the last line
-//     data = 0x00;
-//     transfer(&data, 1);
-//     // digitalWrite(CS_PIN, LOW);
-//     // spidev->endTransaction();
-// }
+    transfer(data, data_len);
+
+    heap_caps_free(data);
+
+#if defined(PERF)
+    std::chrono::time_point<std::chrono::system_clock> stop = std::chrono::system_clock::now();
+#endif
+
+#if defined(PERF)
+    ESP_LOGD(TAG,
+             "writing whole frame as one TX %llu ms",
+             std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count());
+#endif
+}
 
 void Driver::clearDisplayBuffer() {
     memset(buffer_, 0xff, (width_ * height_) / 8);
