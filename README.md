@@ -1,36 +1,50 @@
 # bike_computer_esp32
 
 ## TODO:
-- [x] Assemble a prototype, sensors, display, buttons
-- [x] Read from GPS, ALT/TEMP sensors
-- [x] Provide an architecture (MVP) for handling GUI
-- [x] Create a tool to do GUI mockups fast
-- [x] Figure out how to create and read/write partitions
-- [ ] https://www.sharpmemorylcd.com/2-7-inch-memory-lcd.html
-- [ ] https://ep.com.pl/rynek/wybor-konstruktora/13867-wyswietlacze-najnowsze-technologie
-- [ ] https://rk.edu.pl/pl/energooszczedne-wyswietlacze-dla-mikrokontrolerow/
-- [ ] https://learn.adafruit.com/adafruit-sharp-memory-display-breakout/programming?view=all#downloads
-- [ ] https://github.com/adafruit/Adafruit_SHARP_Memory_Display
-- [ ] https://github.com/adafruit/Adafruit-GFX-Library
-- [ ] Add health service monitoring every hour for CPU, RAM, FLASH, uptime, write data to the log.
-- [ ] Support FIT Activity files
-- [ ] Figure out BLE communication
-- [ ] Find out faster way for display to show now only 1fps is effective
-- [ ] Frame transfer takes 200ms, consider transferring only dirty regions
-- [ ] Add ghost runner functionality
-- [ ] Support FIT Workout files
-- [ ] Support FIT Course files
-- [ ] Add travis CI
-- [ ] Add OTA support (2 partitions + factory)
-- [ ] clang-tidy?
-- [ ] Calibrate altitude
-- [ ] Read about temp, seems to be off by 2*
-- [ ] Consider making paint class more cache friendly
-- [ ] Create a tool to make Workout FIT files (WASM?)
-- [ ] Create charts (WASM?)
-- [ ] Use FIT files on the device
-- [ ] Looks like workouts are written in ZWO file format https://github.com/h4l/zwift-workout-file-reference
-- [ ] https://medium.com/hackernoon/cloning-zwift-on-ios-part-2-reverse-engineering-a-workout-9d4ffabc29e8
+- Hardware
+  - [x] Assemble a prototype, sensors, display, buttons
+  - [x] Read from GPS, ALT/TEMP sensors
+  - [x] Use E-Ink display
+    - [ ] Frame transfer takes 200ms, consider transferring only dirty regions
+    - [ ] Find out faster way for display to show now only 1fps is effective
+    - [ ] Try to use a display from some e-reader, or find a better supplier? Hard to give up this idea, because it feels so right!
+  - [ ] Use Sharp memory display
+    - [x] Port the library, make SPI communication correct
+    - [ ] Update all GUIs
+    - [ ] During drawing, send only dirty regions
+  - [ ] Calibrate altitude
+  - [ ] Read about temp, seems to be off by 2*
+  - [ ] Add accelerometer
+  - [ ] Design the case
+  - [ ] Print the case and assemble!
+- Software on the Device
+  - [x] Provide an architecture (MVP) for handling GUI
+  - [x] Figure out how to create and read/write partitions
+  - [ ] Add health service monitoring every hour for CPU, RAM, FLASH, uptime, write data to the log.
+    - [x] Gather data
+    - [ ] Log every hour
+    - [ ] Write to the file
+  - [ ] Consider making paint class more cache friendly
+  - [ ] Figure out BLE communication
+  - [ ] Add ghost runner functionality
+  - [ ] Use accel. to calculate cadence, and strie
+  - [ ] Add travis CI
+  - [ ] clang-tidy?
+  - [ ] Add OTA support (2 partitions + factory)
+  - [ ] Figure out testing
+    - [ ] Functional tests
+    - [ ] Unit tests
+- Other Software
+  - [x] Create a tool to do GUI mockups fast
+  - [ ] Create a tool to make Workout FIT or ZWO files (WASM?)
+  - [ ] Create charts (WASM?)
+
+- Activities
+  - [x] Support FIT Activity files
+  - [ ] Support FIT Workout files
+  - [ ] Support FIT Course files
+  - [ ] Looks like workouts are written in ZWO file format https://github.com/h4l/zwift-workout-file-reference
+  - [ ] https://medium.com/hackernoon/cloning-zwift-on-ios-part-2-reverse-engineering-a-workout-9d4ffabc29e8
 
 ## Bluetooth
 * https://www.jaredwolff.com/get-started-with-bluetooth-low-energy/
@@ -41,12 +55,27 @@
 ### Eink
  * +Low power
  * +Great contrast
+ * +White background, love it!
  * -slow refresh
- * -fragile to UV
+ * -fragile to UV (impossible to do refreshing) - probably some UV filter film would help, who knows?
  * -won't work in cold temperatures
  * -shadowing becomes a problem over time
  * -hard to find good product with reasonable refresh rate and display dimensions
  * -waveform for refreshing the display may be really annoying to watch
+### Memory display
+- https://www.sharpmemorylcd.com/2-7-inch-memory-lcd.html
+- https://ep.com.pl/rynek/wybor-konstruktora/13867-wyswietlacze-najnowsze-technologie
+- https://rk.edu.pl/pl/energooszczedne-wyswietlacze-dla-mikrokontrolerow/
+- https://learn.adafruit.com/adafruit-sharp-memory-display-breakout/programming?view=all#downloads
+- https://github.com/adafruit/Adafruit_SHARP_Memory_Display
+- https://github.com/adafruit/Adafruit-GFX-Library
+- +Low power
+- +Great refresh rate
+- +Easy interfacing, no problem with shadowing, waveforms, partial refresh is trivial
+- +Very readable in the sunlight
+- +Good screen dimensions
+- -Hard to read  in darker conditions
+- -Whish background be white
 
 
 ## Very Quick & Dirty notes for FIT_SDK
