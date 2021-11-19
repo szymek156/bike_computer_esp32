@@ -1,4 +1,4 @@
-idf_component_register(SRCS "display.cpp" "epd2in9.cpp" "epd2in9_V2.cpp" "epdif.cpp"
+idf_component_register(SRCS "driver.cpp"
                     REQUIRES "common"
                     INCLUDE_DIRS ".")
 

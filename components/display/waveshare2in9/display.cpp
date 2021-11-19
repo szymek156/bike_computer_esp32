@@ -31,11 +31,11 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+#define LOG_LOCAL_LEVEL ESP_LOG_INFO
 #include <esp_log.h>
 
 /** @brief show time spent on communicating with display HW */
-#define PERF
+// #define PERF
 
 /** @brief Show areas which are invalidated*/
 // #define DEBUG_RECTS

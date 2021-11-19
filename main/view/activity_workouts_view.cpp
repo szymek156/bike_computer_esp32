@@ -1,6 +1,6 @@
 #include "activity_workouts_view.h"
 
-#include <epdpaint.h>
+#include <paint.h>
 namespace bk {
 using bk::COLORED;
 

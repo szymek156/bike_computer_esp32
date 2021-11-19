@@ -36,6 +36,19 @@
 * https://www.jaredwolff.com/get-started-with-bluetooth-low-energy/
 * https://www.espressif.com/sites/default/files/documentation/esp32_bluetooth_architecture_en.pdf
 * https://learn.adafruit.com/introduction-to-bluetooth-low-energy/gatt
+
+## Display selection
+### Eink
+ * +Low power
+ * +Great contrast
+ * -slow refresh
+ * -fragile to UV
+ * -won't work in cold temperatures
+ * -shadowing becomes a problem over time
+ * -hard to find good product with reasonable refresh rate and display dimensions
+ * -waveform for refreshing the display may be really annoying to watch
+
+
 ## Very Quick & Dirty notes for FIT_SDK
 TODO:
 * Familiarize with Scale/Offset feature

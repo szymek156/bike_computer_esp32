@@ -1,6 +1,6 @@
 #include "v_list_widget.h"
 
-#include <epdpaint.h>
+#include <paint.h>
 namespace bk {
 using bk::COLORED;
 using bk::UNCOLORED;

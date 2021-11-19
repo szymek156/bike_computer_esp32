@@ -25,7 +25,6 @@ idf_component_register(SRCS
     "view/running_1_view.cpp"
     "view/running_2_view.cpp"
 
-
     "view/TEMPLATE_view.cpp"
 
     "presenter/status_presenter.cpp"

@@ -28,7 +28,7 @@
 #include <epd2in9.h>
 #include <epd2in9_V2.h>
 
-#include <epdpaint.h>
+#include <paint.h>
 
 namespace bk {
 

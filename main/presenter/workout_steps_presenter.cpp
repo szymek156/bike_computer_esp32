@@ -1,7 +1,7 @@
 #include "workout_steps_presenter.h"
 
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
-#include <epdpaint.h>
+#include <paint.h>
 #include <esp_log.h>
 
 namespace bk {

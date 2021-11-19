@@ -1,8 +1,8 @@
 /**
- *  @filename   :   epdpaint.h
- *  @brief      :   Header file for epdpaint.cpp
+ *  @filename   :   paint.h
+ *  @brief      :   Header file for paint.cpp
  *  @author     :   Yehui from Waveshare
- *  
+ *
  *  Copyright (C) Waveshare     July 28 2017
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
