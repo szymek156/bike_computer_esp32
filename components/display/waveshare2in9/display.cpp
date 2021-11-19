@@ -80,6 +80,11 @@ void Display::run() {
 void Display::enqueueDraw(std::function<void(Paint& paint)> callback, const Rect& rect) {
     std::lock_guard<std::recursive_mutex> lock(buffer_mutex_);
 
+    // TODO: there is a great opportunity to improve the drawing, by
+    // calculating dirty regions, clearing only that area, and passing only
+    // dirty rectangles to the device, not the whole frame. Since I abandon developing
+    // on the e-ink for now, this will be not done here.
+    // But I plan to do this for memory display.
     prepareCanvas(rect);
 
     callback(paint_);
