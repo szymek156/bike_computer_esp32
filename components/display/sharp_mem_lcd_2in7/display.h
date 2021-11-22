@@ -24,10 +24,9 @@
 
 #include <functional>
 #include <mutex>
+#include <vector>
 
-#include <epd2in9.h>
-#include <epd2in9_V2.h>
-
+#include <driver.h>
 #include <paint.h>
 
 namespace bk {
@@ -71,10 +70,12 @@ class Display : public AbstractTask, public IDisplay {
  protected:
     static constexpr const char *TAG = "Display";
 
-    Epd epd_;
+    int width_;
+    int height_;
 
-    std::uint8_t *front_;
-    std::uint8_t *back_;
+    Driver driver_;
+
+    std::vector<uint8_t> back_;
 
     std::recursive_mutex buffer_mutex_;
 
@@ -87,8 +88,6 @@ class Display : public AbstractTask, public IDisplay {
     void invalidate();
 
     void prepareCanvas(const Rect &rect);
-
-    void prettyClean();
 
     void swapBuffers();
 };

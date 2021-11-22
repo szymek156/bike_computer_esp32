@@ -34,6 +34,7 @@
   - [ ] Figure out testing
     - [ ] Functional tests
     - [ ] Unit tests
+  - [ ] Add new fonts: https://kapusta.cc/2020/03/20/fontedit/
 - Other Software
   - [x] Create a tool to do GUI mockups fast
   - [ ] Create a tool to make Workout FIT or ZWO files (WASM?)

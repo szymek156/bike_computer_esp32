@@ -38,7 +38,20 @@
 
 #include "fonts.h"
 
+#include <vector>
+
 enum class Endian { Big, Little };
+
+/** @brief Rectangle describing dirty region */
+struct Rect {
+    int x0;
+    int y0;
+    int x1;
+    int y1;
+};
+
+using Regions = std::vector<Rect>;
+
 class Paint {
  public:
     Paint(unsigned char* image, int width, int height, Endian endian);
@@ -52,9 +65,7 @@ class Paint {
     void SetRotate(int rotate);
     unsigned char* GetImage(void);
     void SetImage(unsigned char* image);
-    void DrawAbsolutePixel(int x, int y, int colored);
-    void DrawPixel(int x, int y, int colored);
-    void DrawCharAt(int x, int y, char ascii_char, sFONT* font, int colored);
+
     void DrawStringAt(int x, int y, const char* text, sFONT* font, int colored);
     void DrawLine(int x0, int y0, int x1, int y1, int colored);
     void DrawHorizontalLine(int x, int y, int width, int colored);
@@ -64,7 +75,32 @@ class Paint {
     void DrawCircle(int x, int y, int radius, int colored);
     void DrawFilledCircle(int x, int y, int radius, int colored);
 
+    /** @brief Gets recorded regions */
+    Regions GetRegions();
+
+    class PaintGuard {
+     public:
+        PaintGuard(Paint& paint);
+        ~PaintGuard();
+
+     private:
+        Paint& paint_;
+    };
+
+    /** @brief Returns a recorder guard object, Paint will collect dirty regions
+     * for all subsequent drawing calls as long as the guard is in scope.
+     * During that time Paint class does not alter any buffer data, it just calculates which region
+     * would be changed.
+     */
+    PaintGuard RecordDirtyRegions();
+
  private:
+    void DrawAbsolutePixel(int x, int y, int colored);
+    void DrawPixel(int x, int y, int colored);
+    void DrawCharAt(int x, int y, char ascii_char, sFONT* font, int colored);
+
+    void SetRecordDirtyRegions(bool record);
+
     unsigned char* image;
     int width;
     int height;
@@ -74,6 +110,31 @@ class Paint {
      * Big is other way around, used by E-Ink display
      */
     Endian endian_;
+    class PaintRecorder {
+     public:
+        PaintRecorder() = default;
+        ~PaintRecorder() = default;
+
+        void RecordCircle(int x, int y, int radius);
+        void RecordRectangle(int x0, int y0, int x1, int y1);
+
+        void RecordLine(int x0, int y0, int x1, int y1);
+        void RecordHorizontalLine(int x, int y, int width);
+        void RecordVerticalLine(int x, int y, int height);
+        void RecordStringAt(int x, int y, const char* text, sFONT* font);
+
+        void SetRecord(bool record);
+
+        inline bool IsRecording();
+
+        Regions GetRegions();
+
+     private:
+        bool record_ = false;
+        Regions regions_;
+    };
+
+    PaintRecorder recorder_;
 };
 
 #endif

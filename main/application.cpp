@@ -47,32 +47,29 @@ static const char* TAG = "Application";
 void StartApplication() {
     // btTesting();
 
-    bk::Driver d;
-    // d.clearDisplay();
+    // bk::Driver d;
 
-    auto paint = d.getPaint();
+    // int cnt = 0;
+    // while (true) {
+    //     HealthService::reportAll();
+    //     vTaskDelay(pdMS_TO_TICKS(1000));
 
-    int cnt = 0;
-    while (true) {
-        HealthService::reportAll();
-        vTaskDelay(pdMS_TO_TICKS(1000));
+    //     d.clearDisplay();
 
-        d.clearDisplay();
+    //     const int msg_size = 128;
+    //     char message[msg_size];
 
-        const int msg_size = 128;
-        char message[msg_size];
+    //     snprintf(message, msg_size, "BLAH: %d", cnt);
+    //     cnt++;
 
-        snprintf(message, msg_size, "BLAH: %d", cnt);
-        cnt++;
+    //     paint.DrawStringAt(50, 50, message, &Font24, COLORED);
+    //     paint.DrawCircle(50, 50, 30, COLORED);
+    //     paint.DrawFilledCircle(200, 200, 50, COLORED);
+    //     paint.DrawFilledRectangle(100, 100, 150, 150, COLORED);
+    //     paint.DrawVerticalLine(100, 100, 100, COLORED);
 
-        paint.DrawStringAt(50, 50, message, &Font24, COLORED);
-        paint.DrawCircle(50, 50, 30, COLORED);
-        paint.DrawFilledCircle(200, 200, 50, COLORED);
-        paint.DrawFilledRectangle(100, 100, 150, 150, COLORED);
-        paint.DrawVerticalLine(100, 100, 100, COLORED);
-
-        d.refresh();
-    }
+    //     d.refresh();
+    // }
 
     bk::FSWrapper::mountStorage();
 

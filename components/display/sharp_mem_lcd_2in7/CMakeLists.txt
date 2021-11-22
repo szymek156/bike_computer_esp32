@@ -1,4 +1,4 @@
-idf_component_register(SRCS "driver.cpp"
+idf_component_register(SRCS "driver.cpp" "display.cpp"
                     REQUIRES "common"
                     INCLUDE_DIRS ".")
 

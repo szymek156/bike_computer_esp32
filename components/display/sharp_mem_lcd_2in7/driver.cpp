@@ -47,17 +47,11 @@ Driver::Driver(uint16_t width, uint16_t height)
     : width_(width),
       height_(height),
       vcom_(SHARPMEM_BIT_VCOM),
-      // Back holds raw pixel data
-      // Template argument deduction my ass
-      back_(std::vector<uint8_t>((width_ * height_) / 8, 0)),
       // Front holds raw pixel data + SPI command overhead, held on the DMA region
       // 1 = command, 1 = address, width / 8 = bytes per row, 1 = trailer, * height = all rows, 1 =
       // final trailer of the command
       // Template argument deduction my ass
-      front_(std::vector<uint8_t, DMAAllocator<uint8_t> >(1 + (1 + width_ / 8 + 1) * height_ + 1)),
-      paint_(Paint(back_.data(), width_, height_, Endian::Little)) {
-    paint_.SetRotate(ROTATE_0);
-
+      front_(std::vector<uint8_t, DMAAllocator<uint8_t> >(1 + (1 + width_ / 8 + 1) * height_ + 1)) {
     initSPI();
 }
 
@@ -104,8 +98,6 @@ void Driver::initSPI() {
 }
 
 void Driver::clearDisplay() {
-    clearDisplayBuffer();
-
     static const size_t data_size = 2;
     uint8_t clear_data[data_size] = {uint8_t(getToggledVCom() | SHARPMEM_BIT_CLEAR), 0x00};
     transfer(clear_data, data_size);
@@ -141,7 +133,7 @@ void Driver::clearDisplay() {
 // }
 
 /** @brief one full TX, use DMA memory  takes 10ms at SPI freq 10MHz*/
-void Driver::refresh() {
+void Driver::refresh(uint8_t *back) {
 #if defined(PERF)
     std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
 #endif
@@ -158,29 +150,30 @@ void Driver::refresh() {
         // address
         lines[row] = idx;
         // line data
-        memcpy(lines + row + address_size, &back_[idx * line_stride], line_stride);
+        memcpy(lines + row + address_size, &back[idx * line_stride], line_stride);
         // trailer
         // lines[row + address + line_stride] = 0;
     }
 
+#if defined(PERF)
+    std::chrono::time_point<std::chrono::system_clock> copy_stop = std::chrono::system_clock::now();
+#endif
+
     transfer(front_.data(), front_.size());
 
 #if defined(PERF)
-    std::chrono::time_point<std::chrono::system_clock> stop = std::chrono::system_clock::now();
+    std::chrono::time_point<std::chrono::system_clock> transfer_stop =
+        std::chrono::system_clock::now();
 #endif
 
 #if defined(PERF)
-    ESP_LOGD(TAG,
-             "writing whole frame as one TX %llu ms",
-             std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count());
+    ESP_LOGD(
+        TAG,
+        "Writing whole frame as one TX %llu ms, including memcpy %llu, SPI transfer %llu",
+        std::chrono::duration_cast<std::chrono::milliseconds>(transfer_stop - start).count(),
+        std::chrono::duration_cast<std::chrono::milliseconds>(copy_stop - start).count(),
+        std::chrono::duration_cast<std::chrono::milliseconds>(transfer_stop - copy_stop).count());
 #endif
-}
-
-void Driver::clearDisplayBuffer() {
-    // I could write:
-    // std::fill(v.begin(), v.end(), 0);
-    // But I can't stand this API.
-    memset(back_.data(), 0xff, back_.size());
 }
 
 // TODO: docs suggests (but do not clearly state, doh!) vcom_ should be toggled every second -

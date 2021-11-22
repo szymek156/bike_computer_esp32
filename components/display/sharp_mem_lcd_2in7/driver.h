@@ -26,19 +26,14 @@ All text above, and the splash screen must be included in any redistribution
 #include <vector>
 
 #include <esp_log.h>
-#include <paint.h>
 
 namespace bk {
 
 class Driver {
  public:
-    Driver(uint16_t width = 400, uint16_t height = 256);
+    Driver(uint16_t width, uint16_t height);
     void clearDisplay();
-    void refresh(void);
-
-    Paint &getPaint() {
-        return paint_;
-    }
+    void refresh(uint8_t *back);
 
  private:
     static constexpr const char *TAG = "MEM_LCD";
@@ -56,10 +51,12 @@ class Driver {
             ESP_LOGI("DMAAllocator", "Allocating %u", n);
 
             if (p == nullptr)
-                // GCC complains here, but code is completely fine
-                [[unlikely]] {
-                    ESP_LOGE("DMAAllocator", "Unable to allocate %u bytes in DMA", n);
-                }
+            // GCC complains here, but code is completely fine
+            // TODO: uncomment when GCC will be finally fixed
+            // [[unlikely]]
+            {
+                ESP_LOGE("DMAAllocator", "Unable to allocate %u bytes in DMA", n);
+            }
 
             return p;
         }
@@ -72,12 +69,9 @@ class Driver {
     uint16_t width_;
     uint16_t height_;
     uint8_t vcom_;
-    std::vector<uint8_t> back_;
     std::vector<uint8_t, DMAAllocator<uint8_t> > front_;
 
     spi_device_handle_t spi_;
-
-    Paint paint_;
 
     void initSPI();
     void clearDisplayBuffer();
