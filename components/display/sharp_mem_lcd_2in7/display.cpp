@@ -31,7 +31,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
+#define LOG_LOCAL_LEVEL ESP_LOG_INFO
 #include <esp_log.h>
 
 /** @brief show time spent on communicating with display HW */
@@ -45,7 +45,7 @@ namespace bk {
 Display::Display()
     : AbstractTask(sizeof(DisplayData)),
       width_(400),
-      height_(256),
+      height_(240),
       driver_(Driver(width_, height_)),
       // Back holds raw pixel data
       // Template argument deduction my ass
@@ -55,6 +55,7 @@ Display::Display()
 }
 
 void Display::start() {
+    memset(back_.data(), 0xFF, back_.size());
     driver_.clearDisplay();
 
     start_execution(TAG);

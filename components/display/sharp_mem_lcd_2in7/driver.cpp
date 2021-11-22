@@ -41,7 +41,7 @@ namespace bk {
 #define HIGH 1
 
 /** @brief show time spent on drawing on the display */
-#define PERF
+// #define PERF
 
 Driver::Driver(uint16_t width, uint16_t height)
     : width_(width),
