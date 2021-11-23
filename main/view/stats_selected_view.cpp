@@ -4,31 +4,28 @@
 namespace bk {
 ;
 
-StatsSelectedView::StatsSelectedView(IDisplay *display)
-    : display_(display){
+StatsSelectedView::StatsSelectedView(IDisplay *display) : display_(display) {
 }
 
 void StatsSelectedView::drawStatic() {
     display_->enqueueStaticDraw(
         [](Paint &paint) {
-            paint.DrawHorizontalLine(13, 35, 270, COLORED);
-
+            paint.DrawHorizontalLine(13, 67, 374, COLORED);
             const int msg_size = 128;
             char message[msg_size];
 
             snprintf(message, msg_size, "Stats for: workout type");
-            paint.DrawStringAt(21, 15, message, &Font16, COLORED);
+            paint.DrawStringAt(39, 33, message, &Font24, COLORED);
             snprintf(message, msg_size, "All time:");
-            paint.DrawStringAt(116, 40, message, &Font12, COLORED);
+            paint.DrawStringAt(137, 76, message, &Font24, COLORED);
             snprintf(message, msg_size, "5k: 50min");
-            paint.DrawStringAt(116, 63, message, &Font12, COLORED);
+            paint.DrawStringAt(137, 119, message, &Font24, COLORED);
             snprintf(message, msg_size, "10k: 4hrs");
-            paint.DrawStringAt(116, 86, message, &Font12, COLORED);
+            paint.DrawStringAt(137, 162, message, &Font24, COLORED);
             snprintf(message, msg_size, "Half M: 2 days 4hrs");
-            paint.DrawStringAt(81, 109, message, &Font12, COLORED);
+            paint.DrawStringAt(67, 205, message, &Font24, COLORED);
         },
         // Rectangle needs to cover whole widget area
         {0, 25, display_->getWidth(), display_->getHeight()});
-
 }
 }  // namespace bk

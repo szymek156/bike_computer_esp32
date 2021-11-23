@@ -31,11 +31,11 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define LOG_LOCAL_LEVEL ESP_LOG_INFO
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include <esp_log.h>
 
 /** @brief show time spent on communicating with display HW */
-// #define PERF
+#define PERF
 
 /** @brief Show areas which are invalidated*/
 // #define DEBUG_RECTS
@@ -50,7 +50,6 @@ Display::Display()
       // Back holds raw pixel data
       // Template argument deduction my ass
       back_(std::vector<uint8_t>((width_ * height_) / 8, 0)),
-      dirty_(false),
       paint_(back_.data(), width_, height_, Endian::Little) {
 }
 
@@ -82,15 +81,11 @@ void Display::enqueueDraw(std::function<void(Paint& paint)> callback, const Rect
     prepareCanvas(rect);
 
     callback(paint_);
-
-    invalidate();
 }
 
 void Display::enqueueStaticDraw(std::function<void(Paint& paint)> callback, const Rect& rect) {
     std::lock_guard<std::recursive_mutex> lock(buffer_mutex_);
 
-    enqueueDraw(callback, rect);
-    swapBuffers();
     enqueueDraw(callback, rect);
 }
 
@@ -104,25 +99,38 @@ int Display::getHeight() {
 void Display::draw() {
     std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
 
-    swapBuffers();
-
 #if defined(PERF)
     std::chrono::time_point<std::chrono::system_clock> after_swap =
         std::chrono::system_clock::now();
 #endif
 
-    // epd_.SetFrameMemory(front_, 0, 0, epd_.width, epd_.height);
+    // TODO: check if dirty, if yes, copy, transfer
+    // else just toggle vcom - iff, one second passed
+
+    {
+        // This works as long as driver_.setFrame and driver_.draw()
+        // are called from the same thread.
+        // If that's gonna change, then driver should keep a mutex
+        // for it's internal "front" buffer
+        // Or merge setFrame() and draw() to one method -> draw(back_)
+
+        // This mutex keeps synchronization, between display task, and
+        // other tasks (most likely event dispatcher), that draw on the
+        // back buffer.
+        // Only setFrame needs to be locked - it's a memcpy of back_
+        // to internal front_ buffer - it takes less than one millisecond
+        // draw is a transmision of the front buffer over SPI - that's
+        // 10ms. So this lock is held for very short period of time
+        std::lock_guard<std::recursive_mutex> lock(buffer_mutex_);
+        driver_.setFrame(back_.data());
+    }
 
 #if defined(PERF)
     std::chrono::time_point<std::chrono::system_clock> after_set_frame =
         std::chrono::system_clock::now();
 #endif
-    {
-        std::lock_guard<std::recursive_mutex> lock(buffer_mutex_);
-        driver_.refresh(back_.data());
-    }
 
-    // epd_.DisplayFrame();
+    driver_.draw();
 
     std::chrono::time_point<std::chrono::system_clock> after_display =
         std::chrono::system_clock::now();
@@ -147,10 +155,6 @@ void Display::draw() {
     vTaskDelay(pdMS_TO_TICKS(to_sleep));
 }
 
-void Display::invalidate() {
-    dirty_ = true;
-}
-
 void Display::prepareCanvas(const Rect& rect) {
     paint_.DrawFilledRectangle(rect.x0, rect.y0, rect.x1, rect.y1, UNCOLORED);
 
@@ -159,13 +163,4 @@ void Display::prepareCanvas(const Rect& rect) {
 #endif
 }
 
-void Display::swapBuffers() {
-    std::lock_guard<std::recursive_mutex> lock(buffer_mutex_);
-
-    // Dirty means, new data is ready to be shown
-    if (dirty_) {
-        // std::swap(front_, back_);
-        // paint_.SetImage(back_);
-    }
-}
 }  // namespace bk

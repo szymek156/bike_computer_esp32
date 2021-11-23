@@ -79,17 +79,11 @@ class Display : public AbstractTask, public IDisplay {
 
     std::recursive_mutex buffer_mutex_;
 
-    bool dirty_;
-
     Paint paint_;
 
     void draw();
 
-    void invalidate();
-
     void prepareCanvas(const Rect &rect);
-
-    void swapBuffers();
 };
 
 }  // namespace bk

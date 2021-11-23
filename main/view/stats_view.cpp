@@ -6,15 +6,14 @@ namespace bk {
 
 StatsView::StatsView(IDisplay *display)
     : display_(display),
-      activities_(VListWidget(display, Font16, {149, 13, 295, 127})) {
+      activities_(VListWidget(display, Font24, {201, 25, 399, 239})) {
 }
 
 void StatsView::drawStatic() {
     display_->enqueueStaticDraw(
         [](Paint &paint) {
-            paint.DrawHorizontalLine(13, 12, 270, COLORED);
-            paint.DrawVerticalLine(148, 15, 110, COLORED);
-            paint.DrawHorizontalLine(13, 70, 122, COLORED);
+            paint.DrawVerticalLine(200, 27, 210, COLORED);
+            paint.DrawHorizontalLine(13, 132, 174, COLORED);
         },
         // Rectangle needs to cover whole widget area
         {0, 25, display_->getWidth(), display_->getHeight()});
@@ -25,9 +24,9 @@ void StatsView::drawStatic() {
             char message[msg_size];
 
             snprintf(message, msg_size, "Stats");
-            paint.DrawStringAt(31, 29, message, &Font24, COLORED);
+            paint.DrawStringAt(40, 57, message, &Font42, COLORED);
         },
-        {1, 13, 147, 69});
+        {1, 25, 199, 131});
 
     // Will potentially overlay above statements
     activities_.drawStatic();

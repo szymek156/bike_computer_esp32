@@ -33,7 +33,8 @@ class Driver {
  public:
     Driver(uint16_t width, uint16_t height);
     void clearDisplay();
-    void refresh(uint8_t *back);
+    void setFrame(uint8_t *back);
+    void draw();
 
  private:
     static constexpr const char *TAG = "MEM_LCD";

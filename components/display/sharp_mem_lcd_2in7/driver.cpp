@@ -41,7 +41,7 @@ namespace bk {
 #define HIGH 1
 
 /** @brief show time spent on drawing on the display */
-// #define PERF
+#define PERF
 
 Driver::Driver(uint16_t width, uint16_t height)
     : width_(width),
@@ -103,37 +103,7 @@ void Driver::clearDisplay() {
     transfer(clear_data, data_size);
 }
 
-/** @brief each line is a single TX, takes 21ms at SPI freq 10MHz */
-// void Driver::refresh() {
-// #if defined(PERF)
-//     std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
-// #endif
-//     uint8_t bytes_per_line = width_ / 8;
-//     uint8_t line[bytes_per_line + 4];
-//     // command | address | data | trailer 2bytes
-//     line[0] = uint8_t(vcom_ | SHARPMEM_BIT_WRITECMD);
-//     line[bytes_per_line + 3] = 0;
-//     line[bytes_per_line + 4] = 0;
-
-//     for (auto idx = 0; idx < height_; idx++) {
-//         line[1] = idx;
-//         memcpy(line + 2, buffer_ + (bytes_per_line * idx), bytes_per_line);
-//         transfer(line, bytes_per_line + 4);
-//     }
-
-// #if defined(PERF)
-//     std::chrono::time_point<std::chrono::system_clock> stop = std::chrono::system_clock::now();
-// #endif
-
-// #if defined(PERF)
-//     ESP_LOGD(TAG,
-//              "writing whole frame tx per each line %llu ms",
-//              std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count());
-// #endif
-// }
-
-/** @brief one full TX, use DMA memory  takes 10ms at SPI freq 10MHz*/
-void Driver::refresh(uint8_t *back) {
+void Driver::setFrame(uint8_t *back) {
 #if defined(PERF)
     std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
 #endif
@@ -159,6 +129,17 @@ void Driver::refresh(uint8_t *back) {
     std::chrono::time_point<std::chrono::system_clock> copy_stop = std::chrono::system_clock::now();
 #endif
 
+#if defined(PERF)
+    ESP_LOGD(TAG,
+             "Copy a frame %llums",
+             std::chrono::duration_cast<std::chrono::milliseconds>(copy_stop - start).count());
+#endif
+}
+/** @brief one full TX, use DMA memory  takes 10ms at SPI freq 10MHz*/
+void Driver::draw() {
+#if defined(PERF)
+    std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
+#endif
     transfer(front_.data(), front_.size());
 
 #if defined(PERF)
@@ -167,12 +148,9 @@ void Driver::refresh(uint8_t *back) {
 #endif
 
 #if defined(PERF)
-    ESP_LOGD(
-        TAG,
-        "Writing whole frame as one TX %llu ms, including memcpy %llu, SPI transfer %llu",
-        std::chrono::duration_cast<std::chrono::milliseconds>(transfer_stop - start).count(),
-        std::chrono::duration_cast<std::chrono::milliseconds>(copy_stop - start).count(),
-        std::chrono::duration_cast<std::chrono::milliseconds>(transfer_stop - copy_stop).count());
+    ESP_LOGD(TAG,
+             "Writing whole frame as one TX %llu ms",
+             std::chrono::duration_cast<std::chrono::milliseconds>(transfer_stop - start).count());
 #endif
 }
 
