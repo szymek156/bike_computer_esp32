@@ -1,8 +1,8 @@
 #include "workout_steps_splash.h"
 
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
-#include <paint.h>
 #include <esp_log.h>
+#include <paint.h>
 
 namespace bk {
 
@@ -18,10 +18,10 @@ void WorkoutStepsSplashView::drawStatic() {
             char message[msg_size];
 
             snprintf(message, msg_size, "Workout Steps");
-            paint.DrawStringAt(37, 58, message, &Font24, COLORED);
+            paint.DrawStringAt(44, 111, message, &Font42, COLORED);
         },
         // Rectangle needs to cover whole widget area
-        {0, 14, display_->getHeight(), display_->getWidth()});
+        {0, 25, display_->getWidth(), display_->getHeight()});
 }
 
 WorkoutStepsSplashPresenter::WorkoutStepsSplashPresenter(IDisplay *display,

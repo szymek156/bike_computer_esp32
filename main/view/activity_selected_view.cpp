@@ -6,7 +6,7 @@ namespace bk {
 
 ActivitySelectedView::ActivitySelectedView(IDisplay *display)
     : display_(display),
-      options_(VListWidget(display, Font16, {149, 13, 295, 127})),
+      options_(VListWidget(display, Font24, {201, 25, 399, 239})),
       activity_("Empty activity"),
       workout_("Empty workout") {
 }
@@ -14,22 +14,21 @@ ActivitySelectedView::ActivitySelectedView(IDisplay *display)
 void ActivitySelectedView::drawStatic() {
     display_->enqueueStaticDraw(
         [&](Paint &paint) {
-            paint.DrawHorizontalLine(13, 12, 270, COLORED);
-            paint.DrawVerticalLine(148, 15, 110, COLORED);
-            paint.DrawHorizontalLine(13, 70, 122, COLORED);
+            paint.DrawVerticalLine(200, 27, 210, COLORED);
+            paint.DrawHorizontalLine(13, 132, 174, COLORED);
 
             const int msg_size = 128;
             char message[msg_size];
 
             snprintf(message, msg_size, activity_.c_str());
-            paint.DrawStringAt(14, 29, message, &Font24, COLORED);
+            paint.DrawStringAt(16, 57, message, &Font42, COLORED);
             snprintf(message, msg_size, workout_.c_str());
-            paint.DrawStringAt(13, 91, message, &Font24, COLORED);
+            paint.DrawStringAt(1, 170, message, &Font31, COLORED);
         },
         // Rectangle needs to cover whole widget area
-        {0, 14, display_->getHeight(), display_->getWidth()});
+        {0, 25, display_->getWidth(), display_->getHeight()});
 
-        options_.drawStatic();
+    options_.drawStatic();
 }
 
 VListWidget &ActivitySelectedView::getOptions() {

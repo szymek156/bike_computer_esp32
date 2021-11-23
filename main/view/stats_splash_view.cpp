@@ -17,7 +17,7 @@ void StatsSplashView::drawStatic() {
             paint.DrawStringAt(63, 58, message, &Font24, COLORED);
         },
         // Rectangle needs to cover whole widget area
-        {0, 14, display_->getHeight(), display_->getWidth()});
+        {0, 25, display_->getWidth(), display_->getHeight()});
 }
 
 }  // namespace bk

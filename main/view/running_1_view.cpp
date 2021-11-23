@@ -10,27 +10,27 @@ Running1View::Running1View(IDisplay *display) : display_(display) {
 void Running1View::drawStatic() {
     display_->enqueueStaticDraw(
         [](Paint &paint) {
-            paint.DrawHorizontalLine(13, 70, 122, COLORED);
-            paint.DrawVerticalLine(148, 15, 110, COLORED);
-            paint.DrawHorizontalLine(161, 70, 122, COLORED);
+            paint.DrawHorizontalLine(13, 132, 174, COLORED);
+            paint.DrawVerticalLine(200, 27, 210, COLORED);
+            paint.DrawHorizontalLine(213, 132, 174, COLORED);
 
             const int msg_size = 128;
             char message[msg_size];
 
             snprintf(message, msg_size, "pace");
-            paint.DrawStringAt(52, 18, message, &Font16, COLORED);
+            paint.DrawStringAt(64, 35, message, &Font31, COLORED);
 
             snprintf(message, msg_size, "stride");
-            paint.DrawStringAt(41, 76, message, &Font16, COLORED);
+            paint.DrawStringAt(46, 143, message, &Font31, COLORED);
 
             snprintf(message, msg_size, "HR zone");
-            paint.DrawStringAt(183, 18, message, &Font16, COLORED);
+            paint.DrawStringAt(237, 35, message, &Font31, COLORED);
 
             snprintf(message, msg_size, "cadence");
-            paint.DrawStringAt(183, 76, message, &Font16, COLORED);
+            paint.DrawStringAt(237, 143, message, &Font31, COLORED);
         },
         // Rectangle needs to cover whole widget area
-        {0, 14, display_->getHeight(), display_->getWidth()});
+        {0, 25, display_->getWidth(), display_->getHeight()});
 }
 
 void Running1View::drawPace(float pace) {
@@ -40,9 +40,9 @@ void Running1View::drawPace(float pace) {
             char message[msg_size];
 
             snprintf(message, msg_size, "%4.2f", pace);
-            paint.DrawStringAt(39, 45, message, &Font20, COLORED);
+            paint.DrawStringAt(55, 89, message, &Font31, COLORED);
         },
-        {1, 42, 147, 69});
+        {1, 79, 199, 131});
 }
 
 void Running1View::drawStride(float stride) {
@@ -52,9 +52,9 @@ void Running1View::drawStride(float stride) {
             char message[msg_size];
 
             snprintf(message, msg_size, "%.2f", stride);
-            paint.DrawStringAt(46, 103, message, &Font20, COLORED);
+            paint.DrawStringAt(64, 197, message, &Font31, COLORED);
         },
-        {1, 100, 147, 127});
+        {1, 187, 199, 239});
 }
 
 void Running1View::drawHRZone(float zone) {
@@ -64,9 +64,9 @@ void Running1View::drawHRZone(float zone) {
             char message[msg_size];
 
             snprintf(message, msg_size, "%.2f", zone);
-            paint.DrawStringAt(194, 45, message, &Font20, COLORED);
+            paint.DrawStringAt(264, 89, message, &Font31, COLORED);
         },
-        {149, 42, 295, 69});
+        {201, 79, 399, 131});
 }
 
 void Running1View::drawCadence(int cadence) {
@@ -76,9 +76,9 @@ void Running1View::drawCadence(int cadence) {
             char message[msg_size];
 
             snprintf(message, msg_size, "%3d", cadence);
-            paint.DrawStringAt(201, 103, message, &Font20, COLORED);
+            paint.DrawStringAt(273, 197, message, &Font31, COLORED);
         },
-        {149, 100, 295, 127});
+        {201, 187, 399, 239});
 }
 
 }  // namespace bk

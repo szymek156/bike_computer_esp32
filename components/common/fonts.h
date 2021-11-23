@@ -54,10 +54,12 @@ typedef struct _tFont
 
 } sFONT;
 
-extern sFONT Font72;
-extern sFONT Font48;
+extern sFONT Font83;
+extern sFONT Font56;
+extern sFONT Font42;
+extern sFONT Font31;
 extern sFONT Font24;
-extern sFONT Font20;
+extern sFONT Font19;
 extern sFONT Font16;
 extern sFONT Font12;
 extern sFONT Font8;

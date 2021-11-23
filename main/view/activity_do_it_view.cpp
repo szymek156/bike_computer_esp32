@@ -17,20 +17,19 @@ ActivityDoItView::ActivityDoItView(IDisplay *display)
 void ActivityDoItView::drawStatic() {
     display_->enqueueStaticDraw(
         [&](Paint &paint) {
-            paint.DrawHorizontalLine(13, 12, 270, COLORED);
-            paint.DrawVerticalLine(148, 15, 110, COLORED);
-            paint.DrawHorizontalLine(13, 70, 122, COLORED);
-            paint.DrawHorizontalLine(161, 50, 122, COLORED);
+            paint.DrawVerticalLine(200, 27, 210, COLORED);
+            paint.DrawHorizontalLine(13, 132, 174, COLORED);
+            paint.DrawHorizontalLine(213, 96, 174, COLORED);
 
-            paint.DrawStringAt(14, 29, activity_.c_str(), &Font24, COLORED);
-            paint.DrawStringAt(13, 91, workout_.c_str(), &Font24, COLORED);
+            paint.DrawStringAt(16, 57, activity_.c_str(), &Font42, COLORED);
+            paint.DrawStringAt(1, 170, workout_.c_str(), &Font31, COLORED);
 
-            paint.DrawStringAt(189, 23, "GPS ??", &Font16, COLORED);
-            paint.DrawStringAt(178, 61, "Press OK", &Font16, COLORED);
-            paint.DrawStringAt(178, 99, "to start", &Font16, COLORED);
+            paint.DrawStringAt(258, 48, "GPS ??", &Font24, COLORED);
+            paint.DrawStringAt(244, 120, "Press OK", &Font24, COLORED);
+            paint.DrawStringAt(244, 192, "to start", &Font24, COLORED);
         },
         // Rectangle needs to cover whole widget area
-        {0, 14, display_->getHeight(), display_->getWidth()});
+        {0, 25, display_->getWidth(), display_->getHeight()});
 }
 
 void ActivityDoItView::drawGNSSData(const GNSSData &data) {
@@ -41,9 +40,9 @@ void ActivityDoItView::drawGNSSData(const GNSSData &data) {
             char message[msg_size];
 
             snprintf(message, msg_size, "GPS %1d", data.fix_status);
-            paint.DrawStringAt(189, 23, message, &Font16, COLORED);
+            paint.DrawStringAt(258, 48, message, &Font24, COLORED);
         },
-        {149, 13, 295, 49});
+        {201, 25, 399, 95});
 }
 
 }  // namespace bk

@@ -12,18 +12,18 @@ namespace bk {
 
 ActivityPausedView::ActivityPausedView(IDisplay *display)
     : display_(display),
-      choices_(VListWidget(display, Font16, {149, 13, 295, 127}, 3, Alignment::Centered)) {
+      choices_(VListWidget(display, Font24, {201, 25, 399, 239}, 3, Alignment::Centered)) {
 }
 
 void ActivityPausedView::drawStatic() {
     display_->enqueueStaticDraw(
         [](Paint &paint) {
-            paint.DrawHorizontalLine(13, 12, 270, COLORED);
-            paint.DrawVerticalLine(148, 15, 110, COLORED);
-            paint.DrawHorizontalLine(13, 70, 122, COLORED);
+            paint.DrawHorizontalLine(13, 24, 374, COLORED);
+            paint.DrawVerticalLine(200, 27, 210, COLORED);
+            paint.DrawHorizontalLine(13, 132, 174, COLORED);
         },
         // Rectangle needs to cover whole widget area
-        {0, 14, display_->getHeight(), display_->getWidth()});
+        {0, 25, display_->getWidth(), display_->getHeight()});
 
     display_->enqueueStaticDraw(
         [&](Paint &paint) {
@@ -31,9 +31,9 @@ void ActivityPausedView::drawStatic() {
             char message[msg_size];
 
             snprintf(message, msg_size, "Paused");
-            paint.DrawStringAt(23, 29, message, &Font24, COLORED);
+            paint.DrawStringAt(28, 57, message, &Font42, COLORED);
         },
-        {1, 13, 147, 69});
+        {1, 25, 199, 131});
 
     // Will potentially overlay above statements
     choices_.drawStatic();

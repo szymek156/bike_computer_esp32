@@ -1443,7 +1443,7 @@ const unsigned char ubuntu_mono_48pt[] = {
      // Character 0x7e (126: '~')
 };
 
-sFONT Font48 = {
+sFONT Font56 = {
   ubuntu_mono_48pt,
   32, /* Width */
   56, /* Height */

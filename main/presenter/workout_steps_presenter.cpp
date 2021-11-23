@@ -10,7 +10,7 @@ namespace bk {
 
 WorkoutStepsView::WorkoutStepsView(IDisplay *display)
     : display_(display),
-      workout_steps_(VListWidget(display, Font16, {1, 13, 295, 127}, 4, Alignment::Left)) {
+      workout_steps_(VListWidget(display, Font24, {1, 25, display_->getWidth(), display_->getHeight()}, 4, Alignment::Left)) {
 }
 
 void WorkoutStepsView::drawStatic() {
