@@ -8,7 +8,7 @@ Running2View::Running2View(IDisplay *display) : display_(display) {
 }
 
 void Running2View::drawStatic() {
-    display_->enqueueStaticDraw(
+    display_->enqueueDraw(
         [](Paint &paint) {
             paint.DrawHorizontalLine(13, 132, 174, COLORED);
             paint.DrawVerticalLine(200, 27, 210, COLORED);

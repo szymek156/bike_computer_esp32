@@ -8,7 +8,7 @@ WelcomeView::WelcomeView(IDisplay *display) : display_(display) {
 }
 
 void WelcomeView::drawStatic() {
-    display_->enqueueStaticDraw(
+    display_->enqueueDraw(
         [&](Paint &paint) {
             paint.DrawHorizontalLine(13, 132, 374, COLORED);
         },

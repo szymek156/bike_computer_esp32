@@ -8,7 +8,7 @@ ActivitySplashView::ActivitySplashView(IDisplay *display) : display_(display) {
 }
 
 void ActivitySplashView::drawStatic() {
-    display_->enqueueStaticDraw(
+    display_->enqueueDraw(
         [](Paint &paint) {
             const int msg_size = 128;
             char message[msg_size];

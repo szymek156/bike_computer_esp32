@@ -27,7 +27,7 @@
   - [ ] Consider making paint class more cache friendly
   - [ ] Figure out BLE communication
   - [ ] Add ghost runner functionality
-  - [ ] Use accel. to calculate cadence, and strie
+  - [ ] Use accel. to calculate cadence, and stride
   - [ ] Add travis CI
   - [ ] clang-tidy?
   - [ ] Add OTA support (2 partitions + factory)
@@ -35,6 +35,7 @@
     - [ ] Functional tests
     - [ ] Unit tests
   - [x] Add new fonts: https://kapusta.cc/2020/03/20/fontedit/
+  - [ ] Do refactor
 - Other Software
   - [x] Create a tool to do GUI mockups fast
   - [ ] Create a tool to make Workout FIT or ZWO files (WASM?)

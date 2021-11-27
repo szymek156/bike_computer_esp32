@@ -8,7 +8,7 @@ StatusView::StatusView(IDisplay *display) : display_(display) {
 }
 
 void StatusView::drawStatic() {
-    display_->enqueueStaticDraw(
+    display_->enqueueDraw(
         [](Paint &paint) {
             paint.DrawVerticalLine(133, 3, 18, COLORED);
             paint.DrawVerticalLine(266, 3, 18, COLORED);

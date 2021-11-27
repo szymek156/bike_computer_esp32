@@ -154,8 +154,12 @@ void Driver::draw() {
 #endif
 }
 
-// TODO: docs suggests (but do not clearly state, doh!) vcom_ should be toggled every second -
-// create a timer?
+void Driver::toggleVcom() {
+    static const size_t data_size = 2;
+    uint8_t clear_data[data_size] = {uint8_t(getToggledVCom()), 0x00};
+    transfer(clear_data, data_size);
+}
+
 uint8_t Driver::getToggledVCom() {
     vcom_ ^= SHARPMEM_BIT_VCOM;
 

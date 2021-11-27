@@ -16,7 +16,7 @@ ActivityPausedView::ActivityPausedView(IDisplay *display)
 }
 
 void ActivityPausedView::drawStatic() {
-    display_->enqueueStaticDraw(
+    display_->enqueueDraw(
         [](Paint &paint) {
             paint.DrawHorizontalLine(13, 24, 374, COLORED);
             paint.DrawVerticalLine(200, 27, 210, COLORED);
@@ -25,7 +25,7 @@ void ActivityPausedView::drawStatic() {
         // Rectangle needs to cover whole widget area
         {0, 25, display_->getWidth(), display_->getHeight()});
 
-    display_->enqueueStaticDraw(
+    display_->enqueueDraw(
         [&](Paint &paint) {
             const int msg_size = 128;
             char message[msg_size];

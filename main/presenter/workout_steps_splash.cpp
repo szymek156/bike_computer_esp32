@@ -12,7 +12,7 @@ WorkoutStepsSplashView::WorkoutStepsSplashView(IDisplay *display) : display_(dis
 }
 
 void WorkoutStepsSplashView::drawStatic() {
-    display_->enqueueStaticDraw(
+    display_->enqueueDraw(
         [&](Paint &paint) {
             const int msg_size = 128;
             char message[msg_size];

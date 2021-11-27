@@ -25,6 +25,7 @@
 #include <functional>
 #include <mutex>
 #include <vector>
+#include <chrono>
 
 #include <driver.h>
 #include <paint.h>
@@ -41,12 +42,6 @@ class IDisplay {
      */
     virtual void enqueueDraw(std::function<void(Paint &paint)> callback, const Rect &rect) = 0;
 
-    /** @brief Draw stuff on back and front buffer
-     * Used for static elements, like lines, which do not need invalidate
-     */
-    virtual void enqueueStaticDraw(std::function<void(Paint &paint)> callback,
-                                   const Rect &rect) = 0;
-
     virtual int getWidth() = 0;
     virtual int getHeight() = 0;
 };
@@ -61,23 +56,29 @@ class Display : public AbstractTask, public IDisplay {
 
     virtual void enqueueDraw(std::function<void(Paint &paint)> callback, const Rect &rect) override;
 
-    virtual void enqueueStaticDraw(std::function<void(Paint &paint)> callback,
-                                   const Rect &rect) override;
-
     virtual int getWidth() override;
     virtual int getHeight() override;
+
+    /** @brief Sets dirty flag. If true, back_ buffer will be transferred to the device */
+    void setDirty(bool dirty);
+
+    bool isDirty();
 
  protected:
     static constexpr const char *TAG = "Display";
 
     int width_;
     int height_;
+    bool dirty_;
 
     Driver driver_;
+
+    std::chrono::time_point<std::chrono::system_clock> vcom_watchdog_;
 
     std::vector<uint8_t> back_;
 
     std::recursive_mutex buffer_mutex_;
+
 
     Paint paint_;
 

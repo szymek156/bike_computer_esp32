@@ -8,7 +8,7 @@ StatsSelectedView::StatsSelectedView(IDisplay *display) : display_(display) {
 }
 
 void StatsSelectedView::drawStatic() {
-    display_->enqueueStaticDraw(
+    display_->enqueueDraw(
         [](Paint &paint) {
             paint.DrawHorizontalLine(13, 67, 374, COLORED);
             const int msg_size = 128;

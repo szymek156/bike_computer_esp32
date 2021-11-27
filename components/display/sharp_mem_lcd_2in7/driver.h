@@ -36,6 +36,8 @@ class Driver {
     void setFrame(uint8_t *back);
     void draw();
 
+    void toggleVcom();
+
  private:
     static constexpr const char *TAG = "MEM_LCD";
     /** @brief Custom allocator for DMA region */

@@ -24,13 +24,13 @@ void VListWidget::drawStatic() {
 }
 
 void VListWidget::invalidateViewport() {
-    display_->enqueueStaticDraw(
+    display_->enqueueDraw(
         [&](Paint &paint) {
             for (size_t i = viewport_start_; i < viewport_start_ + viewport_size_; i++) {
                 // TODO: Beware, drawNotSelected call enqueueDraw
                 // It happens to work in drawStatic context
                 // But that's an implementation detail I am relying
-                // on now. If something will change in enqueueStaticDraw,
+                // on now. If something will change in enqueueDraw,
                 // this code will likely to be broken.
                 drawNotSelected(i);
             }

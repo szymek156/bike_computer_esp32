@@ -7,7 +7,7 @@ TestView::TestView(IDisplay *display) : display_(display) {
 }
 
 void TestView::drawStatic() {
-    display_->enqueueStaticDraw(
+    display_->enqueueDraw(
         [](Paint &paint) {
             paint.DrawVerticalLine(200, 27, 102, COLORED);
             paint.DrawHorizontalLine(13, 132, 374, COLORED);

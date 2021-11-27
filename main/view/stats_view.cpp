@@ -10,7 +10,7 @@ StatsView::StatsView(IDisplay *display)
 }
 
 void StatsView::drawStatic() {
-    display_->enqueueStaticDraw(
+    display_->enqueueDraw(
         [](Paint &paint) {
             paint.DrawVerticalLine(200, 27, 210, COLORED);
             paint.DrawHorizontalLine(13, 132, 174, COLORED);
@@ -18,7 +18,7 @@ void StatsView::drawStatic() {
         // Rectangle needs to cover whole widget area
         {0, 25, display_->getWidth(), display_->getHeight()});
 
-    display_->enqueueStaticDraw(
+    display_->enqueueDraw(
         [&](Paint &paint) {
             const int msg_size = 128;
             char message[msg_size];

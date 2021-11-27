@@ -10,7 +10,7 @@ ActivityWorkoutsView::ActivityWorkoutsView(IDisplay *display)
 }
 
 void ActivityWorkoutsView::drawStatic() {
-    display_->enqueueStaticDraw(
+    display_->enqueueDraw(
         [&](Paint &paint) {
             paint.DrawVerticalLine(200, 27, 210, COLORED);
             paint.DrawHorizontalLine(13, 132, 174, COLORED);
