@@ -22,7 +22,7 @@ void ActivityWorkoutsView::drawStatic() {
             paint.DrawStringAt(4, 57, message, &Font42, COLORED);
 
             snprintf(message, msg_size, activity_type_.c_str());
-            paint.DrawStringAt(16, 165, message, &Font42, COLORED);
+            paint.DrawStringAt(37, 170, message, &Font31, COLORED);
         },
         // Rectangle needs to cover whole widget area
         {0, 25, display_->getWidth(), display_->getHeight()});

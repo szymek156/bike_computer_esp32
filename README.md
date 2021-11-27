@@ -34,7 +34,7 @@
   - [ ] Figure out testing
     - [ ] Functional tests
     - [ ] Unit tests
-  - [ ] Add new fonts: https://kapusta.cc/2020/03/20/fontedit/
+  - [x] Add new fonts: https://kapusta.cc/2020/03/20/fontedit/
 - Other Software
   - [x] Create a tool to do GUI mockups fast
   - [ ] Create a tool to make Workout FIT or ZWO files (WASM?)
@@ -46,6 +46,47 @@
   - [ ] Support FIT Course files
   - [ ] Looks like workouts are written in ZWO file format https://github.com/h4l/zwift-workout-file-reference
   - [ ] https://medium.com/hackernoon/cloning-zwift-on-ios-part-2-reverse-engineering-a-workout-9d4ffabc29e8
+
+## Fonts
+### Usage
+```
+|------------------------|
+|  Font42    |  Font19   |
+|            |           |
+|-------------           |
+|  Font31    |           |
+|            |           |
+|------------------------|
+```
+- Font19 used for top status bar
+- Font24 f.e. in WidgetList
+- Font31 in workout selection, while displaying sensor data
+- Font42 showing activity selection
+- Font56 for splash screens, and welcome
+### Adding new ones
+- Use this great tool https://kapusta.cc/2020/03/20/fontedit/
+- Select Ubuntu mono
+- In source code tab
+  - Output format C/C++
+  - Check reverse bits (MSB)
+  - Indentation 4 spaces
+  - Remove lut table - save space
+  - Add at the bottom following struct
+      ```
+      sFONT FontX = {
+        ubuntu_mono_Zpt,
+        Y, /* Width */
+        X, /* Height */
+      };
+      ```
+      Where X is height in PIXELS
+      Y is width in PIXELS
+      Z is height in POINTS
+
+      X and Y can be read from the top of the file in comment section, like:
+      ```// Font Size: 16x28px```
+      Or in Edit Font tab at the right bottom corner ```Size (adjusted)```
+
 
 ## Bluetooth
 * https://www.jaredwolff.com/get-started-with-bluetooth-low-energy/
