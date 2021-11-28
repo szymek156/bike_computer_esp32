@@ -10,7 +10,7 @@
     - [ ] Try to use a display from some e-reader, or find a better supplier? Hard to give up this idea, because it feels so right!
   - [ ] Use Sharp memory display
     - [x] Port the library, make SPI communication correct
-    - [ ] Update all GUIs
+    - [x] Update all GUIs
     - [ ] During drawing, send only dirty regions
   - [ ] Calibrate altitude
   - [ ] Read about temp, seems to be off by 2*

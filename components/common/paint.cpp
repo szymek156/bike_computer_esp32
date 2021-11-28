@@ -371,6 +371,10 @@ Regions Paint::GetRegions() {
     return recorder_.GetRegions();
 }
 
+Paint::PaintGuard Paint::RecordDirtyRegions() {
+    return PaintGuard(*this);
+}
+
 Paint::PaintGuard::PaintGuard(Paint& paint) : paint_(paint) {
     paint_.SetRecordDirtyRegions(true);
 }
@@ -385,6 +389,10 @@ void Paint::SetRecordDirtyRegions(bool record) {
 
 bool Paint::PaintRecorder::IsRecording() {
     return record_;
+}
+
+Regions Paint::PaintRecorder::GetRegions() {
+    return regions_;
 }
 
 void Paint::PaintRecorder::RecordCircle(int x, int y, int radius) {

@@ -10,6 +10,9 @@ StatsSelectedView::StatsSelectedView(IDisplay *display) : display_(display) {
 void StatsSelectedView::drawStatic() {
     display_->enqueueDraw(
         [](Paint &paint) {
+            // Rectangle needs to cover whole widget area
+            paint.DrawFilledRectangle(0, 25, paint.GetWidth(), paint.GetHeight(), UNCOLORED);
+
             paint.DrawHorizontalLine(13, 67, 374, COLORED);
             const int msg_size = 128;
             char message[msg_size];
@@ -24,8 +27,6 @@ void StatsSelectedView::drawStatic() {
             paint.DrawStringAt(137, 162, message, &Font24, COLORED);
             snprintf(message, msg_size, "Half M: 2 days 4hrs");
             paint.DrawStringAt(67, 205, message, &Font24, COLORED);
-        },
-        // Rectangle needs to cover whole widget area
-        {0, 25, display_->getWidth(), display_->getHeight()});
+        });
 }
 }  // namespace bk

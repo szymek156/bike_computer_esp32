@@ -37,8 +37,8 @@ void VListWidget::invalidateViewport() {
 
             // Mark selection
             drawSelected(current_selection_);
-        },
-        area_);
+        }
+        /*area_*/);
 }
 void VListWidget::drawNotSelected(size_t selection) {
     int offset = (selection - viewport_start_) * el_height_;
@@ -53,8 +53,8 @@ void VListWidget::drawNotSelected(size_t selection) {
                                elements_[selection].c_str(),
                                &font_,
                                COLORED);
-        },
-        {area_.x0, area_.y0 + offset, area_.x1, area_.y0 + offset + el_height_});
+        }
+        /*{area_.x0, area_.y0 + offset, area_.x1, area_.y0 + offset + el_height_}*/);
 }
 
 void VListWidget::drawSelected(size_t selection) {
@@ -70,8 +70,8 @@ void VListWidget::drawSelected(size_t selection) {
                                elements_[selection].c_str(),
                                &font_,
                                UNCOLORED);
-        },
-        {area_.x0, area_.y0 + offset, area_.x1, area_.y0 + offset + el_height_});
+        }
+        /*{area_.x0, area_.y0 + offset, area_.x1, area_.y0 + offset + el_height_}*/);
 }
 
 int VListWidget::computeAlignment(size_t selection) {

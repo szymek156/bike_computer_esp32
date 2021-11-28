@@ -18,12 +18,13 @@ ActivityPausedView::ActivityPausedView(IDisplay *display)
 void ActivityPausedView::drawStatic() {
     display_->enqueueDraw(
         [](Paint &paint) {
+            // Rectangle needs to cover whole widget area
+            paint.DrawFilledRectangle(0, 25, paint.GetWidth(), paint.GetHeight(), UNCOLORED);
+
             paint.DrawHorizontalLine(13, 24, 374, COLORED);
             paint.DrawVerticalLine(200, 27, 210, COLORED);
             paint.DrawHorizontalLine(13, 132, 174, COLORED);
-        },
-        // Rectangle needs to cover whole widget area
-        {0, 25, display_->getWidth(), display_->getHeight()});
+        });
 
     display_->enqueueDraw(
         [&](Paint &paint) {
@@ -32,8 +33,7 @@ void ActivityPausedView::drawStatic() {
 
             snprintf(message, msg_size, "Paused");
             paint.DrawStringAt(28, 57, message, &Font42, COLORED);
-        },
-        {1, 25, 199, 131});
+        });
 
     // Will potentially overlay above statements
     choices_.drawStatic();

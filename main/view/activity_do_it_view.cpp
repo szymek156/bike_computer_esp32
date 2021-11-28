@@ -17,6 +17,9 @@ ActivityDoItView::ActivityDoItView(IDisplay *display)
 void ActivityDoItView::drawStatic() {
     display_->enqueueDraw(
         [&](Paint &paint) {
+            // Rectangle needs to cover whole widget area
+            paint.DrawFilledRectangle(0, 25, paint.GetWidth(), paint.GetHeight(), UNCOLORED);
+
             paint.DrawVerticalLine(200, 27, 210, COLORED);
             paint.DrawHorizontalLine(13, 132, 174, COLORED);
             paint.DrawHorizontalLine(213, 96, 174, COLORED);
@@ -27,9 +30,7 @@ void ActivityDoItView::drawStatic() {
             paint.DrawStringAt(258, 48, "GPS ??", &Font24, COLORED);
             paint.DrawStringAt(244, 120, "Press OK", &Font24, COLORED);
             paint.DrawStringAt(244, 192, "to start", &Font24, COLORED);
-        },
-        // Rectangle needs to cover whole widget area
-        {0, 25, display_->getWidth(), display_->getHeight()});
+        });
 }
 
 void ActivityDoItView::drawGNSSData(const GNSSData &data) {
@@ -41,8 +42,7 @@ void ActivityDoItView::drawGNSSData(const GNSSData &data) {
 
             snprintf(message, msg_size, "GPS %1d", data.fix_status);
             paint.DrawStringAt(258, 48, message, &Font24, COLORED);
-        },
-        {201, 25, 399, 95});
+        });
 }
 
 }  // namespace bk

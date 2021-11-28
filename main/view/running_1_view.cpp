@@ -10,6 +10,9 @@ Running1View::Running1View(IDisplay *display) : display_(display) {
 void Running1View::drawStatic() {
     display_->enqueueDraw(
         [](Paint &paint) {
+            // Rectangle needs to cover whole widget area
+            paint.DrawFilledRectangle(0, 25, paint.GetWidth(), paint.GetHeight(), UNCOLORED);
+
             paint.DrawHorizontalLine(13, 132, 174, COLORED);
             paint.DrawVerticalLine(200, 27, 210, COLORED);
             paint.DrawHorizontalLine(213, 132, 174, COLORED);
@@ -28,9 +31,7 @@ void Running1View::drawStatic() {
 
             snprintf(message, msg_size, "cadence");
             paint.DrawStringAt(237, 143, message, &Font31, COLORED);
-        },
-        // Rectangle needs to cover whole widget area
-        {0, 25, display_->getWidth(), display_->getHeight()});
+        });
 }
 
 void Running1View::drawPace(float pace) {
@@ -41,8 +42,7 @@ void Running1View::drawPace(float pace) {
 
             snprintf(message, msg_size, "%4.2f", pace);
             paint.DrawStringAt(55, 89, message, &Font31, COLORED);
-        },
-        {1, 79, 199, 131});
+        });
 }
 
 void Running1View::drawStride(float stride) {
@@ -53,8 +53,7 @@ void Running1View::drawStride(float stride) {
 
             snprintf(message, msg_size, "%.2f", stride);
             paint.DrawStringAt(64, 197, message, &Font31, COLORED);
-        },
-        {1, 187, 199, 239});
+        });
 }
 
 void Running1View::drawHRZone(float zone) {
@@ -65,8 +64,7 @@ void Running1View::drawHRZone(float zone) {
 
             snprintf(message, msg_size, "%.2f", zone);
             paint.DrawStringAt(264, 89, message, &Font31, COLORED);
-        },
-        {201, 79, 399, 131});
+        });
 }
 
 void Running1View::drawCadence(int cadence) {
@@ -77,8 +75,7 @@ void Running1View::drawCadence(int cadence) {
 
             snprintf(message, msg_size, "%3d", cadence);
             paint.DrawStringAt(273, 197, message, &Font31, COLORED);
-        },
-        {201, 187, 399, 239});
+        });
 }
 
 }  // namespace bk

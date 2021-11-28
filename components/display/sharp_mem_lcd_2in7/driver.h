@@ -25,7 +25,7 @@ All text above, and the splash screen must be included in any redistribution
 
 #include <vector>
 
-#include <esp_log.h>
+// #include <esp_log.h>
 
 namespace bk {
 
@@ -51,14 +51,14 @@ class Driver {
         [[nodiscard]] T *allocate(std::size_t n) {
             auto p = (T *)heap_caps_calloc(n, sizeof(uint8_t), MALLOC_CAP_DMA);
 
-            ESP_LOGI("DMAAllocator", "Allocating %u", n);
+            // ESP_LOGI("DMAAllocator", "Allocating %u", n);
 
             if (p == nullptr)
             // GCC complains here, but code is completely fine
             // TODO: uncomment when GCC will be finally fixed
             // [[unlikely]]
             {
-                ESP_LOGE("DMAAllocator", "Unable to allocate %u bytes in DMA", n);
+                // ESP_LOGE("DMAAllocator", "Unable to allocate %u bytes in DMA", n);
             }
 
             return p;

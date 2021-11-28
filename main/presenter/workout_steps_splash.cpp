@@ -14,14 +14,15 @@ WorkoutStepsSplashView::WorkoutStepsSplashView(IDisplay *display) : display_(dis
 void WorkoutStepsSplashView::drawStatic() {
     display_->enqueueDraw(
         [&](Paint &paint) {
+            // Rectangle needs to cover whole widget area
+            paint.DrawFilledRectangle(0, 25, paint.GetWidth(), paint.GetHeight(), UNCOLORED);
+
             const int msg_size = 128;
             char message[msg_size];
 
             snprintf(message, msg_size, "Workout Steps");
             paint.DrawStringAt(44, 111, message, &Font42, COLORED);
-        },
-        // Rectangle needs to cover whole widget area
-        {0, 25, display_->getWidth(), display_->getHeight()});
+        });
 }
 
 WorkoutStepsSplashPresenter::WorkoutStepsSplashPresenter(IDisplay *display,

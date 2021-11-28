@@ -40,10 +40,12 @@ class IDisplay {
      * @param callback defines what to draw
      * @param rect defines area where it should be drawn
      */
-    virtual void enqueueDraw(std::function<void(Paint &paint)> callback, const Rect &rect) = 0;
+    virtual void enqueueDraw(std::function<void(Paint &paint)> callback) = 0;
 
     virtual int getWidth() = 0;
     virtual int getHeight() = 0;
+
+    virtual void clearRegion(const Rect &rect) = 0;
 };
 
 class Display : public AbstractTask, public IDisplay {
@@ -54,10 +56,12 @@ class Display : public AbstractTask, public IDisplay {
     virtual void run() override;
     virtual void start() override;
 
-    virtual void enqueueDraw(std::function<void(Paint &paint)> callback, const Rect &rect) override;
+    virtual void enqueueDraw(std::function<void(Paint &paint)> callback) override;
 
     virtual int getWidth() override;
     virtual int getHeight() override;
+
+    virtual void clearRegion(const Rect &rect) override;
 
     /** @brief Sets dirty flag. If true, back_ buffer will be transferred to the device */
     void setDirty(bool dirty);
@@ -83,8 +87,6 @@ class Display : public AbstractTask, public IDisplay {
     Paint paint_;
 
     void draw();
-
-    void prepareCanvas(const Rect &rect);
 };
 
 }  // namespace bk

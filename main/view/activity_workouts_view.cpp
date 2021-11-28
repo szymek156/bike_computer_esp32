@@ -12,6 +12,9 @@ ActivityWorkoutsView::ActivityWorkoutsView(IDisplay *display)
 void ActivityWorkoutsView::drawStatic() {
     display_->enqueueDraw(
         [&](Paint &paint) {
+            // Rectangle needs to cover whole widget area
+            paint.DrawFilledRectangle(0, 25, paint.GetWidth(), paint.GetHeight(), UNCOLORED);
+
             paint.DrawVerticalLine(200, 27, 210, COLORED);
             paint.DrawHorizontalLine(13, 132, 174, COLORED);
 
@@ -23,9 +26,7 @@ void ActivityWorkoutsView::drawStatic() {
 
             snprintf(message, msg_size, activity_type_.c_str());
             paint.DrawStringAt(37, 170, message, &Font31, COLORED);
-        },
-        // Rectangle needs to cover whole widget area
-        {0, 25, display_->getWidth(), display_->getHeight()});
+        });
 
     workouts_.drawStatic();
 }

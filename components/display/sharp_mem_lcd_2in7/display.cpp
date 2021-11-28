@@ -72,14 +72,25 @@ void Display::run() {
     }
 }
 
-void Display::enqueueDraw(std::function<void(Paint& paint)> callback, const Rect& rect) {
+void Display::enqueueDraw(std::function<void(Paint& paint)> callback) {
     std::lock_guard<std::recursive_mutex> lock(buffer_mutex_);
 
     // TODO: there is a great opportunity to improve the drawing, by
     // calculating dirty regions, clearing only that area, and passing only
     // dirty rectangles to the device, not the whole frame.
-    // But I plan to do this for memory display.
-    prepareCanvas(rect);
+
+    {
+        auto recorder = paint_.RecordDirtyRegions();
+        callback(paint_);
+    }
+
+    auto regions = paint_.GetRegions();
+
+    for (auto &region : regions) {
+        clearRegion(region);
+    }
+
+    // clearRegion(rect);
 
     callback(paint_);
 
@@ -178,7 +189,7 @@ void Display::draw() {
     vTaskDelay(pdMS_TO_TICKS(to_sleep));
 }
 
-void Display::prepareCanvas(const Rect& rect) {
+void Display::clearRegion(const Rect& rect) {
 #if defined(DEBUG_RECTS)
     auto color = COLORED;
 #else
