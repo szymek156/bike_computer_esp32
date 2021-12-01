@@ -5,15 +5,16 @@ The goal is to create a device that will last on the battery as long as possible
 
 Currently focus is on (indoor) cycling activity, hence the project name.
 
-TODO list is available here
+TODO list is available [here](TODO.md)
 
 Currently device looks like this, switched to Memory In Display LCD
 
+<img src="https://user-images.githubusercontent.com/1136779/144249966-40f97204-0211-4b5a-9904-d35a4ad28dda.jpg" alt="drawing" width="300"/>
 
 There is a demo of it, when display was an e-ink
 https://www.youtube.com/watch?v=1cKFIr01Nvw
 
-## Main highlights on current state
+## Main highlights of current state
 * Hardware is wired and works
 * SW architecture is chosen and implemented
 * Created a GUI for Activities, Statistics
