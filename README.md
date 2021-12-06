@@ -21,3 +21,4 @@ https://www.youtube.com/watch?v=1cKFIr01Nvw
 * Able to select from several Activity types
 * Activity starts, shows summary data, records are stored in FIT file
 * Currently WIP: BT communication to download the FIT file from the device.
+

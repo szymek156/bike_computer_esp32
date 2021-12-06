@@ -1,6 +1,6 @@
 #include "application.h"
 
-// #include "ble_wrapper.h"
+#include "ble_wrapper.h"
 #include "event_dispatcher.h"
 #include "fs_wrapper.h"
 #include "gnss.h"
@@ -22,27 +22,27 @@
 
 static const char* TAG = "Application";
 
-// void btTesting() {
-//     esp_err_t ret;
+void btTesting() {
+    esp_err_t ret;
 
-//     /* Initialize NVS. */
-//     ret = nvs_flash_init();
-//     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-//         ESP_ERROR_CHECK(nvs_flash_erase());
-//         ret = nvs_flash_init();
-//     }
-//     ESP_ERROR_CHECK(ret);
+    /* Initialize NVS. */
+    ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
 
-//     bk::BLEWrapper ble;
-//     ble.enable();
+    bk::BLEWrapper ble;
+    ble.enable();
 
-//     ESP_LOGI(TAG, "BLE enabled...");
+    ESP_LOGI(TAG, "BLE enabled...");
 
-//     while (true) {
-//         HealthService::reportAll();
-//         vTaskDelay(pdMS_TO_TICKS(2000));
-//     }
-// }
+    while (true) {
+        // HealthService::reportAll();
+        vTaskDelay(pdMS_TO_TICKS(2000));
+    }
+}
 
 void StartApplication() {
     // btTesting();

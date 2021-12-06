@@ -14,14 +14,17 @@
 namespace bk {
 static constexpr const char *TAG = "BT";
 static uint8_t adv_config_done = 0;
+
+// No idea what is it
 #define ESP_APP_ID 0x55
 #define SVC_INST_ID 0
 
+// TODO: this is some weird bit state machine, refactor
 #define ADV_CONFIG_FLAG (1 << 0)
 #define SCAN_RSP_CONFIG_FLAG (1 << 1)
 #define PROFILE_NUM 1
 #define PROFILE_APP_IDX 0
-#define SAMPLE_DEVICE_NAME "ESP_GATTS_DEMO"
+#define SAMPLE_DEVICE_NAME "BK_GATTS"
 /* Attributes State Machine */
 enum {
     IDX_SVC,
@@ -60,6 +63,8 @@ static const uint8_t char_prop_read_write_notify =
     ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
 static const uint8_t heart_measurement_ccc[2] = {0x00, 0x00};
 static const uint8_t char_value[4] = {0x11, 0x22, 0x33, 0x44};
+
+uint16_t heart_rate_handle_table[HRS_IDX_NB];
 
 static esp_ble_adv_params_t adv_params = {
     .adv_int_min = 0x20,
@@ -147,11 +152,10 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
 /* One gatt-based profile one app_id and one gatts_if, this array will store the gatts_if returned
  * by ESP_GATTS_REG_EVT */
 static struct gatts_profile_inst heart_rate_profile_tab[PROFILE_NUM] = {
-    [PROFILE_APP_IDX] =
-        {
-            .gatts_cb = gatts_profile_event_handler,
-            .gatts_if = ESP_GATT_IF_NONE, /* Not get the gatt_if, so initial is ESP_GATT_IF_NONE */
-        },
+    {
+        .gatts_cb = gatts_profile_event_handler,
+        .gatts_if = ESP_GATT_IF_NONE, /* Not get the gatt_if, so initial is ESP_GATT_IF_NONE */
+    },
 };
 
 /* Full Database Description - Used to add attributes into the database */
@@ -233,30 +237,24 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] = {
 static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
                                         esp_gatt_if_t gatts_if,
                                         esp_ble_gatts_cb_param_t *param) {
+    ESP_LOGI(TAG, "gatts profile event %x", event);
     switch (event) {
         case ESP_GATTS_REG_EVT: {
-            esp_err_t set_dev_name_ret = esp_ble_gap_set_device_name(SAMPLE_DEVICE_NAME);
-            if (set_dev_name_ret) {
-                ESP_LOGE(TAG, "set device name failed, error code = %x", set_dev_name_ret);
-            }
+            ESP_ERROR_CHECK(esp_ble_gap_set_device_name(SAMPLE_DEVICE_NAME));
 
-            // config adv data
-            esp_err_t ret = esp_ble_gap_config_adv_data(&adv_data);
-            if (ret) {
-                ESP_LOGE(TAG, "config adv data failed, error code = %x", ret);
-            }
+            // Set advertisement configuration
+            ESP_ERROR_CHECK(esp_ble_gap_config_adv_data(&adv_data));
+
             adv_config_done |= ADV_CONFIG_FLAG;
-            // config scan response data
-            ret = esp_ble_gap_config_adv_data(&scan_rsp_data);
-            if (ret) {
-                ESP_LOGE(TAG, "config scan response data failed, error code = %x", ret);
-            }
+            // Set scan response data
+            ESP_ERROR_CHECK(esp_ble_gap_config_adv_data(&scan_rsp_data));
+
             adv_config_done |= SCAN_RSP_CONFIG_FLAG;
-            esp_err_t create_attr_ret =
-                esp_ble_gatts_create_attr_tab(gatt_db, gatts_if, HRS_IDX_NB, SVC_INST_ID);
-            if (create_attr_ret) {
-                ESP_LOGE(TAG, "create attr table failed, error code = %x", create_attr_ret);
-            }
+
+            // Register GATT table, SVC_INST_ID - is service instance, can be more than one
+            ESP_ERROR_CHECK(
+                esp_ble_gatts_create_attr_tab(gatt_db, gatts_if, HRS_IDX_NB, SVC_INST_ID));
+
         } break;
         case ESP_GATTS_READ_EVT:
             ESP_LOGI(TAG, "ESP_GATTS_READ_EVT");
@@ -268,7 +266,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
         case ESP_GATTS_EXEC_WRITE_EVT:
             // the length of gattc prepare write data must be less than GATTS_DEMO_CHAR_VAL_LEN_MAX.
             ESP_LOGI(TAG, "ESP_GATTS_EXEC_WRITE_EVT");
-            example_exec_write_event_env(&prepare_write_env, param);
+            // example_exec_write_event_env(&prepare_write_env, param);
             break;
         case ESP_GATTS_MTU_EVT:
             ESP_LOGI(TAG, "ESP_GATTS_MTU_EVT, MTU %d", param->mtu.mtu);
@@ -285,10 +283,10 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
                      param->start.status,
                      param->start.service_handle);
             break;
-        case ESP_GATTS_CONNECT_EVT:
+        case ESP_GATTS_CONNECT_EVT: {
             ESP_LOGI(TAG, "ESP_GATTS_CONNECT_EVT, conn_id = %d", param->connect.conn_id);
             esp_log_buffer_hex(TAG, param->connect.remote_bda, 6);
-            esp_ble_conn_update_params_t conn_params = {0};
+            esp_ble_conn_update_params_t conn_params = {};
             memcpy(conn_params.bda, param->connect.remote_bda, sizeof(esp_bd_addr_t));
             /* For the iOS system, please refer to Apple official documents about the BLE connection
              * parameters restrictions. */
@@ -299,11 +297,14 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
             // start sent the update connection parameters to the peer device.
             esp_ble_gap_update_conn_params(&conn_params);
             break;
+        }
         case ESP_GATTS_DISCONNECT_EVT:
             ESP_LOGI(TAG, "ESP_GATTS_DISCONNECT_EVT, reason = 0x%x", param->disconnect.reason);
-            // esp_ble_gap_start_advertising(&adv_params);
+            esp_ble_gap_start_advertising(&adv_params);
             break;
         case ESP_GATTS_CREAT_ATTR_TAB_EVT: {
+            ESP_LOGI(TAG, "ESP_GATTS_CREAT_ATTR_TAB_EVT");
+
             if (param->add_attr_tab.status != ESP_GATT_OK) {
                 ESP_LOGE(TAG,
                          "create attribute table failed, error code=0x%x",
@@ -339,6 +340,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
 }
 
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param) {
+    ESP_LOGI(TAG, "gap event %x", event);
     switch (event) {
         case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
             adv_config_done &= (~ADV_CONFIG_FLAG);
@@ -387,11 +389,23 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
 static void gatts_event_handler(esp_gatts_cb_event_t event,
                                 esp_gatt_if_t gatts_if,
                                 esp_ble_gatts_cb_param_t *param) {
+    // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_gatts.html#enumerations
+
+    // Param is an union, different struct, depending on the event type
+    // /**
+    //  * @brief ESP_GATTS_REG_EVT
+    //  */
+    // struct gatts_reg_evt_param {
+    //     esp_gatt_status_t status; /*!< Operation status */
+    //     uint16_t app_id;          /*!< Application id which input in register API */
+    // } reg;
+
     /* If event is register event, store the gatts_if for each profile */
-    ESP_LOGI(TAG, "gatts event %x", event);
+    ESP_LOGI(TAG, "gatts event %x gatts_if %u", event, gatts_if);
 
     if (event == ESP_GATTS_REG_EVT) {
         if (param->reg.status == ESP_GATT_OK) {
+            // There can be more than one application, that can be distinguished by app_id in param
             heart_rate_profile_tab[PROFILE_APP_IDX].gatts_if = gatts_if;
         } else {
             ESP_LOGE(TAG,
@@ -401,18 +415,16 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
             return;
         }
     }
-    do {
-        int idx;
-        for (idx = 0; idx < PROFILE_NUM; idx++) {
-            // /* ESP_GATT_IF_NONE, not specify a certain gatt_if, need to call every profile cb
-            // function */ if (gatts_if == ESP_GATT_IF_NONE || gatts_if ==
-            // heart_rate_profile_tab[idx].gatts_if) {
-            //     if (heart_rate_profile_tab[idx].gatts_cb) {
-            //         heart_rate_profile_tab[idx].gatts_cb(event, gatts_if, param);
-            //     }
-            // }
+
+    for (int idx = 0; idx < PROFILE_NUM; idx++) {
+        /* ESP_GATT_IF_NONE, not specify a certain gatt_if, need to call every profile cb
+        function */
+        if (gatts_if == ESP_GATT_IF_NONE || gatts_if == heart_rate_profile_tab[idx].gatts_if) {
+            if (heart_rate_profile_tab[idx].gatts_cb) {
+                heart_rate_profile_tab[idx].gatts_cb(event, gatts_if, param);
+            }
         }
-    } while (0);
+    }
 }
 
 void BLEWrapper::enable() {
@@ -427,10 +439,14 @@ void BLEWrapper::enable() {
     // }
     // ESP_ERROR_CHECK(ret);
 
+    // If the app calls esp_bt_controller_enable(ESP_BT_MODE_BLE) to use BLE only then it is safe to
+    // call esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT) at initialization time to free
+    // unused BT Classic memory.
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
 
     esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
 
+    // Allocates BT task and stuff, should be called exactly once
     ESP_ERROR_CHECK(esp_bt_controller_init(&bt_cfg));
 
     ESP_ERROR_CHECK(esp_bt_controller_enable(ESP_BT_MODE_BLE));
@@ -443,6 +459,8 @@ void BLEWrapper::enable() {
 
     ESP_ERROR_CHECK(esp_ble_gap_register_callback(gap_event_handler));
 
+    // That triggers gatts event ESP_GATTS_REG_EVT,
+    // You may want to register more than one application?
     ESP_ERROR_CHECK(esp_ble_gatts_app_register(ESP_APP_ID));
 
     ESP_ERROR_CHECK(esp_ble_gatt_set_local_mtu(500));
