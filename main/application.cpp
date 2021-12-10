@@ -45,7 +45,7 @@ void btTesting() {
 }
 
 void StartApplication() {
-    // btTesting();
+    btTesting();
 
     bk::FSWrapper::mountStorage();
 

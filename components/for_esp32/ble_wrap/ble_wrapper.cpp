@@ -232,6 +232,7 @@ void BLEWrapper::enable() {
 
     ESP_ERROR_CHECK(esp_bt_controller_enable(ESP_BT_MODE_BLE));
 
+    // Initialize BLE SW stack
     ESP_ERROR_CHECK(esp_bluedroid_init());
 
     ESP_ERROR_CHECK(esp_bluedroid_enable());

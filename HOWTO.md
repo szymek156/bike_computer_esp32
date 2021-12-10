@@ -68,14 +68,31 @@ https://blog.anoff.io/2018-07-31-diagrams-with-plantuml/
 
 
 ```plantuml
-@startuml component
-actor client
-node app
-database db
+@startuml
+BLEWrapper -> BLEWrapper: Init BT hardware
+BLEWrapper -> BLEWrapper: Init Bluedroid software stack
+BLEWrapper -> BLEWrapper: Register GAP callback
+BLEWrapper -> BLEWrapper: Register GATTS callback
 
-db -> app
-app -> client
+BLEWrapper -> BLEWrapper: Register GATTS app esp_ble_gatts_app_register
+BLEWrapper --> GATTS_CB: ESP_GATTS_REG_EVT
+GATTS_CB -> GATTS_CB: Set dev name
+GATTS_CB -> GATTS_CB: Set advertisement conf
+GATTS_CB -> GATTS_CB: Set scan resp conf
+GATTS_CB -> GATTS_CB: Register GATTS DB
+
+GATTS_CB --> GAP_CB: ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT ?
+GATTS_CB --> GAP_CB: ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT ?
+GAP_CB -> GAP_CB: esp_ble_gap_start_advertising
+
+GAP_CB --> GAP_CB: ESP_GAP_BLE_ADV_START_COMPLETE_EVT
+
+--> GATTS: ESP_GATTS_CONNECT_EVT
+GATTS -> GATTS: esp_ble_gap_update_conn_params
+
+
 @enduml
+
 ```
 
 # Display selection
