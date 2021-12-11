@@ -27,14 +27,14 @@ static const uint8_t char_prop_write = ESP_GATT_CHAR_PROP_BIT_WRITE;
 static const uint8_t char_prop_read_write_notify =
     ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
 static const uint8_t heart_measurement_ccc[2] = {0x00, 0x00};
-static const uint8_t char_value[4] = {0x11, 0x22, 0x33, 0x44};
+static const uint8_t char_value[ESP_GATT_MAX_ATTR_LEN] = {};
 
 uint16_t heart_rate_handle_table[HRS_IDX_NB];
 
 /* The max length of characteristic value. When the GATT client performs a write or prepare write
  * operation, the data length must be less than GATTS_DEMO_CHAR_VAL_LEN_MAX.
  */
-#define GATTS_DEMO_CHAR_VAL_LEN_MAX 500
+#define GATTS_DEMO_CHAR_VAL_LEN_MAX ESP_GATT_MAX_ATTR_LEN
 #define PREPARE_BUF_MAX_SIZE 1024
 #define CHAR_DECLARATION_SIZE (sizeof(uint8_t))
 
@@ -86,7 +86,7 @@ const esp_gatts_attr_db_t GATTS::gatt_db[HRS_IDX_NB] = {
                      (uint8_t *)&char_prop_read}},
 
     /* Characteristic Value */
-    [IDX_CHAR_VAL_B] = {{ESP_GATT_AUTO_RSP},
+    [IDX_CHAR_VAL_B] = {{ESP_GATT_RSP_BY_APP},
                         {ESP_UUID_LEN_16,
                          (uint8_t *)&GATTS_CHAR_UUID_TEST_B,
                          ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
@@ -104,7 +104,7 @@ const esp_gatts_attr_db_t GATTS::gatt_db[HRS_IDX_NB] = {
                      (uint8_t *)&char_prop_write}},
 
     /* Characteristic Value */
-    [IDX_CHAR_VAL_C] = {{ESP_GATT_AUTO_RSP},
+    [IDX_CHAR_VAL_C] = {{ESP_GATT_RSP_BY_APP},
                         {ESP_UUID_LEN_16,
                          (uint8_t *)&GATTS_CHAR_UUID_TEST_C,
                          ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
@@ -132,9 +132,82 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
                                         esp_ble_gatts_cb_param_t *param) {
     ESP_LOGI(TAG, "gatts profile event %x", event);
     switch (event) {
-        case ESP_GATTS_READ_EVT:
-            ESP_LOGI(TAG, "ESP_GATTS_READ_EVT");
+        case ESP_GATTS_READ_EVT: {
+            ESP_LOGI(TAG,
+                     "ESP_GATTS_READ_EVT conn id %u, trans id %u, attr handle %u, offset %u, is "
+                     "long %u need resp %u",
+                     param->read.conn_id,
+                     param->read.trans_id,
+                     param->read.handle,
+                     param->read.offset,
+                     param->read.is_long,
+                     param->read.need_rsp);
+
+            if (!param->read.need_rsp)
+                break;  // For some reason you can request a read but not want a response
+
+            esp_gatt_rsp_t response = {};
+
+            response.attr_value.len = 22;
+            response.attr_value.offset = param->read.offset;
+            response.attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
+            response.attr_value.handle = param->read.handle;
+
+            for (int i = 0; i < 22; i++) {
+                response.attr_value.value[i] = param->read.offset;
+            }
+
+            ESP_ERROR_CHECK(esp_ble_gatts_send_response(
+                gatts_if, param->read.conn_id, param->read.trans_id, ESP_GATT_OK, &response));
+
+            //   if (param->read.handle != this->handle_)
+            //     break;  // Not this characteristic
+
+            //   if (!param->read.need_rsp)
+            //     break;  // For some reason you can request a read but not want a response
+
+            //   uint16_t max_offset = 22;
+
+            //   esp_gatt_rsp_t response;
+            //   if (param->read.is_long) {
+            //     if (this->value_.size() - this->value_read_offset_ < max_offset) {
+            //       //  Last message in the chain
+            //       response.attr_value.len = this->value_.size() - this->value_read_offset_;
+            //       response.attr_value.offset = this->value_read_offset_;
+            //       memcpy(response.attr_value.value, this->value_.data() +
+            //       response.attr_value.offset, response.attr_value.len); this->value_read_offset_
+            //       = 0;
+            //     } else {
+            //       response.attr_value.len = max_offset;
+            //       response.attr_value.offset = this->value_read_offset_;
+            //       memcpy(response.attr_value.value, this->value_.data() +
+            //       response.attr_value.offset, response.attr_value.len);
+            //       this->value_read_offset_ += max_offset;
+            //     }
+            //   } else {
+            //     response.attr_value.offset = 0;
+            //     if (this->value_.size() + 1 > max_offset) {
+            //       response.attr_value.len = max_offset;
+            //       this->value_read_offset_ = max_offset;
+            //     } else {
+            //       response.attr_value.len = this->value_.size();
+            //     }
+            //     memcpy(response.attr_value.value, this->value_.data(), response.attr_value.len);
+            //   }
+
+            //   response.attr_value.handle = this->handle_;
+            //   response.attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
+
+            //   esp_err_t err =
+            //       esp_ble_gatts_send_response(gatts_if, param->read.conn_id,
+            //       param->read.trans_id, ESP_GATT_OK, &response);
+            //   if (err != ESP_OK) {
+            //     ESP_LOGE(TAG, "esp_ble_gatts_send_response failed: %d", err);
+            //   }
+            //   break;
             break;
+        }
+
         case ESP_GATTS_WRITE_EVT:
             ESP_LOGI(TAG, "ESP_GATTS_WRITE_EVT");
 
@@ -161,14 +234,22 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
             break;
         case ESP_GATTS_CONNECT_EVT: {
             ESP_LOGI(TAG, "ESP_GATTS_CONNECT_EVT, conn_id = %d", param->connect.conn_id);
+            // Configure connection parameters
+
+            // Log a buffer of hex bytes at info level
+            ESP_LOGI(TAG, "Remote device address:");
             esp_log_buffer_hex(TAG, param->connect.remote_bda, 6);
+
             esp_ble_conn_update_params_t conn_params = {};
+
+            // BDA - bluetooth remote device address
             memcpy(conn_params.bda, param->connect.remote_bda, sizeof(esp_bd_addr_t));
-            /* For the iOS system, please refer to Apple official documents about the BLE connection
-             * parameters restrictions. */
             conn_params.latency = 0;
-            conn_params.max_int = 0x20;  // max_int = 0x20*1.25ms = 40ms
-            conn_params.min_int = 0x10;  // min_int = 0x10*1.25ms = 20ms
+            // conn_params.max_int = 0x20;  // max_int = 0x20*1.25ms = 40ms
+            // conn_params.min_int = 0x10;  // min_int = 0x10*1.25ms = 20ms
+            // conn_params.timeout = 400;   // timeout = 400*10ms = 4000ms
+            conn_params.max_int = 0x6;  // max_int = 0x20*1.25ms = 40ms
+            conn_params.min_int = 0x6;  // min_int = 0x10*1.25ms = 20ms
             conn_params.timeout = 400;   // timeout = 400*10ms = 4000ms
             // start sent the update connection parameters to the peer device.
             esp_ble_gap_update_conn_params(&conn_params);

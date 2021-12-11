@@ -65,10 +65,14 @@ https://blog.anoff.io/2018-07-31-diagrams-with-plantuml/
 * https://www.jaredwolff.com/get-started-with-bluetooth-low-energy/
 * https://www.espressif.com/sites/default/files/documentation/esp32_bluetooth_architecture_en.pdf
 * https://learn.adafruit.com/introduction-to-bluetooth-low-energy/gatt
+* https://punchthrough.com/maximizing-ble-throughput-part-3-data-length-extension-dle-2/
+* https://github.com/chegewara/esp32-OTA-over-BLE
+
 
 
 ```plantuml
 @startuml
+group Init
 BLEWrapper -> BLEWrapper: Init BT hardware
 BLEWrapper -> BLEWrapper: Init Bluedroid software stack
 BLEWrapper -> BLEWrapper: Register GAP callback
@@ -80,21 +84,48 @@ GATTS_CB -> GATTS_CB: Set dev name
 GATTS_CB -> GATTS_CB: Set advertisement conf
 GATTS_CB -> GATTS_CB: Set scan resp conf
 GATTS_CB -> GATTS_CB: Register GATTS DB
+end
+@enduml
 
+```
+
+```plantuml
+@startuml
+group Advertising
 GATTS_CB --> GAP_CB: ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT ?
 GATTS_CB --> GAP_CB: ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT ?
 GAP_CB -> GAP_CB: esp_ble_gap_start_advertising
 
 GAP_CB --> GAP_CB: ESP_GAP_BLE_ADV_START_COMPLETE_EVT
-
---> GATTS: ESP_GATTS_CONNECT_EVT
-GATTS -> GATTS: esp_ble_gap_update_conn_params
-
-
+end
 @enduml
 
 ```
 
+```plantuml
+group Connect
+GATTS <-- User: ESP_GATTS_CONNECT_EVT
+GATTS -> GATTS: esp_ble_gap_update_conn_params
+GATTS --> GAP_CB: ESP_GAP_BLE_UPDATE_CONN_PARAMS_EVT
+end
+@enduml
+
+```
+
+```plantuml
+@startuml
+
+group Read
+GATTS <- User: ESP_GATTS_READ_EVT
+GATTS -> User: Characteristic value
+
+note right
+if ESP_GATT_AUTO_RSP is set, GATT stack replies automatically
+end note
+end
+@enduml
+
+```
 # Display selection
 ## Eink
  * +Low power
