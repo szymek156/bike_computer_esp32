@@ -68,6 +68,20 @@ https://blog.anoff.io/2018-07-31-diagrams-with-plantuml/
 * https://punchthrough.com/maximizing-ble-throughput-part-3-data-length-extension-dle-2/
 * https://github.com/chegewara/esp32-OTA-over-BLE
 
+## Send big files:
+https://github.com/chegewara/esp32-OTA-over-BLE
+
+OTA as an example.
+One characteristic with read/write perm:
+read: returns available ota version (on second characteristic)
+write: create an event that triggers indication on other characteristic
+
+Second characteristic sends indication with payload of max size (ESP_GATT_MAX_ATTR_LEN)
+(indication requires ack, notification doesn't)
+
+on connect, update connection params, min, max interval set to 0x6 (fastest), latency 0, timeout 100
+
+local MTU set to 517 (max)
 
 
 ```plantuml
