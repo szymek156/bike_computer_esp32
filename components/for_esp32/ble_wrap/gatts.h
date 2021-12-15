@@ -32,6 +32,8 @@ class GATTS {
     };
 
     static gatts_profile_inst heart_rate_profile_tab[PROFILE_NUM];
+
+    static void test_indicate();
 };
 
 }  // namespace bk

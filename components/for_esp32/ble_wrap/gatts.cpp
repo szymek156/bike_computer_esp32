@@ -21,14 +21,24 @@ static const uint16_t GATTS_CHAR_UUID_TEST_C = 0xFF03;
 
 static const uint16_t primary_service_uuid = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid = ESP_GATT_UUID_CHAR_DECLARE;
+static const uint16_t my_character_declaration_uuid =
+    ESP_GATT_UUID_CHAR_CLIENT_CONFIG | ESP_GATT_UUID_CHAR_PRESENT_FORMAT;
+
 static const uint16_t character_client_config_uuid = ESP_GATT_UUID_CHAR_CLIENT_CONFIG;
 static const uint8_t char_prop_read = ESP_GATT_CHAR_PROP_BIT_READ;
+static const uint8_t char_prop_read_indicate =
+    ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_INDICATE;
+
 static const uint8_t char_prop_write = ESP_GATT_CHAR_PROP_BIT_WRITE;
+// static const uint8_t char_prop_read_write_notify =
+    // ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
 static const uint8_t char_prop_read_write_notify =
-    ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
+    ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_INDICATE;
 static const uint8_t heart_measurement_ccc[2] = {0x00, 0x00};
 static const uint8_t char_value[ESP_GATT_MAX_ATTR_LEN] = {};
 
+// Keeps handles to bluetooth characteristic, is later used by:
+// esp_ble_gatts_set_attr_value
 uint16_t heart_rate_handle_table[HRS_IDX_NB];
 
 /* The max length of characteristic value. When the GATT client performs a write or prepare write
@@ -59,7 +69,7 @@ const esp_gatts_attr_db_t GATTS::gatt_db[HRS_IDX_NB] = {
                      (uint8_t *)&char_prop_read_write_notify}},
 
     /* Characteristic Value */
-    [IDX_CHAR_VAL_A] = {{ESP_GATT_AUTO_RSP},
+    [IDX_CHAR_VAL_A] = {{ESP_GATT_RSP_BY_APP},
                         {ESP_UUID_LEN_16,
                          (uint8_t *)&GATTS_CHAR_UUID_TEST_A,
                          ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
@@ -68,14 +78,17 @@ const esp_gatts_attr_db_t GATTS::gatt_db[HRS_IDX_NB] = {
                          (uint8_t *)char_value}},
 
     /* Client Characteristic Configuration Descriptor */
-    [IDX_CHAR_CFG_A] = {{ESP_GATT_AUTO_RSP},
+    [IDX_CHAR_CFG_A] = {{ESP_GATT_RSP_BY_APP},
                         {ESP_UUID_LEN_16,
                          (uint8_t *)&character_client_config_uuid,
                          ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-                         sizeof(uint16_t),
-                         sizeof(heart_measurement_ccc),
-                         (uint8_t *)heart_measurement_ccc}},
-
+                         GATTS_DEMO_CHAR_VAL_LEN_MAX,
+                         sizeof(char_value),
+                         (uint8_t *)char_value}},
+                        //  sizeof(uint16_t),
+                        //  sizeof(heart_measurement_ccc),
+                        //  (uint8_t *)heart_measurement_ccc}},
+    //////////////////////////////////////////////////////////////////////////////////////////////////////
     /* Characteristic Declaration */
     [IDX_CHAR_B] = {{ESP_GATT_AUTO_RSP},
                     {ESP_UUID_LEN_16,
@@ -83,17 +96,29 @@ const esp_gatts_attr_db_t GATTS::gatt_db[HRS_IDX_NB] = {
                      ESP_GATT_PERM_READ,
                      CHAR_DECLARATION_SIZE,
                      CHAR_DECLARATION_SIZE,
-                     (uint8_t *)&char_prop_read}},
+                     (uint8_t *)&char_prop_read_write_notify}},
 
     /* Characteristic Value */
-    [IDX_CHAR_VAL_B] = {{ESP_GATT_RSP_BY_APP},
-                        {ESP_UUID_LEN_16,
-                         (uint8_t *)&GATTS_CHAR_UUID_TEST_B,
-                         ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-                         GATTS_DEMO_CHAR_VAL_LEN_MAX,
-                         sizeof(char_value),
-                         (uint8_t *)char_value}},
+    [IDX_CHAR_VAL_B] =
+        {{ESP_GATT_RSP_BY_APP},
+         // TODO: ESP_GATT_CHAR_PROP_BIT_INDICATE
+         // #define ESP_GATT_UUID_CHAR_CLIENT_CONFIG            0x2902          /*
+         // Client Characteristic Configuration */
+         // #define ESP_GATT_UUID_CHAR_PRESENT_FORMAT           0x2904          /*
+         // Characteristic Presentation Format*/
+         // esp_ble_gatts_send_indicate(gatts_if, param->reg.app_id, handle, length, val_p,
+         //                                 needs_confirmation);
+         // esp_ble_gatts_set_attr_value(dashboard_service_handles[IDX_DS_FRONT_LIGHT_VAL],
+         //                                 sizeof(dashboard_service_data.front_light),
+         //                                 (uint8_t *)&dashboard_service_data.front_light);
 
+         {ESP_UUID_LEN_16,
+          (uint8_t *)&GATTS_CHAR_UUID_TEST_B,
+          ESP_GATT_PERM_READ,
+          GATTS_DEMO_CHAR_VAL_LEN_MAX,
+          sizeof(char_value),
+          (uint8_t *)char_value}},
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
     /* Characteristic Declaration */
     [IDX_CHAR_C] = {{ESP_GATT_AUTO_RSP},
                     {ESP_UUID_LEN_16,
@@ -127,10 +152,24 @@ GATTS::gatts_profile_inst GATTS::heart_rate_profile_tab[PROFILE_NUM] = {
     },
 };
 
+static uint8_t value_to_send[ESP_GATT_MAX_ATTR_LEN] = {};
+
+void GATTS::test_indicate() {
+    ESP_LOGI(TAG, "Setting the value for indication");
+
+    static int COUNTER = 0;
+
+    COUNTER++;
+
+    memset(value_to_send, COUNTER, ESP_GATT_MAX_ATTR_LEN);
+
+    esp_ble_gatts_set_attr_value(
+        heart_rate_handle_table[IDX_CHAR_VAL_A], ESP_GATT_MAX_ATTR_LEN, value_to_send);
+}
 static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
                                         esp_gatt_if_t gatts_if,
                                         esp_ble_gatts_cb_param_t *param) {
-    ESP_LOGI(TAG, "gatts profile event %x", event);
+    ESP_LOGI(TAG, "gatts profile event %u decimal", event);
     switch (event) {
         case ESP_GATTS_READ_EVT: {
             ESP_LOGI(TAG,
@@ -143,6 +182,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
                      param->read.is_long,
                      param->read.need_rsp);
 
+            // If characteristic in the table is set to auto response, this will be false
             if (!param->read.need_rsp)
                 break;  // For some reason you can request a read but not want a response
 
@@ -210,7 +250,6 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
 
         case ESP_GATTS_WRITE_EVT:
             ESP_LOGI(TAG, "ESP_GATTS_WRITE_EVT");
-
             break;
         case ESP_GATTS_EXEC_WRITE_EVT:
             // the length of gattc prepare write data must be less than GATTS_DEMO_CHAR_VAL_LEN_MAX.
@@ -250,7 +289,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
             // conn_params.timeout = 400;   // timeout = 400*10ms = 4000ms
             conn_params.max_int = 0x6;  // max_int = 0x20*1.25ms = 40ms
             conn_params.min_int = 0x6;  // min_int = 0x10*1.25ms = 20ms
-            conn_params.timeout = 400;   // timeout = 400*10ms = 4000ms
+            conn_params.timeout = 400;  // timeout = 400*10ms = 4000ms
             // start sent the update connection parameters to the peer device.
             esp_ble_gap_update_conn_params(&conn_params);
             break;
@@ -279,6 +318,16 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
             }
             break;
         }
+        case ESP_GATTS_SET_ATTR_VAL_EVT: {
+            ESP_LOGI(TAG, "Sending an indication");
+            bool needs_confirmation = true;
+            uint16_t handle = param->set_attr_val.attr_handle;
+
+            esp_ble_gatts_send_indicate(
+                gatts_if, param->reg.app_id, handle, 100, value_to_send, needs_confirmation);
+
+            break;
+        }
         case ESP_GATTS_STOP_EVT:
         case ESP_GATTS_OPEN_EVT:
         case ESP_GATTS_CANCEL_OPEN_EVT:
@@ -287,6 +336,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
         case ESP_GATTS_CONGEST_EVT:
         case ESP_GATTS_UNREG_EVT:
         case ESP_GATTS_DELETE_EVT:
+        // TODO:
         default:
             break;
     }

@@ -6,5 +6,7 @@ class BLEWrapper {
  public:
     void enable();
     void disable();
+
+    void test_indicate();
 };
 }  // namespace bk

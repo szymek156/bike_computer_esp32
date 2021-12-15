@@ -40,6 +40,8 @@ void btTesting() {
 
     while (true) {
         // HealthService::reportAll();
+
+        ble.test_indicate();
         vTaskDelay(pdMS_TO_TICKS(2000));
     }
 }
