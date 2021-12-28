@@ -136,14 +136,13 @@ void GATTS::test_indicate() {
 
     static int COUNTER = 0;
 
-    for (int i = 0; i < 1; i++) {
-        COUNTER++;
-        memset(value_to_send + i * 20, COUNTER, 20);
+    COUNTER++;
+    memset(value_to_send, COUNTER, ESP_GATT_MAX_ATTR_LEN);
 
-        esp_ble_gatts_set_attr_value(
-          heart_rate_handle_table[IDX_CHAR_VAL_A], 20, value_to_send + i * 20);
-    }
+    esp_ble_gatts_set_attr_value(
+        heart_rate_handle_table[IDX_CHAR_VAL_A], ESP_GATT_MAX_ATTR_LEN, value_to_send);
 }
+
 static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
                                         esp_gatt_if_t gatts_if,
                                         esp_ble_gatts_cb_param_t *param) {
@@ -304,7 +303,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
             uint16_t handle = param->set_attr_val.attr_handle;
 
             esp_ble_gatts_send_indicate(
-                gatts_if, param->reg.app_id, handle, 20, value_to_send, needs_confirmation);
+                gatts_if, param->reg.app_id, handle, 500, value_to_send, needs_confirmation);
 
             break;
         }

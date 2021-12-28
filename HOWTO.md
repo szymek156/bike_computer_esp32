@@ -78,10 +78,18 @@ write: create an event that triggers indication on other characteristic
 
 Second characteristic sends indication with payload of max size (ESP_GATT_MAX_ATTR_LEN)
 (indication requires ack, notification doesn't)
+Indications are send one after another. It waits until ACK is received. Then another indication is
+armed.
+in ota over ble example both sides sets max MTU
 
-on connect, update connection params, min, max interval set to 0x6 (fastest), latency 0, timeout 100
+* on connect, update connection params, min, max interval set to 0x6 (fastest), latency 0, timeout 100
+* **client** needs to send MTU request in order to have large indications:
+I (112615) BT_GATTS: ESP_GATTS_MTU_EVT, MTU 500
+* local MTU set to 517 (max)
+* Send indication, wait for ACK, send another chunk of data
+* It's possible to use ```esp_ble_gatts_send_indicate(gatts_if, param->reg.app_id, handle, 500, value_to_send, needs_confirmation);```
+without indirect ```esp_ble_gatts_set_attr_value(```
 
-local MTU set to 517 (max)
 
 
 ```plantuml
