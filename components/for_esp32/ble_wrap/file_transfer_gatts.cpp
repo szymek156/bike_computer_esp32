@@ -9,6 +9,7 @@
 #include <esp_gatts_api.h>
 #include <esp_log.h>
 
+// For future me, maybe I will be insane enough to visit this part of the code again.
 // TODO: BLE API is horrible, verbose, and in many places undocumented.
 // This is minimal working piece of code that allows me to do what I want,
 // i.e. sending the file
@@ -35,9 +36,7 @@ static const uint8_t char_prop_indicate = ESP_GATT_CHAR_PROP_BIT_INDICATE;
 
 static const uint8_t char_value[ESP_GATT_MAX_ATTR_LEN] = {};
 
-// Keeps handles to bluetooth characteristics, can be later used to set value on them
-// by, for example esp_ble_gatts_set_attr_value
-uint16_t handle_table[ATT_IDX_END];
+uint16_t FileTransferGATTS::handle_table[ATT_IDX_END] = {};
 
 #define CHAR_DECLARATION_SIZE (sizeof(uint8_t))
 
@@ -165,7 +164,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
                      param->read.is_long,
                      param->read.need_rsp);
 
-            if (handle_table[IDX_CHAR_VAL_FILE_LIST] == param->read.handle) {
+            if (FileTransferGATTS::handle_table[IDX_CHAR_VAL_FILE_LIST] == param->read.handle) {
                 // User requested list the files
                 ESP_LOGI(TAG, "Got request to list the files");
 
@@ -204,42 +203,43 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
         case ESP_GATTS_WRITE_EVT:
             ESP_LOGI(TAG, "ESP_GATTS_WRITE_EVT");
             // if (param->write.handle == m_handle) {
-			// 	if (param->write.is_prep) {
-			// 		m_value.addPart(param->write.value, param->write.len);
-			// 		m_writeEvt = true;
-			// 	} else {
-			// 		setValue(param->write.value, param->write.len);
-			// 		if (m_pCallbacks != nullptr && param->write.is_prep != true) {
-			// 			m_pCallbacks->onWrite(this); // Invoke the onWrite callback handler.
-			// 		}
-			// 	}
+            // 	if (param->write.is_prep) {
+            // 		m_value.addPart(param->write.value, param->write.len);
+            // 		m_writeEvt = true;
+            // 	} else {
+            // 		setValue(param->write.value, param->write.len);
+            // 		if (m_pCallbacks != nullptr && param->write.is_prep != true) {
+            // 			m_pCallbacks->onWrite(this); // Invoke the onWrite callback handler.
+            // 		}
+            // 	}
 
-			// 	ESP_LOGD(LOG_TAG, " - Response to write event: New value: handle: %.2x, uuid: %s",
-			// 			getHandle(), getUUID().toString().c_str());
+            // 	ESP_LOGD(LOG_TAG, " - Response to write event: New value: handle: %.2x, uuid: %s",
+            // 			getHandle(), getUUID().toString().c_str());
 
-			// 	char* pHexData = BLEUtils::buildHexData(nullptr, param->write.value, param->write.len);
-			// 	ESP_LOGD(LOG_TAG, " - Data: length: %d, data: %s", param->write.len, pHexData);
-			// 	free(pHexData);
+            // 	char* pHexData = BLEUtils::buildHexData(nullptr, param->write.value,
+            // param->write.len); 	ESP_LOGD(LOG_TAG, " - Data: length: %d, data: %s",
+            // param->write.len, pHexData); 	free(pHexData);
 
-			// 	if (param->write.need_rsp) {
-			// 		esp_gatt_rsp_t rsp;
+            // 	if (param->write.need_rsp) {
+            // 		esp_gatt_rsp_t rsp;
 
-			// 		rsp.attr_value.len      = param->write.len;
-			// 		rsp.attr_value.handle   = m_handle;
-			// 		rsp.attr_value.offset   = param->write.offset;
-			// 		rsp.attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
-			// 		memcpy(rsp.attr_value.value, param->write.value, param->write.len);
+            // 		rsp.attr_value.len      = param->write.len;
+            // 		rsp.attr_value.handle   = m_handle;
+            // 		rsp.attr_value.offset   = param->write.offset;
+            // 		rsp.attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
+            // 		memcpy(rsp.attr_value.value, param->write.value, param->write.len);
 
-			// 		esp_err_t errRc = ::esp_ble_gatts_send_response(
-			// 				gatts_if,
-			// 				param->write.conn_id,
-			// 				param->write.trans_id, ESP_GATT_OK, &rsp);
-			// 		if (errRc != ESP_OK) {
-			// 			ESP_LOGE(LOG_TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-			// 		}
-			// 	} // Response needed
+            // 		esp_err_t errRc = ::esp_ble_gatts_send_response(
+            // 				gatts_if,
+            // 				param->write.conn_id,
+            // 				param->write.trans_id, ESP_GATT_OK, &rsp);
+            // 		if (errRc != ESP_OK) {
+            // 			ESP_LOGE(LOG_TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc,
+            // GeneralUtils::errorToString(errRc));
+            // 		}
+            // 	} // Response needed
 
-			// } // Match on handles.
+            // } // Match on handles.
             break;
         case ESP_GATTS_EXEC_WRITE_EVT:
             // the length of gattc prepare write data must be less than ESP_GATT_MAX_ATTR_LEN.
@@ -300,8 +300,10 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
                 ESP_LOGI(TAG,
                          "create attribute table successfully, the number handle = %d\n",
                          param->add_attr_tab.num_handle);
-                memcpy(handle_table, param->add_attr_tab.handles, sizeof(handle_table));
-                esp_ble_gatts_start_service(handle_table[IDX_SVC]);
+                memcpy(FileTransferGATTS::handle_table,
+                       param->add_attr_tab.handles,
+                       sizeof(FileTransferGATTS::handle_table));
+                esp_ble_gatts_start_service(FileTransferGATTS::handle_table[IDX_SVC]);
             }
             break;
         }

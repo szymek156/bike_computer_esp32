@@ -6,7 +6,7 @@
 // Upon read it lists files that are avaliable to get
 // Upon write it selects a file that client wants to fetch
 // Write triggers the task that starts indication on other characteristic
-// Indications are of size 500 bytes, client **must** send MTU request
+// Indications are of size 500 bytes, client **must** send MTU == 500 request
 // In order to have correct data.
 // Indication of first chunk is send, wait for ACK, then send second chunk and so on...
 
@@ -31,8 +31,10 @@ enum {
 
 #define SVC_INST_ID 0
 
+// TODO: remove those statics, my eyes bleeds!
 class FileTransferGATTS {
  public:
+    // Defines characteristics exposed by the server
     static const esp_gatts_attr_db_t gatt_db[ATT_IDX_END];
 
     struct gatts_profile_inst {
@@ -40,7 +42,12 @@ class FileTransferGATTS {
         uint16_t gatts_if;
     };
 
+    // Keeps callback for event handler
     static gatts_profile_inst profile_tab[PROFILE_NUM];
+
+    // Keeps handles to bluetooth characteristics, can be later used to set value on them
+    // by, for example esp_ble_gatts_set_attr_value
+    static uint16_t handle_table[ATT_IDX_END];
 
     static void test_indicate();
 };
