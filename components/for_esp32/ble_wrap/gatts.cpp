@@ -9,6 +9,15 @@
 #include <esp_gatts_api.h>
 #include <esp_log.h>
 
+// TODO: BLE API is horrible, verbose, and in many places undocumented.
+// This is minimal working piece of code that allows me to do what I want,
+// i.e. sending the file
+// 1. Read carefully through
+//    https://punchthrough.com/ble-throughput-part-4/
+//    Find pieces I missed in following implementation
+// 2. Use human friendly wrapper for BLE https://github.com/nkolban/ESP32_BLE_Arduino
+// 3. Great resource of wisdom is https://github.com/chegewara/esp32-OTA-over-BLE
+
 namespace bk {
 
 static constexpr const char *TAG = "BT_GATTS";
