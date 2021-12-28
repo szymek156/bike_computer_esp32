@@ -10,7 +10,7 @@
 #include <esp_gatts_api.h>
 #include <esp_log.h>
 // #include <nvs_flash.h>
-#include "gatts.h"
+#include "file_transfer_gatts.h"
 
 namespace bk {
 static constexpr const char *TAG = "BT";
@@ -19,7 +19,6 @@ static uint8_t adv_config_done = 0;
 #define SAMPLE_DEVICE_NAME "BK_GATTS"
 // No idea what is it
 #define ESP_APP_ID 0x55
-#define SVC_INST_ID 0
 
 // TODO: let it be some meaningful value
 static uint8_t service_uuid[16] = {
@@ -157,7 +156,7 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
     if (event == ESP_GATTS_REG_EVT) {
         if (param->reg.status == ESP_GATT_OK) {
             // There can be more than one application, that can be distinguished by app_id in param
-            GATTS::heart_rate_profile_tab[PROFILE_APP_IDX].gatts_if = gatts_if;
+            FileTransferGATTS::profile_tab[PROFILE_APP_IDX].gatts_if = gatts_if;
         } else {
             ESP_LOGE(TAG,
                      "reg app failed, app_id %04x, status %d",
@@ -171,8 +170,8 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
         /* ESP_GATT_IF_NONE, not specify a certain gatt_if, need to call every profile cb
         function */
         if (gatts_if == ESP_GATT_IF_NONE ||
-            gatts_if == GATTS::heart_rate_profile_tab[idx].gatts_if) {
-            if (GATTS::heart_rate_profile_tab[idx].gatts_cb) {
+            gatts_if == FileTransferGATTS::profile_tab[idx].gatts_if) {
+            if (FileTransferGATTS::profile_tab[idx].gatts_cb) {
                 switch (event) {
                     // Handle register event by GAP
                     case ESP_GATTS_REG_EVT: {
@@ -190,7 +189,7 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
                         // Register GATT table, SVC_INST_ID - is service instance, can be more than
                         // one
                         ESP_ERROR_CHECK(esp_ble_gatts_create_attr_tab(
-                            GATTS::gatt_db, gatts_if, HRS_IDX_NB, SVC_INST_ID));
+                            FileTransferGATTS::gatt_db, gatts_if, ATT_IDX_END, SVC_INST_ID));
 
                     } break;
                     case ESP_GATTS_DISCONNECT_EVT:
@@ -201,7 +200,7 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
                         break;
                     default:
                         // Other events go to GATTS service
-                        GATTS::heart_rate_profile_tab[idx].gatts_cb(event, gatts_if, param);
+                        FileTransferGATTS::profile_tab[idx].gatts_cb(event, gatts_if, param);
                 }
             }
         }
@@ -254,6 +253,6 @@ void BLEWrapper::disable() {
 }
 
 void BLEWrapper::test_indicate() {
-    GATTS::test_indicate();
+    FileTransferGATTS::test_indicate();
 }
 }  // namespace bk

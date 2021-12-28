@@ -1,6 +1,6 @@
 set(EXTRA_COMPONENT_DIRS, $ENV{IDF_PATH}/components/bt)
 
-idf_component_register(SRCS "gatts.cpp" "ble_wrapper.cpp"
+idf_component_register(SRCS "file_transfer_gatts.cpp" "ble_wrapper.cpp"
 
                     INCLUDE_DIRS
                     "."
