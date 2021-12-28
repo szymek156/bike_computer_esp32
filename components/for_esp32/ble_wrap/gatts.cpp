@@ -17,7 +17,6 @@ static constexpr const char *TAG = "BT_GATTS";
 static const uint16_t GATTS_SERVICE_UUID_TEST = 0x00FF;
 static const uint16_t GATTS_CHAR_UUID_TEST_A = 0xFF01;
 static const uint16_t GATTS_CHAR_UUID_TEST_B = 0xFF02;
-static const uint16_t GATTS_CHAR_UUID_TEST_C = 0xFF03;
 
 static const uint16_t primary_service_uuid = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid = ESP_GATT_UUID_CHAR_DECLARE;
@@ -29,11 +28,10 @@ static const uint8_t char_prop_read = ESP_GATT_CHAR_PROP_BIT_READ;
 static const uint8_t char_prop_read_indicate =
     ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_INDICATE;
 
+static const uint8_t char_prop_read_write =
+    ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_WRITE;
 static const uint8_t char_prop_write = ESP_GATT_CHAR_PROP_BIT_WRITE;
-// static const uint8_t char_prop_read_write_notify =
-    // ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
-static const uint8_t char_prop_read_write_notify =
-    ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_INDICATE;
+static const uint8_t char_prop_indicate = ESP_GATT_CHAR_PROP_BIT_INDICATE;
 static const uint8_t heart_measurement_ccc[2] = {0x00, 0x00};
 static const uint8_t char_value[ESP_GATT_MAX_ATTR_LEN] = {};
 
@@ -66,7 +64,7 @@ const esp_gatts_attr_db_t GATTS::gatt_db[HRS_IDX_NB] = {
                      ESP_GATT_PERM_READ,
                      CHAR_DECLARATION_SIZE,
                      CHAR_DECLARATION_SIZE,
-                     (uint8_t *)&char_prop_read_write_notify}},
+                     (uint8_t *)&char_prop_indicate}},
 
     /* Characteristic Value */
     [IDX_CHAR_VAL_A] = {{ESP_GATT_RSP_BY_APP},
@@ -78,16 +76,18 @@ const esp_gatts_attr_db_t GATTS::gatt_db[HRS_IDX_NB] = {
                          (uint8_t *)char_value}},
 
     /* Client Characteristic Configuration Descriptor */
-    [IDX_CHAR_CFG_A] = {{ESP_GATT_RSP_BY_APP},
+    // Configuration is needed to be able to sub or unsub for indications
+    // Set to ESP_GATT_AUTO_RSP, so I don't have to worry about handling those requests
+    [IDX_CHAR_CFG_A] = {{ESP_GATT_AUTO_RSP},
                         {ESP_UUID_LEN_16,
                          (uint8_t *)&character_client_config_uuid,
                          ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
                          GATTS_DEMO_CHAR_VAL_LEN_MAX,
                          sizeof(char_value),
                          (uint8_t *)char_value}},
-                        //  sizeof(uint16_t),
-                        //  sizeof(heart_measurement_ccc),
-                        //  (uint8_t *)heart_measurement_ccc}},
+    //  sizeof(uint16_t),
+    //  sizeof(heart_measurement_ccc),
+    //  (uint8_t *)heart_measurement_ccc}},
     //////////////////////////////////////////////////////////////////////////////////////////////////////
     /* Characteristic Declaration */
     [IDX_CHAR_B] = {{ESP_GATT_AUTO_RSP},
@@ -96,47 +96,24 @@ const esp_gatts_attr_db_t GATTS::gatt_db[HRS_IDX_NB] = {
                      ESP_GATT_PERM_READ,
                      CHAR_DECLARATION_SIZE,
                      CHAR_DECLARATION_SIZE,
-                     (uint8_t *)&char_prop_read_write_notify}},
+                     // This declares what you can do with the characteristic,
+                     // In nRF Connect app that defines what arrows are visible
+                     // in this case read and write will be seen
+                     (uint8_t *)&char_prop_read_write}},
 
     /* Characteristic Value */
     [IDX_CHAR_VAL_B] =
         {{ESP_GATT_RSP_BY_APP},
-         // TODO: ESP_GATT_CHAR_PROP_BIT_INDICATE
-         // #define ESP_GATT_UUID_CHAR_CLIENT_CONFIG            0x2902          /*
-         // Client Characteristic Configuration */
-         // #define ESP_GATT_UUID_CHAR_PRESENT_FORMAT           0x2904          /*
-         // Characteristic Presentation Format*/
-         // esp_ble_gatts_send_indicate(gatts_if, param->reg.app_id, handle, length, val_p,
-         //                                 needs_confirmation);
-         // esp_ble_gatts_set_attr_value(dashboard_service_handles[IDX_DS_FRONT_LIGHT_VAL],
-         //                                 sizeof(dashboard_service_data.front_light),
-         //                                 (uint8_t *)&dashboard_service_data.front_light);
-
          {ESP_UUID_LEN_16,
           (uint8_t *)&GATTS_CHAR_UUID_TEST_B,
-          ESP_GATT_PERM_READ,
+
+          // Those are actual characteristic permission, I have no idea why it's duplicated
+          // (refer to (uint8_t *)&char_prop_read_write) in characteristic declaration
+          ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
           GATTS_DEMO_CHAR_VAL_LEN_MAX,
           sizeof(char_value),
           (uint8_t *)char_value}},
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /* Characteristic Declaration */
-    [IDX_CHAR_C] = {{ESP_GATT_AUTO_RSP},
-                    {ESP_UUID_LEN_16,
-                     (uint8_t *)&character_declaration_uuid,
-                     ESP_GATT_PERM_READ,
-                     CHAR_DECLARATION_SIZE,
-                     CHAR_DECLARATION_SIZE,
-                     (uint8_t *)&char_prop_write}},
-
-    /* Characteristic Value */
-    [IDX_CHAR_VAL_C] = {{ESP_GATT_RSP_BY_APP},
-                        {ESP_UUID_LEN_16,
-                         (uint8_t *)&GATTS_CHAR_UUID_TEST_C,
-                         ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-                         GATTS_DEMO_CHAR_VAL_LEN_MAX,
-                         sizeof(char_value),
-                         (uint8_t *)char_value}},
-
 };
 
 static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
@@ -159,12 +136,13 @@ void GATTS::test_indicate() {
 
     static int COUNTER = 0;
 
-    COUNTER++;
+    for (int i = 0; i < 1; i++) {
+        COUNTER++;
+        memset(value_to_send + i * 20, COUNTER, 20);
 
-    memset(value_to_send, COUNTER, ESP_GATT_MAX_ATTR_LEN);
-
-    esp_ble_gatts_set_attr_value(
-        heart_rate_handle_table[IDX_CHAR_VAL_A], ESP_GATT_MAX_ATTR_LEN, value_to_send);
+        esp_ble_gatts_set_attr_value(
+          heart_rate_handle_table[IDX_CHAR_VAL_A], 20, value_to_send + i * 20);
+    }
 }
 static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
                                         esp_gatt_if_t gatts_if,
@@ -260,8 +238,10 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
             ESP_LOGI(TAG, "ESP_GATTS_MTU_EVT, MTU %d", param->mtu.mtu);
             break;
         case ESP_GATTS_CONF_EVT:
+            // Confirmation of indication, if status != 0 (invalid)
+            // len, and value contains the packet that failed
             ESP_LOGI(TAG,
-                     "ESP_GATTS_CONF_EVT, status = %d, attr_handle %d",
+                     "ESP_GATTS_CONF_EVT, - confirmation, status = %d, attr_handle %d",
                      param->conf.status,
                      param->conf.handle);
             break;
@@ -324,7 +304,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
             uint16_t handle = param->set_attr_val.attr_handle;
 
             esp_ble_gatts_send_indicate(
-                gatts_if, param->reg.app_id, handle, 100, value_to_send, needs_confirmation);
+                gatts_if, param->reg.app_id, handle, 20, value_to_send, needs_confirmation);
 
             break;
         }
