@@ -35,11 +35,10 @@ class FileTransferGATTS {
     // Defines characteristics exposed by the server
     const esp_gatts_attr_db_t gatt_db[ATT_IDX_END];
 
-
     uint16_t gatts_if;
     void gatts_profile_event_handler(esp_gatts_cb_event_t event,
-                                        esp_gatt_if_t gatts_if,
-                                        esp_ble_gatts_cb_param_t *param);
+                                     esp_gatt_if_t gatts_if,
+                                     esp_ble_gatts_cb_param_t *param);
 
     // Keeps handles to bluetooth characteristics, can be later used to set value on them
     // by, for example esp_ble_gatts_set_attr_value
@@ -48,9 +47,13 @@ class FileTransferGATTS {
     void test_indicate();
 
     // @brief Gets files that can be synced over BT, puts the listing on the buffer
+    // buffer must be of size ATTR_SIZE
     // @return number of bytes written to the buffer
     size_t storeFilesToSync(char *buffer);
+
  private:
+    // TODO: that will require a mutex to sync up between BT event thread, and fetching thread
+    std::vector<FileInfo> files_to_sync_;
 };
 
 }  // namespace bk

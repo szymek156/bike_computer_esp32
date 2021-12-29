@@ -131,7 +131,6 @@ void FileTransferGATTS::test_indicate() {
              this->gatts_if,
              handle_table[IDX_CHAR_VAL_FILE_TRANS]);
 
-    // I (29855) BT_GATTS: Sending an indication, app id 0x0, gatts_if 0x3, handle 0x2A
     bool needs_confirmation = true;
 
     esp_ble_gatts_send_indicate(this->gatts_if,
@@ -172,9 +171,7 @@ void FileTransferGATTS::gatts_profile_event_handler(esp_gatts_cb_event_t event,
 
                 esp_gatt_rsp_t response = {};
 
-                FileTransferGATTS f;
-
-                auto resp_len = f.storeFilesToSync((char *)response.attr_value.value);
+                auto resp_len = storeFilesToSync((char *)response.attr_value.value);
                 response.attr_value.len = resp_len;
                 response.attr_value.offset = param->read.offset;
                 response.attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
@@ -190,47 +187,39 @@ void FileTransferGATTS::gatts_profile_event_handler(esp_gatts_cb_event_t event,
             break;
         }
 
-        case ESP_GATTS_WRITE_EVT:
+        case ESP_GATTS_WRITE_EVT: {
             ESP_LOGI(TAG, "ESP_GATTS_WRITE_EVT");
-            // if (param->write.handle == m_handle) {
-            // 	if (param->write.is_prep) {
-            // 		m_value.addPart(param->write.value, param->write.len);
-            // 		m_writeEvt = true;
-            // 	} else {
-            // 		setValue(param->write.value, param->write.len);
-            // 		if (m_pCallbacks != nullptr && param->write.is_prep != true) {
-            // 			m_pCallbacks->onWrite(this); // Invoke the onWrite callback handler.
-            // 		}
-            // 	}
 
-            // 	ESP_LOGD(LOG_TAG, " - Response to write event: New value: handle: %.2x, uuid: %s",
-            // 			getHandle(), getUUID().toString().c_str());
+            if (param->write.handle == handle_table[IDX_CHAR_VAL_FILE_LIST]) {
+                if (param->write.is_prep) {
+                    ESP_LOGW(TAG, "Got write preparation and don't know what to do!");
 
-            // 	char* pHexData = BLEUtils::buildHexData(nullptr, param->write.value,
-            // param->write.len); 	ESP_LOGD(LOG_TAG, " - Data: length: %d, data: %s",
-            // param->write.len, pHexData); 	free(pHexData);
+                } else {
+                    // Writing to the File List characteristic, that should be
+                    // an index of file that client wants to fetch
+                    ESP_LOGI(TAG, "Write len %d", param->write.len);
+                    ESP_LOGI(TAG, "Got value %u", param->write.value[0]);
 
-            // 	if (param->write.need_rsp) {
-            // 		esp_gatt_rsp_t rsp;
+                    // TODO: check if idx is valid
+                    // TODO: trigger a task to start fetching!
+                }
 
-            // 		rsp.attr_value.len      = param->write.len;
-            // 		rsp.attr_value.handle   = m_handle;
-            // 		rsp.attr_value.offset   = param->write.offset;
-            // 		rsp.attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
-            // 		memcpy(rsp.attr_value.value, param->write.value, param->write.len);
+                if (param->write.need_rsp) {
+                    esp_gatt_rsp_t rsp;
 
-            // 		esp_err_t errRc = ::esp_ble_gatts_send_response(
-            // 				gatts_if,
-            // 				param->write.conn_id,
-            // 				param->write.trans_id, ESP_GATT_OK, &rsp);
-            // 		if (errRc != ESP_OK) {
-            // 			ESP_LOGE(LOG_TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc,
-            // GeneralUtils::errorToString(errRc));
-            // 		}
-            // 	} // Response needed
+                    rsp.attr_value.len = param->write.len;
+                    rsp.attr_value.handle = param->write.handle;
+                    rsp.attr_value.offset = param->write.offset;
+                    rsp.attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
+                    memcpy(rsp.attr_value.value, param->write.value, param->write.len);
 
-            // } // Match on handles.
+                    ESP_ERROR_CHECK(esp_ble_gatts_send_response(
+                        gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, &rsp));
+                }
+            }
+
             break;
+        }
         case ESP_GATTS_EXEC_WRITE_EVT:
             // the length of gattc prepare write data must be less than ESP_GATT_MAX_ATTR_LEN.
             ESP_LOGI(TAG, "ESP_GATTS_EXEC_WRITE_EVT");
@@ -320,16 +309,16 @@ void FileTransferGATTS::gatts_profile_event_handler(esp_gatts_cb_event_t event,
         default:
             break;
     }
-}
+}  // namespace bk
 
 size_t FileTransferGATTS::storeFilesToSync(char *buffer) {
     // TODO: to have implementation simple file listing needs to fit on ~500 bytes
 
-    auto files = FSWrapper::listFiles("storage");
+    files_to_sync_ = FSWrapper::listFiles("storage");
 
     size_t total_len = 0;
 
-    for (const auto &info : files) {
+    for (const auto &info : files_to_sync_) {
         // Don't store buffer on the stack, to avoid overflow
         static const int msg_size = 256;
         static char message[msg_size];
@@ -337,7 +326,6 @@ size_t FileTransferGATTS::storeFilesToSync(char *buffer) {
         snprintf(message, msg_size, "%s, %lu\n", info.filename.c_str(), info.size);
 
         size_t message_len = strlen(message);
-        ESP_LOGD(TAG, "File info len %u", message_len);
 
         if (total_len + message_len < ATTR_LEN) {
             snprintf((char *)(buffer + total_len), message_len + 1, "%s", message);
