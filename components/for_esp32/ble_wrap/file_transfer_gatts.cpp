@@ -41,91 +41,80 @@ static const uint8_t char_value[ESP_GATT_MAX_ATTR_LEN] = {};
 // in that value that can be stored at once in a characteristic
 const int ATTR_LEN = 500 - 3;
 
-uint16_t FileTransferGATTS::handle_table[ATT_IDX_END] = {};
+// uint16_t FileTransferGATTS::handle_table[ATT_IDX_END] = {};
 
 #define CHAR_DECLARATION_SIZE (sizeof(uint8_t))
 
-/* Full Database Description - Used to add attributes into the database */
-const esp_gatts_attr_db_t FileTransferGATTS::gatt_db[ATT_IDX_END] = {
-    // Service Declaration
-    [IDX_SVC] = {{ESP_GATT_AUTO_RSP},
-                 {ESP_UUID_LEN_16,
-                  (uint8_t *)&primary_service_uuid,
-                  ESP_GATT_PERM_READ,
-                  sizeof(uint16_t),
-                  sizeof(GATTS_SERVICE_UUID_FILE_TRANS),
-                  (uint8_t *)&GATTS_SERVICE_UUID_FILE_TRANS}},
-
-    /* Characteristic Declaration */
-    [IDX_CHAR_FILE_TRANS] = {{ESP_GATT_AUTO_RSP},
-                             {ESP_UUID_LEN_16,
-                              (uint8_t *)&character_declaration_uuid,
-                              ESP_GATT_PERM_READ,
-                              CHAR_DECLARATION_SIZE,
-                              CHAR_DECLARATION_SIZE,
-                              (uint8_t *)&char_prop_indicate}},
-
-    /* Characteristic Value */
-    [IDX_CHAR_VAL_FILE_TRANS] = {{ESP_GATT_RSP_BY_APP},
-                                 {ESP_UUID_LEN_16,
-                                  (uint8_t *)&GATTS_CHAR_UUID_TEST_FILE_TRANS,
-                                  ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-                                  ESP_GATT_MAX_ATTR_LEN,
-                                  sizeof(char_value),
-                                  (uint8_t *)char_value}},
-
-    /* Client Characteristic Configuration Descriptor */
-    // Configuration is needed to be able to sub or unsub for indications
-    // Set to ESP_GATT_AUTO_RSP, so I don't have to worry about handling those requests
-    [IDX_CHAR_CFG_FILE_TRANS] = {{ESP_GATT_AUTO_RSP},
-                                 {ESP_UUID_LEN_16,
-                                  (uint8_t *)&character_client_config_uuid,
-                                  ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-                                  ESP_GATT_MAX_ATTR_LEN,
-                                  sizeof(char_value),
-                                  (uint8_t *)char_value}},
-
-    /////////////////////////////////////////////////////////////////////////////////////////
-    /* Characteristic Declaration */
-    [IDX_CHAR_FILE_LIST] = {{ESP_GATT_AUTO_RSP},
-                            {ESP_UUID_LEN_16,
-                             (uint8_t *)&character_declaration_uuid,
-                             ESP_GATT_PERM_READ,
-                             CHAR_DECLARATION_SIZE,
-                             CHAR_DECLARATION_SIZE,
-                             // This declares what you can do with the characteristic,
-                             // In nRF Connect app that defines what arrows are visible
-                             // in this case read and write will be seen
-                             (uint8_t *)&char_prop_read_write}},
-
-    /* Characteristic Value */
-    [IDX_CHAR_VAL_FILE_LIST] =
-        {{ESP_GATT_RSP_BY_APP},
-         {ESP_UUID_LEN_16,
-          (uint8_t *)&GATTS_CHAR_UUID_TEST_FILE_LIST,
-
-          // Those are actual characteristic permission, I have no idea why it's duplicated
-          // (refer to (uint8_t *)&char_prop_read_write) in characteristic declaration
-          ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-          ESP_GATT_MAX_ATTR_LEN,
-          sizeof(char_value),
-          (uint8_t *)char_value}},
-};
-
-static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
-                                        esp_gatt_if_t gatts_if,
-                                        esp_ble_gatts_cb_param_t *param);
-
-/* One gatt-based profile one app_id and one gatts_if, this array will store the gatts_if returned
- * by ESP_GATTS_REG_EVT */
-FileTransferGATTS::gatts_profile_inst FileTransferGATTS::profile_tab[PROFILE_NUM] = {
-    {
-        .gatts_cb = gatts_profile_event_handler,
-        .gatts_if = ESP_GATT_IF_NONE, /* Not get the gatt_if, so initial is ESP_GATT_IF_NONE */
-    },
-};
-
 static uint8_t value_to_send[ESP_GATT_MAX_ATTR_LEN] = {};
+
+FileTransferGATTS::FileTransferGATTS()
+    : gatt_db{
+          // Service Declaration
+          [IDX_SVC] = {{ESP_GATT_AUTO_RSP},
+                       {ESP_UUID_LEN_16,
+                        (uint8_t *)&primary_service_uuid,
+                        ESP_GATT_PERM_READ,
+                        sizeof(uint16_t),
+                        sizeof(GATTS_SERVICE_UUID_FILE_TRANS),
+                        (uint8_t *)&GATTS_SERVICE_UUID_FILE_TRANS}},
+
+          /* Characteristic Declaration */
+          [IDX_CHAR_FILE_TRANS] = {{ESP_GATT_AUTO_RSP},
+                                   {ESP_UUID_LEN_16,
+                                    (uint8_t *)&character_declaration_uuid,
+                                    ESP_GATT_PERM_READ,
+                                    CHAR_DECLARATION_SIZE,
+                                    CHAR_DECLARATION_SIZE,
+                                    (uint8_t *)&char_prop_indicate}},
+
+          /* Characteristic Value */
+          [IDX_CHAR_VAL_FILE_TRANS] = {{ESP_GATT_RSP_BY_APP},
+                                       {ESP_UUID_LEN_16,
+                                        (uint8_t *)&GATTS_CHAR_UUID_TEST_FILE_TRANS,
+                                        ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+                                        ESP_GATT_MAX_ATTR_LEN,
+                                        sizeof(char_value),
+                                        (uint8_t *)char_value}},
+
+          /* Client Characteristic Configuration Descriptor */
+          // Configuration is needed to be able to sub or unsub for indications
+          // Set to ESP_GATT_AUTO_RSP, so I don't have to worry about handling those requests
+          [IDX_CHAR_CFG_FILE_TRANS] = {{ESP_GATT_AUTO_RSP},
+                                       {ESP_UUID_LEN_16,
+                                        (uint8_t *)&character_client_config_uuid,
+                                        ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+                                        ESP_GATT_MAX_ATTR_LEN,
+                                        sizeof(char_value),
+                                        (uint8_t *)char_value}},
+
+          /////////////////////////////////////////////////////////////////////////////////////////
+          /* Characteristic Declaration */
+          [IDX_CHAR_FILE_LIST] = {{ESP_GATT_AUTO_RSP},
+                                  {ESP_UUID_LEN_16,
+                                   (uint8_t *)&character_declaration_uuid,
+                                   ESP_GATT_PERM_READ,
+                                   CHAR_DECLARATION_SIZE,
+                                   CHAR_DECLARATION_SIZE,
+                                   // This declares what you can do with the characteristic,
+                                   // In nRF Connect app that defines what arrows are visible
+                                   // in this case read and write will be seen
+                                   (uint8_t *)&char_prop_read_write}},
+
+          /* Characteristic Value */
+          [IDX_CHAR_VAL_FILE_LIST] =
+              {{ESP_GATT_RSP_BY_APP},
+               {ESP_UUID_LEN_16,
+                (uint8_t *)&GATTS_CHAR_UUID_TEST_FILE_LIST,
+
+                // Those are actual characteristic permission, I have no idea why it's duplicated
+                // (refer to (uint8_t *)&char_prop_read_write) in characteristic declaration
+                ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+                ESP_GATT_MAX_ATTR_LEN,
+                sizeof(char_value),
+                (uint8_t *)char_value}},
+      },
+      handle_table{} {
+}
 
 void FileTransferGATTS::test_indicate() {
     ESP_LOGI(TAG, "Setting the value for indication");
@@ -139,13 +128,13 @@ void FileTransferGATTS::test_indicate() {
     ESP_LOGI(TAG,
              "Sending indication directly app id 0x%X, gatts_if 0x%X, handle 0x%X",
              SVC_INST_ID,
-             profile_tab[0].gatts_if,
+             this->gatts_if,
              handle_table[IDX_CHAR_VAL_FILE_TRANS]);
 
     // I (29855) BT_GATTS: Sending an indication, app id 0x0, gatts_if 0x3, handle 0x2A
     bool needs_confirmation = true;
 
-    esp_ble_gatts_send_indicate(profile_tab[0].gatts_if,
+    esp_ble_gatts_send_indicate(this->gatts_if,
                                 SVC_INST_ID /* app_id */,
                                 handle_table[IDX_CHAR_VAL_FILE_TRANS],
                                 ATTR_LEN,
@@ -153,9 +142,9 @@ void FileTransferGATTS::test_indicate() {
                                 needs_confirmation);
 }
 
-static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
-                                        esp_gatt_if_t gatts_if,
-                                        esp_ble_gatts_cb_param_t *param) {
+void FileTransferGATTS::gatts_profile_event_handler(esp_gatts_cb_event_t event,
+                                                    esp_gatt_if_t gatts_if,
+                                                    esp_ble_gatts_cb_param_t *param) {
     ESP_LOGI(TAG, "gatts profile event %u decimal", event);
     switch (event) {
         case ESP_GATTS_READ_EVT: {
@@ -169,7 +158,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
                      param->read.is_long,
                      param->read.need_rsp);
 
-            if (FileTransferGATTS::handle_table[IDX_CHAR_VAL_FILE_LIST] == param->read.handle) {
+            if (handle_table[IDX_CHAR_VAL_FILE_LIST] == param->read.handle) {
                 // User requested list the files
                 ESP_LOGI(TAG, "Got request to list the files");
 

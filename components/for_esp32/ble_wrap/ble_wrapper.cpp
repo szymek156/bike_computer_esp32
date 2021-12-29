@@ -12,6 +12,7 @@
 // #include <nvs_flash.h>
 #include "file_transfer_gatts.h"
 
+// TODO: Remove all that static crap, UGHHHH!
 namespace bk {
 static constexpr const char *TAG = "BT";
 static uint8_t adv_config_done = 0;
@@ -19,6 +20,8 @@ static uint8_t adv_config_done = 0;
 #define SAMPLE_DEVICE_NAME "BK_GATTS"
 // No idea what is it
 #define ESP_APP_ID 0x55
+
+static FileTransferGATTS gatts_;
 
 // TODO: let it be some meaningful value
 static uint8_t service_uuid[16] = {
@@ -156,7 +159,7 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
     if (event == ESP_GATTS_REG_EVT) {
         if (param->reg.status == ESP_GATT_OK) {
             // There can be more than one application, that can be distinguished by app_id in param
-            FileTransferGATTS::profile_tab[PROFILE_APP_IDX].gatts_if = gatts_if;
+            gatts_.gatts_if = gatts_if;
         } else {
             ESP_LOGE(TAG,
                      "reg app failed, app_id %04x, status %d",
@@ -166,43 +169,36 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
         }
     }
 
-    for (int idx = 0; idx < PROFILE_NUM; idx++) {
-        /* ESP_GATT_IF_NONE, not specify a certain gatt_if, need to call every profile cb
-        function */
-        if (gatts_if == ESP_GATT_IF_NONE ||
-            gatts_if == FileTransferGATTS::profile_tab[idx].gatts_if) {
-            if (FileTransferGATTS::profile_tab[idx].gatts_cb) {
-                switch (event) {
-                    // Handle register event by GAP
-                    case ESP_GATTS_REG_EVT: {
-                        ESP_ERROR_CHECK(esp_ble_gap_set_device_name(SAMPLE_DEVICE_NAME));
+    /* ESP_GATT_IF_NONE, not specify a certain gatt_if, need to call every profile cb
+    function */
+    if (gatts_if == ESP_GATT_IF_NONE || gatts_if == gatts_.gatts_if) {
+        switch (event) {
+            // Handle register event by GAP
+            case ESP_GATTS_REG_EVT: {
+                ESP_ERROR_CHECK(esp_ble_gap_set_device_name(SAMPLE_DEVICE_NAME));
 
-                        // Set advertisement configuration
-                        ESP_ERROR_CHECK(esp_ble_gap_config_adv_data(&adv_data));
+                // Set advertisement configuration
+                ESP_ERROR_CHECK(esp_ble_gap_config_adv_data(&adv_data));
 
-                        adv_config_done |= ADV_CONFIG_FLAG;
-                        // Set scan response data
-                        ESP_ERROR_CHECK(esp_ble_gap_config_adv_data(&scan_rsp_data));
+                adv_config_done |= ADV_CONFIG_FLAG;
+                // Set scan response data
+                ESP_ERROR_CHECK(esp_ble_gap_config_adv_data(&scan_rsp_data));
 
-                        adv_config_done |= SCAN_RSP_CONFIG_FLAG;
+                adv_config_done |= SCAN_RSP_CONFIG_FLAG;
 
-                        // Register GATT table, SVC_INST_ID - is service instance, can be more than
-                        // one
-                        ESP_ERROR_CHECK(esp_ble_gatts_create_attr_tab(
-                            FileTransferGATTS::gatt_db, gatts_if, ATT_IDX_END, SVC_INST_ID));
+                // Register GATT table, SVC_INST_ID - is service instance, can be more than
+                // one
+                ESP_ERROR_CHECK(esp_ble_gatts_create_attr_tab(
+                    gatts_.gatt_db, gatts_if, ATT_IDX_END, SVC_INST_ID));
 
-                    } break;
-                    case ESP_GATTS_DISCONNECT_EVT:
-                        ESP_LOGI(TAG,
-                                 "ESP_GATTS_DISCONNECT_EVT, reason = 0x%x",
-                                 param->disconnect.reason);
-                        esp_ble_gap_start_advertising(&adv_params);
-                        break;
-                    default:
-                        // Other events go to GATTS service
-                        FileTransferGATTS::profile_tab[idx].gatts_cb(event, gatts_if, param);
-                }
-            }
+            } break;
+            case ESP_GATTS_DISCONNECT_EVT:
+                ESP_LOGI(TAG, "ESP_GATTS_DISCONNECT_EVT, reason = 0x%x", param->disconnect.reason);
+                esp_ble_gap_start_advertising(&adv_params);
+                break;
+            default:
+                // Other events go to GATTS service
+                gatts_.gatts_profile_event_handler(event, gatts_if, param);
         }
     }
 }
@@ -253,6 +249,6 @@ void BLEWrapper::disable() {
 }
 
 void BLEWrapper::test_indicate() {
-    FileTransferGATTS::test_indicate();
+    gatts_.test_indicate();
 }
 }  // namespace bk

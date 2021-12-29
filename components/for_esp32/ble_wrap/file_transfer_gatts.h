@@ -25,31 +25,27 @@ enum {
     ATT_IDX_END,
 };
 
-#define PROFILE_NUM 1
-#define PROFILE_NUM 1
-#define PROFILE_APP_IDX 0
-
 #define SVC_INST_ID 0
 
-// TODO: remove those statics, my eyes bleeds!
 class FileTransferGATTS {
  public:
+    FileTransferGATTS();
+
+    // TODO: add getters and setters
     // Defines characteristics exposed by the server
-    static const esp_gatts_attr_db_t gatt_db[ATT_IDX_END];
+    const esp_gatts_attr_db_t gatt_db[ATT_IDX_END];
 
-    struct gatts_profile_inst {
-        esp_gatts_cb_t gatts_cb;
-        uint16_t gatts_if;
-    };
 
-    // Keeps callback for event handler
-    static gatts_profile_inst profile_tab[PROFILE_NUM];
+    uint16_t gatts_if;
+    void gatts_profile_event_handler(esp_gatts_cb_event_t event,
+                                        esp_gatt_if_t gatts_if,
+                                        esp_ble_gatts_cb_param_t *param);
 
     // Keeps handles to bluetooth characteristics, can be later used to set value on them
     // by, for example esp_ble_gatts_set_attr_value
-    static uint16_t handle_table[ATT_IDX_END];
+    uint16_t handle_table[ATT_IDX_END];
 
-    static void test_indicate();
+    void test_indicate();
 
     // @brief Gets files that can be synced over BT, puts the listing on the buffer
     // @return number of bytes written to the buffer
