@@ -38,8 +38,9 @@ void btTesting() {
 
     ESP_LOGI(TAG, "BLE enabled...");
 
+    bk::HealthService::reportAll();
+
     while (true) {
-        // HealthService::reportAll();
 
         ble.test_indicate();
         vTaskDelay(pdMS_TO_TICKS(2000));
@@ -47,9 +48,9 @@ void btTesting() {
 }
 
 void StartApplication() {
-    btTesting();
-
     bk::FSWrapper::mountStorage();
+
+    btTesting();
 
     bk::Display display;
 
@@ -77,7 +78,7 @@ void StartApplication() {
 
     bk::RootWindow root(&dispatcher, &factory);
 
-    HealthService::reportAll();
+    bk::HealthService::reportAll();
 
     dispatcher.listenForEvents();
 }

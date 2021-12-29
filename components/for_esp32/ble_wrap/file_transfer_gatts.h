@@ -50,6 +50,11 @@ class FileTransferGATTS {
     static uint16_t handle_table[ATT_IDX_END];
 
     static void test_indicate();
+
+    // @brief Gets files that can be synced over BT, puts the listing on the buffer
+    // @return number of bytes written to the buffer
+    size_t storeFilesToSync(char *buffer);
+ private:
 };
 
 }  // namespace bk

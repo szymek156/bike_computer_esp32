@@ -2,18 +2,19 @@
 
 #include <string>
 
+#include <fs_wrapper.h>
+
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include <dirent.h>
 #include <esp_log.h>
 #include <esp_partition.h>
 #include <esp_spiffs.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
-#include <sys/unistd.h>
+
+namespace bk {
 void HealthService::reportAll() {
     reportFS();
     reportRAM();
@@ -60,28 +61,10 @@ void HealthService::reportFS() {
         ESP_LOGI(TAG, " Partition '%s' size, total: %d, used: %d", storage, total, used);
     }
 
-    reportFiles(storage);
-}
+    auto files = FSWrapper::listFiles(storage);
 
-void HealthService::reportFiles(const std::string &partition) {
-    // In year 2021 C++ compilers still does not support std::filesystem yay!
-    // Switch to the old C API!
-    std::string path = "/" + partition;
-    DIR *dir;
-    struct dirent *ent;
-    if ((dir = opendir(path.c_str())) != NULL) {
-        while ((ent = readdir(dir)) != NULL) {
-            std::string full_path = path + "/" + ent->d_name;
-
-            struct stat st = {};
-            stat(full_path.c_str(), &st);
-
-            ESP_LOGI(TAG, " file: %s size: %ld", ent->d_name, st.st_size);
-        }
-        closedir(dir);
-    } else {
-        /* could not open directory */
-        ESP_LOGE(TAG, " Cannot open directory %s", path.c_str());
+    for (const auto &info : files) {
+        ESP_LOGI(TAG, " File: %s, size %ld", info.filename.c_str(), info.size);
     }
 }
 
@@ -110,6 +93,7 @@ void HealthService::reportRAM() {
 void HealthService::reportCPU() {
     ESP_LOGI(TAG, "CPU:");
 }
+
 void HealthService::reportOS() {
     ESP_LOGI(TAG, "OS:");
 
@@ -118,7 +102,6 @@ void HealthService::reportOS() {
 
     auto *idf_version = esp_get_idf_version();
     ESP_LOGI(TAG, " ESP-IDF used to compile: %s", idf_version);
-
 
     auto num_of_ticks = xTaskGetTickCount();
     ESP_LOGI(TAG, " Uptime %u ms", pdTICKS_TO_MS(num_of_ticks));
@@ -137,3 +120,5 @@ void HealthService::reportOS() {
     ESP_LOGW(TAG, " OS not configured to report tasks list");
 #endif
 }
+
+}  // namespace bk

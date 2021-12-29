@@ -3,11 +3,13 @@
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include <esp_log.h>
 #include <esp_spiffs.h>
+#include <sys/stat.h>
+#include <sys/unistd.h>
+#include <dirent.h>
 
 namespace bk {
 
 void FSWrapper::mountStorage() {
-    const char* TAG = "FSWrapper";
     ESP_LOGI(TAG, "Initializing SPIFFS");
 
     esp_vfs_spiffs_conf_t conf = {.base_path = "/storage",
@@ -44,5 +46,34 @@ void FSWrapper::mountStorage() {
         ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);
     }
 }
+
+std::vector<FileInfo> FSWrapper::listFiles(const std::string &partition) {
+    std::vector<FileInfo> files;
+
+    // In year 2021 C++ compilers still does not support std::filesystem yay!
+    // Switch to the old C API!
+    std::string path = "/" + partition;
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir(path.c_str())) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            std::string full_path = path + "/" + ent->d_name;
+
+            struct stat st = {};
+            stat(full_path.c_str(), &st);
+
+            files.push_back(FileInfo{.filename=ent->d_name, .size=st.st_size});
+
+            ESP_LOGD(TAG, "file: %s size: %ld", ent->d_name, st.st_size);
+        }
+        closedir(dir);
+    } else {
+        /* could not open directory */
+        ESP_LOGE(TAG, "Cannot open directory %s", path.c_str());
+    }
+
+    return files;
+}
+
 
 }  // namespace bk

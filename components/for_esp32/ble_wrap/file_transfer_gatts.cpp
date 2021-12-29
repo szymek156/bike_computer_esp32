@@ -8,6 +8,7 @@
 #include <esp_gatt_common_api.h>
 #include <esp_gatts_api.h>
 #include <esp_log.h>
+#include <fs_wrapper.h>
 
 // For future me, maybe I will be insane enough to visit this part of the code again.
 // TODO: BLE API is horrible, verbose, and in many places undocumented.
@@ -35,6 +36,10 @@ static const uint8_t char_prop_read_write =
 static const uint8_t char_prop_indicate = ESP_GATT_CHAR_PROP_BIT_INDICATE;
 
 static const uint8_t char_value[ESP_GATT_MAX_ATTR_LEN] = {};
+
+// Max supported MTU is 500, -3 that's some message overhead, resulting in reality
+// in that value that can be stored at once in a characteristic
+const int ATTR_LEN = 500 - 3;
 
 uint16_t FileTransferGATTS::handle_table[ATT_IDX_END] = {};
 
@@ -143,7 +148,7 @@ void FileTransferGATTS::test_indicate() {
     esp_ble_gatts_send_indicate(profile_tab[0].gatts_if,
                                 SVC_INST_ID /* app_id */,
                                 handle_table[IDX_CHAR_VAL_FILE_TRANS],
-                                500,
+                                ATTR_LEN,
                                 value_to_send,
                                 needs_confirmation);
 }
@@ -178,18 +183,14 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
 
                 esp_gatt_rsp_t response = {};
 
-                response.attr_value.len = 500;
+                FileTransferGATTS f;
+
+                auto resp_len = f.storeFilesToSync((char *)response.attr_value.value);
+                response.attr_value.len = resp_len;
                 response.attr_value.offset = param->read.offset;
                 response.attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
                 response.attr_value.handle = param->read.handle;
 
-                // Remember to send MTU == 500 request from the client!
-                // Otherwise that will be truncated to ~20 bytes
-                for (int i = 0; i < 500; i++) {
-                    response.attr_value.value[i] = i;
-                }
-
-                // TODO: to have implementation simple file listing needs to fit on 500 bytes
                 ESP_ERROR_CHECK(esp_ble_gatts_send_response(
                     gatts_if, param->read.conn_id, param->read.trans_id, ESP_GATT_OK, &response));
             } else {
@@ -308,17 +309,13 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
             break;
         }
         case ESP_GATTS_SET_ATTR_VAL_EVT: {
-            bool needs_confirmation = true;
             uint16_t handle = param->set_attr_val.attr_handle;
-
-            ESP_LOGI(TAG,
-                     "Sending an indication, app id 0x%X, gatts_if 0x%X, handle 0x%X",
+            ESP_LOGW(TAG,
+                     "ESP_GATTS_SET_ATTR_VAL_EVT Set attribute event, app id 0x%X, gatts_if 0x%X, "
+                     "handle 0x%X",
                      param->reg.app_id,
                      gatts_if,
                      handle);
-
-            esp_ble_gatts_send_indicate(
-                gatts_if, param->reg.app_id, handle, 500, value_to_send, needs_confirmation);
 
             break;
         }
@@ -334,6 +331,40 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
         default:
             break;
     }
+}
+
+size_t FileTransferGATTS::storeFilesToSync(char *buffer) {
+    // TODO: to have implementation simple file listing needs to fit on ~500 bytes
+
+    auto files = FSWrapper::listFiles("storage");
+
+    size_t total_len = 0;
+
+    for (const auto &info : files) {
+        // Don't store buffer on the stack, to avoid overflow
+        static const int msg_size = 256;
+        static char message[msg_size];
+
+        snprintf(message, msg_size, "%s, %lu\n", info.filename.c_str(), info.size);
+
+        size_t message_len = strlen(message);
+        ESP_LOGD(TAG, "File info len %u", message_len);
+
+        if (total_len + message_len < ATTR_LEN) {
+            snprintf((char *)(buffer + total_len), message_len + 1, "%s", message);
+
+            total_len += message_len;
+
+            ESP_LOGD(TAG, "Wrote '%s', total len %u", message, total_len);
+
+        } else {
+            // TODO: implement something similar to pagination
+            ESP_LOGW(TAG, "Not all files fit in one read request");
+            break;
+        }
+    }
+
+    return total_len;
 }
 
 }  // namespace bk
