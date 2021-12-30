@@ -102,4 +102,7 @@ struct ActivityData {
     // TODO: more to come...
 };
 
+struct FileTransferData {
+
+};
 }  // namespace bk

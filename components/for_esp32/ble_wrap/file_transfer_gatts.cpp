@@ -1,5 +1,7 @@
 #include "file_transfer_gatts.h"
 
+#include "file_transfer_task.h"
+
 #include <cstring>
 
 #include <esp_bt.h>
@@ -9,7 +11,6 @@
 #include <esp_gatts_api.h>
 #include <esp_log.h>
 #include <fs_wrapper.h>
-
 // For future me, maybe I will be insane enough to visit this part of the code again.
 // TODO: BLE API is horrible, verbose, and in many places undocumented.
 // This is minimal working piece of code that allows me to do what I want,
@@ -116,30 +117,6 @@ FileTransferGATTS::FileTransferGATTS()
       handle_table{} {
 }
 
-void FileTransferGATTS::test_indicate() {
-    ESP_LOGI(TAG, "Setting the value for indication");
-
-    static int COUNTER = 0;
-
-    COUNTER++;
-    memset(value_to_send, COUNTER, ESP_GATT_MAX_ATTR_LEN);
-
-    // TODO: Check that we have a connection
-    ESP_LOGI(TAG,
-             "Sending indication directly app id 0x%X, gatts_if 0x%X, handle 0x%X",
-             SVC_INST_ID,
-             this->gatts_if,
-             handle_table[IDX_CHAR_VAL_FILE_TRANS]);
-
-    bool needs_confirmation = true;
-
-    esp_ble_gatts_send_indicate(this->gatts_if,
-                                SVC_INST_ID /* app_id */,
-                                handle_table[IDX_CHAR_VAL_FILE_TRANS],
-                                ATTR_LEN,
-                                value_to_send,
-                                needs_confirmation);
-}
 
 void FileTransferGATTS::gatts_profile_event_handler(esp_gatts_cb_event_t event,
                                                     esp_gatt_if_t gatts_if,
@@ -191,17 +168,33 @@ void FileTransferGATTS::gatts_profile_event_handler(esp_gatts_cb_event_t event,
             ESP_LOGI(TAG, "ESP_GATTS_WRITE_EVT");
 
             if (param->write.handle == handle_table[IDX_CHAR_VAL_FILE_LIST]) {
+                auto response_code = ESP_GATT_OK;
+
                 if (param->write.is_prep) {
                     ESP_LOGW(TAG, "Got write preparation and don't know what to do!");
-
                 } else {
                     // Writing to the File List characteristic, that should be
-                    // an index of file that client wants to fetch
-                    ESP_LOGI(TAG, "Write len %d", param->write.len);
-                    ESP_LOGI(TAG, "Got value %u", param->write.value[0]);
+                    // an index of file that the client wants to fetch
+                    auto file_idx = param->write.value[0];
 
-                    // TODO: check if idx is valid
-                    // TODO: trigger a task to start fetching!
+                    ESP_LOGI(TAG, "Client request to fetch file with idx %u", file_idx);
+
+                    if (file_idx >= files_to_sync_.size()) {
+                        response_code = ESP_GATT_OUT_OF_RANGE;
+                    } else {
+                        // TODO: read of characteristic must be done first
+                        // to have files_to_sync_ vector up to date
+                        // TODO: don't start another transfer if previous did not finished
+                        file_transfer_.reset(new FileTransferTask(
+                            files_to_sync_[file_idx],
+                            AllThatBLECrap{
+                                .gatts_if = this->gatts_if,
+                                .app_id = SVC_INST_ID,
+                                .characteristic_handle = handle_table[IDX_CHAR_VAL_FILE_TRANS],
+                                .max_payload = ATTR_LEN}));
+
+                        file_transfer_->start();
+                    }
                 }
 
                 if (param->write.need_rsp) {
@@ -213,8 +206,11 @@ void FileTransferGATTS::gatts_profile_event_handler(esp_gatts_cb_event_t event,
                     rsp.attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
                     memcpy(rsp.attr_value.value, param->write.value, param->write.len);
 
-                    ESP_ERROR_CHECK(esp_ble_gatts_send_response(
-                        gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, &rsp));
+                    ESP_ERROR_CHECK(esp_ble_gatts_send_response(gatts_if,
+                                                                param->write.conn_id,
+                                                                param->write.trans_id,
+                                                                response_code,
+                                                                &rsp));
                 }
             }
 
@@ -235,6 +231,19 @@ void FileTransferGATTS::gatts_profile_event_handler(esp_gatts_cb_event_t event,
                      "ESP_GATTS_CONF_EVT, - confirmation, status = %d, attr_handle %d",
                      param->conf.status,
                      param->conf.handle);
+            if (param->conf.handle == handle_table[IDX_CHAR_VAL_FILE_TRANS]) {
+                // Got ACK for indication
+                if (param->conf.status != ESP_GATT_OK) {
+                    ESP_LOGE(
+                        TAG,
+                        "ESP_GATTS_CONF_EVT, - ACK for indication with error status, status 0x%X",
+                        param->conf.status);
+                    // TODO: what to do, retransmit?
+                }
+
+                // Notify transfer task it's safe to proceed
+                xTaskNotifyGive(file_transfer_->getTask());
+            }
             break;
         case ESP_GATTS_START_EVT:
             ESP_LOGI(TAG,

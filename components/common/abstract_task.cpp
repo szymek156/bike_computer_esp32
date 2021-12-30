@@ -2,6 +2,9 @@
 
 namespace bk {
 
+// TODO: instead of queue_el_size, there could be a template it T, and then sizeof(T)
+// Just a loose thought. Templates destroys layout of definition/declaration
+// So probably I will never do it
 AbstractTask::AbstractTask(size_t queue_el_size, size_t queue_size)
     : task_(nullptr),
       queue_(nullptr) {

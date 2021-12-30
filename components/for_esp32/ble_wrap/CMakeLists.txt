@@ -1,6 +1,6 @@
 set(EXTRA_COMPONENT_DIRS, $ENV{IDF_PATH}/components/bt)
 
-idf_component_register(SRCS "file_transfer_gatts.cpp" "ble_wrapper.cpp"
+idf_component_register(SRCS "file_transfer_gatts.cpp" "ble_wrapper.cpp" "file_transfer_task.cpp"
 
                     INCLUDE_DIRS
                     "."
@@ -8,7 +8,7 @@ idf_component_register(SRCS "file_transfer_gatts.cpp" "ble_wrapper.cpp"
                     $ENV{IDF_PATH}/components/bt/host/bluedroid/api/include/api
                     $ENV{IDF_PATH}/components/nvs_flash/include
 
-                    REQUIRES "fs_wrap"
+                    REQUIRES "fs_wrap" "common"
                     )
 
 

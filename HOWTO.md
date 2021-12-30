@@ -86,9 +86,7 @@ in ota over ble example both sides sets max MTU
 * **client** needs to send MTU request in order to have large indications:
 I (112615) BT_GATTS: ESP_GATTS_MTU_EVT, MTU 500
 * local MTU set to 517 (max)
-* Send indication, wait for ACK, send another chunk of data
-* It's possible to use ```esp_ble_gatts_send_indicate(gatts_if, param->reg.app_id, handle, 500, value_to_send, needs_confirmation);```
-without indirect ```esp_ble_gatts_set_attr_value(```
+* Send indication, wait for ACK, send another chunk of data...
 
 
 

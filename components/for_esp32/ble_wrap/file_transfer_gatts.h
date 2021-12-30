@@ -1,5 +1,8 @@
 #pragma once
 #include <esp_gatts_api.h>
+#include <vector>
+#include <fs_wrapper.h>
+#include "file_transfer_task.h"
 
 // @brief GATTS implementing file transfer.
 // There are 2 characteristics, one with read/write permission
@@ -10,6 +13,12 @@
 // In order to have correct data.
 // Indication of first chunk is send, wait for ACK, then send second chunk and so on...
 
+// Correct flow is following:
+// 1. Request MTU 500 from the client
+// 2. Sub for indications
+// 3. Read File List
+// 4. Write to File List idx of file to fetch
+// 5. Send ACKs to the server for every indication on File Trans
 namespace bk {
 /* Attributes State Machine */
 enum {
@@ -44,8 +53,6 @@ class FileTransferGATTS {
     // by, for example esp_ble_gatts_set_attr_value
     uint16_t handle_table[ATT_IDX_END];
 
-    void test_indicate();
-
     // @brief Gets files that can be synced over BT, puts the listing on the buffer
     // buffer must be of size ATTR_SIZE
     // @return number of bytes written to the buffer
@@ -54,6 +61,7 @@ class FileTransferGATTS {
  private:
     // TODO: that will require a mutex to sync up between BT event thread, and fetching thread
     std::vector<FileInfo> files_to_sync_;
+    std::unique_ptr<FileTransferTask> file_transfer_;
 };
 
 }  // namespace bk
