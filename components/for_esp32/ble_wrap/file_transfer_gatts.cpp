@@ -46,7 +46,6 @@ const int ATTR_LEN = 500 - 3;
 
 #define CHAR_DECLARATION_SIZE (sizeof(uint8_t))
 
-static uint8_t value_to_send[ESP_GATT_MAX_ATTR_LEN] = {};
 
 FileTransferGATTS::FileTransferGATTS()
     : gatt_db{

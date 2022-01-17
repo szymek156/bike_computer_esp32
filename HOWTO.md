@@ -88,7 +88,30 @@ I (112615) BT_GATTS: ESP_GATTS_MTU_EVT, MTU 500
 * local MTU set to 517 (max)
 * Send indication, wait for ACK, send another chunk of data...
 
+## Connecting to the BLE from shell
+open bluetoothctl on TWO terminals:
+On first:
+```
+[bluetooth]# scan on
+[bluetooth]# connect C4:4F:33:3E:CF:CF
+[BK_GATTS]# menu gatt
+[BK_GATTS]# list-attributes
+[BK_GATTS]# select-attribute  0000ff01-0000-1000-8000-00805f9b34fb
+[BK_GATTS]# notify on
 
+```
+On second:
+```
+[BK_GATTS]# menu gatt
+[BK_GATTS]# list-attributes
+# File listing
+[BK_GATTS]# select-attribute  0000ff02-0000-1000-8000-00805f9b34fb
+
+[BK_GATTS:/service0028/char002c]# read
+[BK_GATTS:/service0028/char002c]# write 0
+
+```
+Write will trigger on first terminal updates of the data
 
 ```plantuml
 @startuml

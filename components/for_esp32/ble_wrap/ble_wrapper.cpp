@@ -246,9 +246,8 @@ void BLEWrapper::enable() {
 }
 
 void BLEWrapper::disable() {
+    // TODO: Implement
 }
 
-void BLEWrapper::test_indicate() {
-    gatts_.test_indicate();
-}
+
 }  // namespace bk
