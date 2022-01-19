@@ -60,12 +60,14 @@ struct GNSSData {
      * semicircles = degrees * (2^31 / 180)
      */
     static int32_t toSemiCircles(float degrees) {
-        static constexpr auto convert = double(1 << 31) / 180.0;
+        // Note 1 needs to be unsigned, otherwise it goes to the last bit of the sign
+        // variable - simply setting a minus
+        static constexpr auto convert = (1u << 31) / 180u;
         return degrees * convert;
     }
 
     static float toDegrees(int32_t semicircles) {
-        static constexpr auto convert = 180.0 / double(1 << 31);
+        static constexpr auto convert = 180.0 / double(1u << 31);
         return semicircles * convert;
     }
 
