@@ -11,7 +11,7 @@ namespace bk {
 // TODO: come up with fancier name
 static const char *FILE_PATH = "/storage/test_walk.fit";
 
-FITFile::FITFile() : discard_(false) {
+FITFile::FITFile() : discard_(false), data_crc_(0) {
     fp_ = fopen(FILE_PATH, "w+b");
     ESP_LOGI(TAG, "Creating a file: %s %p", FILE_PATH, fp_);
 
@@ -19,6 +19,9 @@ FITFile::FITFile() : discard_(false) {
 }
 
 FITFile::~FITFile() {
+    // Very last two bytes of the file
+    writeDataCRC();
+
     // Update the header, must be last step!
     writeFileHeader();
 
@@ -43,6 +46,10 @@ void FITFile::writeData(const void *data, size_t data_size) {
     for (size_t offset = 0; offset < data_size; offset++) {
         data_crc_ = FitCRC_Get16(data_crc_, *((FIT_UINT8 *)data + offset));
     }
+}
+
+void FITFile::writeDataCRC() {
+  fwrite(&data_crc_, 1, sizeof(data_crc_), fp_);
 }
 
 void FITFile::writeMessageDefinition(FIT_UINT8 local_mesg_number,

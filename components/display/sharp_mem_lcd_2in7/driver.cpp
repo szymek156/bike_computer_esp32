@@ -5,7 +5,7 @@
 #include <cstring>
 
 #include <esp_heap_caps.h>
-#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
+#define LOG_LOCAL_LEVEL ESP_LOG_INFO
 #include <esp_log.h>
 
 namespace bk {

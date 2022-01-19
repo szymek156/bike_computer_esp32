@@ -276,9 +276,10 @@ void FITActivity::stop() {
         the_mesg.event_type = FIT_EVENT_TYPE_STOP;
     });
 
+    // Order matters
     storeLap();
-    storeActivity();
     storeSession();
+    storeActivity();
 }
 
 void FITActivity::setDiscard(bool to_discard) {

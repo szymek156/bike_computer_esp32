@@ -169,6 +169,17 @@ end
 @enduml
 
 ```
+
+# BLE FE-C
+https://www.youtube.com/watch?v=BPVFjz5zD4g
+https://github.com/matandoocorpo/Zwift-Steer
+https://github.com/fiveohhh/zwift-steerer
+
+!! https://github.com/dvmarinoff/Flux
+https://stackoverflow.com/questions/65860752/sending-user-weight-to-smart-trainer-via-antfec-over-ble
+https://github.com/abellono/tacx-ios-bluetooth-example/blob/master/How-to%20FE-C%20over%20BLE%20v1_0_0.pdf
+https://pypi.org/project/pycycling/
+
 # Display selection
 ## Eink
  * +Low power

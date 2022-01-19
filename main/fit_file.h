@@ -23,12 +23,13 @@ class FITFile {
 
  private:
     static constexpr const char *TAG = "FITFile";
-    FIT_UINT16 data_crc_;
     FILE *fp_;
     bool discard_;
+    FIT_UINT16 data_crc_;
 
     void writeFileHeader();
     void writeData(const void *data, size_t data_size);
+    void writeDataCRC();
 };
 
 }  // namespace bk

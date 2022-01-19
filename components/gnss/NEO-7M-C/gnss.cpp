@@ -1,6 +1,6 @@
 #include "gnss.h"
 
-#define LOG_LOCAL_LEVEL ESP_LOG_INFO
+#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include <esp_log.h>
 #include <string.h>
 #include <uart_wrapper.h>
