@@ -26,6 +26,9 @@
     - [ ] Write to the file
   - [ ] Consider making paint class more cache friendly
   - [ ] Figure out BLE communication
+    - [X] Try to not get insane while reading esp32 BLE api
+    - [X] Design and implement GATTS server for fetching activities
+    - [X] Add GUI for synchronization
   - [ ] Add ghost runner functionality
   - [ ] Use accel. to calculate cadence, and stride
   - [ ] Add travis CI
