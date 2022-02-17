@@ -179,6 +179,10 @@ https://github.com/fiveohhh/zwift-steerer
 https://stackoverflow.com/questions/65860752/sending-user-weight-to-smart-trainer-via-antfec-over-ble
 https://github.com/abellono/tacx-ios-bluetooth-example/blob/master/How-to%20FE-C%20over%20BLE%20v1_0_0.pdf
 https://pypi.org/project/pycycling/
+## BLE fitness machine profile implementation
+https://github.com/kswiorek/ble-ftms
+emulator for fitness machine
+https://github.com/paixaop/zwack
 
 # Display selection
 ## Eink
