@@ -25,7 +25,7 @@ idf_component_register(SRCS
     "view/running_1_view.cpp"
     "view/running_2_view.cpp"
 
-    "view/TEMPLATE_view.cpp"
+    "view/TEMPLATE_view_DEPERCATED.cpp"
 
     "presenter/status_presenter.cpp"
     "presenter/welcome_presenter.cpp"
@@ -47,6 +47,7 @@ idf_component_register(SRCS
     "presenter/workout_steps_splash.cpp"
     "presenter/activity_paused.cpp"
 
+    "presenter/synchronize.cpp"
 
     "presenter/TEMPLATE_presenter.cpp"
 

@@ -60,6 +60,8 @@ extern sFONT Font31;
 extern sFONT Font24;
 extern sFONT Font19;
 
+#define BT_SIGN "\x7f"
+
 #ifdef __cplusplus
 }
 #endif

@@ -18,6 +18,7 @@
 #include "presenter/workout_steps_presenter.h"
 #include "presenter/workout_steps_splash.h"
 #include "presenter/activity_paused.h"
+#include "presenter/synchronize.h"
 
 #include <vector>
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
@@ -33,6 +34,7 @@ StatusAndMain LayoutFactory::create() {
     auto status = std::make_shared<StatusPresenter>(display_, events_);
     auto test = std::make_shared<TestPresenter>(display_, events_);
     auto welcome = std::make_shared<WelcomePresenter>(display_, events_);
+    auto synchronize = std::make_shared<SynchronizePresenter>(display_, events_);
 
     auto activity_splash = std::make_shared<ActivitySplashPresenter>(display_, events_);
     auto select_activity = std::make_shared<SelectActivityPresenter>(display_, events_);
@@ -48,16 +50,19 @@ StatusAndMain LayoutFactory::create() {
 
     auto workout_steps = std::make_shared<WorkoutStepsPresenter>(display_, events_);
 
-    test->setNext(welcome);
-    test->setPrevious(activity_splash);
-
+    test->setNext(synchronize);
+    synchronize->setNext(welcome);
     welcome->setNext(activity_splash);
-    welcome->setPrevious(test);
-
     activity_splash->setNext(stats_splash);
-    activity_splash->setPrevious(welcome);
-    activity_splash->setMore(select_activity);
+    stats_splash->setNext(test);
 
+    test->setPrevious(stats_splash);
+    stats_splash->setPrevious(activity_splash);
+    activity_splash->setPrevious(welcome);
+    welcome->setPrevious(synchronize);
+    synchronize->setPrevious(test);
+
+    activity_splash->setMore(select_activity);
     select_activity->setMore(activity_workouts);
     select_activity->setLess(activity_splash);
 
@@ -78,8 +83,6 @@ StatusAndMain LayoutFactory::create() {
     // More - start recording, move to first page of dynamically created layout
     // Done inside activity_do_it presenter
 
-    stats_splash->setNext(test);
-    stats_splash->setPrevious(activity_splash);
     stats_splash->setMore(select_stats);
 
     select_stats->setLess(stats_splash);

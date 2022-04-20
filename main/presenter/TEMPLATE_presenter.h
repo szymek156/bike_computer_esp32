@@ -4,7 +4,7 @@
 #include "root_window.h"
 #include "listerers_interface.h"
 #include "page_presenter.h"
-#include "view/TEMPLATE_view.h"
+#include "view/TEMPLATE_view_DEPERCATED.h"
 
 #include <display.h>
 

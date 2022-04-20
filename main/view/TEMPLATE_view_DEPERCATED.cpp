@@ -1,4 +1,4 @@
-#include "TEMPLATE_view.h"
+#include "TEMPLATE_view_DEPERCATED.h"
 
 #include <paint.h>
 namespace bk {
