@@ -269,6 +269,8 @@ void FileTransferGATTS::gatts_profile_event_handler(esp_gatts_cb_event_t event,
             conn_params.timeout = 400;  // timeout = 400*10ms = 4000ms
             // start sent the update connection parameters to the peer device.
             esp_ble_gap_update_conn_params(&conn_params);
+
+            sendEvent(BLEStatusData{.status = BLEStatus::Connected});
             break;
         }
         case ESP_GATTS_CREAT_ATTR_TAB_EVT: {
@@ -357,10 +359,10 @@ void FileTransferGATTS::setEventQueue(QueueHandle_t queue) {
     this->queue_ = queue;
 }
 
-void FileTransferGATTS::sendEvent(BLEStatusData data) {
+void FileTransferGATTS::sendEvent(const BLEStatusData &data) {
     if (this->queue_ != nullptr) {
         // TODO: sooner or later mutex will be needed here
-        if (xQueueOverwrite(queue_, &data) != pdPASS) {
+        if (xQueueSendToBack(queue_, &data, 0) != pdPASS) {
                 ESP_LOGE(TAG, "Failed to send data on the queue");
         }
     }

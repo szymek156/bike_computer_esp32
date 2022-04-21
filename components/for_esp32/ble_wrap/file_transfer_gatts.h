@@ -62,7 +62,7 @@ class FileTransferGATTS {
     void setEventQueue(QueueHandle_t queue);
 
  private:
-    void sendEvent(BLEStatusData event);
+    void sendEvent(const BLEStatusData &event);
     // TODO: that will require a mutex to sync up between BT event thread, and fetching thread
     std::vector<FileInfo> files_to_sync_;
     std::unique_ptr<FileTransferTask> file_transfer_;

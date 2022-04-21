@@ -22,18 +22,18 @@
 
 static const char* TAG = "Application";
 
-void btTesting() {
-    bk::BLEService ble;
-    ble.enable();
+// void btTesting() {
+//     bk::BLEService ble;
+//     ble.enable();
 
-    ESP_LOGI(TAG, "BLE enabled...");
+//     ESP_LOGI(TAG, "BLE enabled...");
 
-    bk::HealthService::reportAll();
+//     bk::HealthService::reportAll();
 
-    while (true) {
-        vTaskDelay(pdMS_TO_TICKS(2000));
-    }
-}
+//     while (true) {
+//         vTaskDelay(pdMS_TO_TICKS(2000));
+//     }
+// }
 
 void initializeNVS() {
         esp_err_t ret = nvs_flash_init();
@@ -49,8 +49,6 @@ void StartApplication() {
 
     initializeNVS();
 
-    // btTesting();
-
     bk::Display display;
 
     display.start();
@@ -59,10 +57,9 @@ void StartApplication() {
     bk::GNSS gnss;
     bk::Keypad keypad;
     bk::TimeService time_service;
-    bk::BLEService ble;
 
     bk::EventDispatcher dispatcher(
-        weather.getQueue(), gnss.getQueue(), keypad.getQueue(), time_service.getQueue(), ble.getQueue());
+        weather.getQueue(), gnss.getQueue(), keypad.getQueue(), time_service.getQueue(), bk::BLEService::instance().getQueue());
 
     time_service.setEventDispatcher(&dispatcher);
     // TODO: This is a dangling pointer - in theory

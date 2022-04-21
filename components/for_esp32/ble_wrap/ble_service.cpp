@@ -92,6 +92,16 @@ static esp_ble_adv_data_t scan_rsp_data = {
     .flag = (ESP_BLE_ADV_FLAG_GEN_DISC | ESP_BLE_ADV_FLAG_BREDR_NOT_SPT),
 };
 
+static void sendEvent(BLEStatus status) {
+    auto queue = BLEService::instance().getQueue();
+
+    auto status_event = BLEStatusData{.status = status};
+
+    if (xQueueSendToBack(queue, &status_event, 0) != pdPASS) {
+        ESP_LOGE(TAG, "Failed to send BLE event");
+    }
+}
+
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param) {
     ESP_LOGI(TAG, "gap event %x", event);
     switch (event) {
@@ -114,6 +124,8 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
                 ESP_LOGE(TAG, "advertising start failed");
             } else {
                 ESP_LOGI(TAG, "advertising start successfully");
+
+                sendEvent(BLEStatus::Advertising);
             }
             break;
         case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT:
@@ -203,17 +215,14 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
     }
 }
 
+
 void BLEService::enable() {
     ESP_LOGI(TAG, "Enabling BT...");
-    // esp_err_t ret;
+    if (enabled_) {
+        ESP_LOGW(TAG, "BT already enabled");
 
-    // /* Initialize NVS. */
-    // ret = nvs_flash_init();
-    // if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-    //     ESP_ERROR_CHECK(nvs_flash_erase());
-    //     ret = nvs_flash_init();
-    // }
-    // ESP_ERROR_CHECK(ret);
+        return;
+    }
 
     // If the app calls esp_bt_controller_enable(ESP_BT_MODE_BLE) to use BLE only then it is safe to
     // call esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT) at initialization time to free
@@ -243,12 +252,24 @@ void BLEService::enable() {
     ESP_ERROR_CHECK(esp_ble_gatt_set_local_mtu(500));
 
     ESP_LOGI(TAG, "BT enabled.");
+
+    BLEStatusData status_event{.status = BLEStatus::On};
+
+    if (xQueueSendToBack(getQueue(), &status_event, 0) != pdPASS) {
+        ESP_LOGE(TAG, "Failed to send BLE enable event");
+    }
 }
 
-BLEService::BLEService() : AbstractTask(sizeof(BLEStatusData)) {
+BLEService& BLEService::instance() {
+    // As long as it's called only from event dispatcher thread, no synchronization is fine.
+    static BLEService service;
+
+    return service;
+}
+
+BLEService::BLEService() : AbstractTask(sizeof(BLEStatusData), 10), enabled_(false) {
     // There is no clean way to do that, because of static callbacks,
     // so yeah, inject the queue to the static object
-
     gatts_.setEventQueue(this->getQueue());
 }
 
@@ -261,7 +282,14 @@ void BLEService::run() {
 }
 
 void BLEService::disable() {
+    BLEStatusData status_event{.status = BLEStatus::Off};
+
+    if (xQueueSendToBack(getQueue(), &status_event, 0) != pdPASS) {
+        ESP_LOGE(TAG, "Failed to send BLE disable event");
+    }
+
     // TODO: Implement
+    // enabled_ = false;
 }
 
 

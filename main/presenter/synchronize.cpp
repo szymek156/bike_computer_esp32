@@ -1,7 +1,9 @@
 #include "synchronize.h"
 
-#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+#include "ble_service.h"
 #include <paint.h>
+
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include <esp_log.h>
 
 namespace bk {
@@ -89,9 +91,12 @@ void SynchronizePresenter::onButtonPressed(const KeypadData &data) {
     } else if (data.rd_pressed) {
         // events_->widgetEvent(WidgetData{.new_widget = WidgetData::more});
         // TODO: enable bluetooth
+        BLEService::instance().enable();
     } else if (data.ld_pressed) {
         // events_->widgetEvent(WidgetData{.new_widget = WidgetData::less});
         // TODO: disable bluetooth
+        BLEService::instance().disable();
+
     }
 }
 }  // namespace bk

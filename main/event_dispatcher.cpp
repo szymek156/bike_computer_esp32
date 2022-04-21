@@ -57,15 +57,6 @@ void EventDispatcher::EventDispatcher::listenForEvents() {
         if (xQueueReceive(time_q_, &time_data, 0) == pdPASS) {
             ESP_LOGV(TAG, "Got TimeService event");
 
-            // TODO: remove
-            static int fake_event = 0;
-            BLEStatusData fake {.status = static_cast<BLEStatus>(fake_event)};
-            fake_event = (fake_event + 1) % 4;
-
-            if (xQueueSendToBack(bluetooth_q_, &fake, 0) != pdPASS) {
-                ESP_LOGE(TAG, "Failed to send fake data");
-            }
-
             notifyTime(time_data);
         }
 
