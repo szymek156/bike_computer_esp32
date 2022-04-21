@@ -42,6 +42,7 @@
   - [ ] Do refactor
 - Other Software
   - [x] Create a tool to do GUI mockups fast
+  - [x] Do a client that fetches FIT file over BLE
   - [ ] Create a tool to make Workout FIT or ZWO files (WASM?)
   - [ ] Create charts (WASM?)
 
