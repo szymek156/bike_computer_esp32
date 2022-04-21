@@ -1,4 +1,4 @@
-#include "ble_wrapper.h"
+#include "ble_service.h"
 
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include <cstring>
@@ -203,7 +203,7 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
     }
 }
 
-void BLEWrapper::enable() {
+void BLEService::enable() {
     ESP_LOGI(TAG, "Enabling BT...");
     // esp_err_t ret;
 
@@ -245,7 +245,22 @@ void BLEWrapper::enable() {
     ESP_LOGI(TAG, "BT enabled.");
 }
 
-void BLEWrapper::disable() {
+BLEService::BLEService() : AbstractTask(sizeof(BLEStatusData)) {
+    // There is no clean way to do that, because of static callbacks,
+    // so yeah, inject the queue to the static object
+
+    gatts_.setEventQueue(this->getQueue());
+}
+
+void BLEService::start() {
+    start_execution(TAG);
+}
+
+void BLEService::run() {
+
+}
+
+void BLEService::disable() {
     // TODO: Implement
 }
 

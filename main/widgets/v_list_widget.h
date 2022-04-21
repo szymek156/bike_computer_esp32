@@ -20,6 +20,8 @@ class VListWidget {
     void goDown();
     void goUp();
 
+    void clearSelection();
+
     std::string getCurrentSelection();
     size_t getCurrentSelectionIdx();
 

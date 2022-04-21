@@ -107,4 +107,14 @@ struct ActivityData {
 struct FileTransferData {
 
 };
+
+enum class BLEStatus {
+    Off,
+    On,
+    Advertising,
+    Connected,
+};
+struct BLEStatusData {
+    BLEStatus status;
+};
 }  // namespace bk

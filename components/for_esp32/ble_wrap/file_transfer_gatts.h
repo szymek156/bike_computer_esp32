@@ -3,7 +3,7 @@
 #include <vector>
 #include <fs_wrapper.h>
 #include "file_transfer_task.h"
-
+#include "sensor_data.h"
 // @brief GATTS implementing file transfer.
 // There are 2 characteristics, one with read/write permission
 // Upon read it lists files that are avaliable to get
@@ -58,10 +58,15 @@ class FileTransferGATTS {
     // @return number of bytes written to the buffer
     size_t storeFilesToSync(char *buffer);
 
+    // @brief Sets queue used to broadcast BT events
+    void setEventQueue(QueueHandle_t queue);
+
  private:
+    void sendEvent(BLEStatusData event);
     // TODO: that will require a mutex to sync up between BT event thread, and fetching thread
     std::vector<FileInfo> files_to_sync_;
     std::unique_ptr<FileTransferTask> file_transfer_;
+    QueueHandle_t queue_;
 };
 
 }  // namespace bk

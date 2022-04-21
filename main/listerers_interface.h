@@ -32,4 +32,9 @@ class ActivityDataListener {
     virtual void onActivityData(const ActivityData &data) = 0;
 };
 
+class BluetoothEventListener {
+ public:
+    virtual void onBluetoothChange(const BLEStatusData &data) = 0;
+};
+
 }  // namespace bk

@@ -113,7 +113,8 @@ FileTransferGATTS::FileTransferGATTS()
                 sizeof(char_value),
                 (uint8_t *)char_value}},
       },
-      handle_table{} {
+      handle_table{},
+      queue_(nullptr) {
 }
 
 
@@ -352,4 +353,16 @@ size_t FileTransferGATTS::storeFilesToSync(char *buffer) {
     return total_len;
 }
 
+void FileTransferGATTS::setEventQueue(QueueHandle_t queue) {
+    this->queue_ = queue;
+}
+
+void FileTransferGATTS::sendEvent(BLEStatusData data) {
+    if (this->queue_ != nullptr) {
+        // TODO: sooner or later mutex will be needed here
+        if (xQueueOverwrite(queue_, &data) != pdPASS) {
+                ESP_LOGE(TAG, "Failed to send data on the queue");
+        }
+    }
+}
 }  // namespace bk

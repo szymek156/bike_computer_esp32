@@ -6,11 +6,13 @@ namespace bk {
 EventDispatcher::EventDispatcher(QueueHandle_t weather,
                                  QueueHandle_t gnss,
                                  QueueHandle_t keypad,
-                                 QueueHandle_t time)
+                                 QueueHandle_t time,
+                                 QueueHandle_t bluetooth)
     : weather_q_(weather),
       gnss_q_(gnss),
       keypad_q_(keypad),
       time_q_(time),
+      bluetooth_q_(bluetooth),
       widget_q_(xQueueCreate(1, sizeof(WidgetData))),
       activity_q_(xQueueCreate(1, sizeof(ActivityData))) {
 }
@@ -27,6 +29,7 @@ void EventDispatcher::EventDispatcher::listenForEvents() {
     TimeData time_data = {};
     WidgetData widget_data = {};
     ActivityData activity_data = {};
+    BLEStatusData ble_data = {};
 
     static const TickType_t TIMEOUT = pdMS_TO_TICKS(20);
 
@@ -53,12 +56,27 @@ void EventDispatcher::EventDispatcher::listenForEvents() {
 
         if (xQueueReceive(time_q_, &time_data, 0) == pdPASS) {
             ESP_LOGV(TAG, "Got TimeService event");
+
+            // TODO: remove
+            static int fake_event = 0;
+            BLEStatusData fake {.status = static_cast<BLEStatus>(fake_event)};
+            fake_event = (fake_event + 1) % 4;
+
+            if (xQueueSendToBack(bluetooth_q_, &fake, 0) != pdPASS) {
+                ESP_LOGE(TAG, "Failed to send fake data");
+            }
+
             notifyTime(time_data);
         }
 
         if (xQueueReceive(activity_q_, &activity_data, 0) == pdPASS) {
             ESP_LOGV(TAG, "Got Activity event");
             notifyActivityData(activity_data);
+        }
+
+        if (xQueueReceive(bluetooth_q_, &ble_data, 0) == pdPASS) {
+            ESP_LOGV(TAG, "Got Bluetooth event");
+            notifyBluetoothEvent(ble_data);
         }
     }
 }
@@ -87,6 +105,10 @@ void EventDispatcher::subForActivityData(ActivityDataListener *listener) {
     activity_listeners_.insert(listener);
 }
 
+void  EventDispatcher::subForBLEEvents(BluetoothEventListener *listener){
+    bluetooth_listeners_.insert(listener);
+}
+
 void EventDispatcher::unSubForKeypad(KeypadListener *listener) {
     keypad_listeners_.erase(listener);
 }
@@ -109,6 +131,10 @@ void EventDispatcher::unSubForWidgetChange(WidgetListener *listener) {
 
 void EventDispatcher::unSubForActivityData(ActivityDataListener *listener) {
     activity_listeners_.erase(listener);
+}
+
+void EventDispatcher::unSubForBLEEvents(BluetoothEventListener *listener) {
+    bluetooth_listeners_.erase(listener);
 }
 
 void EventDispatcher::widgetEvent(const WidgetData &data) {
@@ -156,6 +182,12 @@ void EventDispatcher::notifyWidgetChange(const WidgetData &data) {
 void EventDispatcher::notifyActivityData(const ActivityData &data) {
     for (auto *observer : activity_listeners_) {
         observer->onActivityData(data);
+    }
+}
+
+void EventDispatcher::notifyBluetoothEvent(const BLEStatusData &data) {
+    for (auto *observer : bluetooth_listeners_) {
+        observer->onBluetoothChange(data);
     }
 }
 

@@ -124,6 +124,11 @@ void VListWidget::goUp() {
     drawSelected(current_selection_);
 }
 
+void VListWidget::clearSelection() {
+    drawNotSelected(current_selection_);
+}
+
+
 std::string VListWidget::getCurrentSelection() {
     return elements_[current_selection_];
 }

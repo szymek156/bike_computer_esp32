@@ -1,6 +1,6 @@
 #include "application.h"
 
-#include "ble_wrapper.h"
+#include "ble_service.h"
 #include "event_dispatcher.h"
 #include "fs_wrapper.h"
 #include "gnss.h"
@@ -23,17 +23,7 @@
 static const char* TAG = "Application";
 
 void btTesting() {
-    esp_err_t ret;
-
-    /* Initialize NVS. */
-    ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
-
-    bk::BLEWrapper ble;
+    bk::BLEService ble;
     ble.enable();
 
     ESP_LOGI(TAG, "BLE enabled...");
@@ -45,8 +35,19 @@ void btTesting() {
     }
 }
 
+void initializeNVS() {
+        esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
+}
+
 void StartApplication() {
     bk::FSWrapper::mountStorage();
+
+    initializeNVS();
 
     // btTesting();
 
@@ -58,9 +59,10 @@ void StartApplication() {
     bk::GNSS gnss;
     bk::Keypad keypad;
     bk::TimeService time_service;
+    bk::BLEService ble;
 
     bk::EventDispatcher dispatcher(
-        weather.getQueue(), gnss.getQueue(), keypad.getQueue(), time_service.getQueue());
+        weather.getQueue(), gnss.getQueue(), keypad.getQueue(), time_service.getQueue(), ble.getQueue());
 
     time_service.setEventDispatcher(&dispatcher);
     // TODO: This is a dangling pointer - in theory
