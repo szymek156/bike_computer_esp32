@@ -24,6 +24,7 @@
     - [x] Gather data
     - [ ] Log every hour
     - [ ] Write to the file
+    - [ ] Create a GUI page with that data, useful when device will go off line
   - [ ] Consider making paint class more cache friendly
   - [ ] Figure out BLE communication
     - [X] Try to not get insane while reading esp32 BLE api
